@@ -1,0 +1,250 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Notification Preferences{% endblock %}
+
+{% block page_title %}Notification Preferences{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post">
+      {% csrf_token %}
+      
+      <!-- Email Preferences -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Email Notifications</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <label class="flex items-center gap-3">
+              {{ form.email_meeting_reminders }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Meeting Reminders</span>
+                <p class="text-xs text-gray-500">Get email notifications for upcoming meetings</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.email_voting_notifications }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Voting Notifications</span>
+                <p class="text-xs text-gray-500">Email alerts for new votes and results</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.email_document_updates }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Document Updates</span>
+                <p class="text-xs text-gray-500">Notifications when documents are shared or updated</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.email_discussion_replies }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Discussion Replies</span>
+                <p class="text-xs text-gray-500">Email alerts for discussion replies and mentions</p>
+              </div>
+            </label>
+          </div>
+          
+          <div class="space-y-4">
+            <label class="flex items-center gap-3">
+              {{ form.email_risk_alerts }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Risk Alerts</span>
+                <p class="text-xs text-gray-500">Critical risk notifications and updates</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.email_audit_alerts }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Audit Alerts</span>
+                <p class="text-xs text-gray-500">Important audit notifications</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.email_system_updates }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">System Updates</span>
+                <p class="text-xs text-gray-500">System maintenance and update notifications</p>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- In-App Preferences -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">In-App Notifications</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <label class="flex items-center gap-3">
+              {{ form.in_app_meeting_reminders }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Meeting Reminders</span>
+                <p class="text-xs text-gray-500">Show in-app notifications for meetings</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.in_app_voting_notifications }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Voting Notifications</span>
+                <p class="text-xs text-gray-500">In-app alerts for voting activities</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.in_app_document_updates }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Document Updates</span>
+                <p class="text-xs text-gray-500">In-app notifications for document changes</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.in_app_discussion_replies }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Discussion Replies</span>
+                <p class="text-xs text-gray-500">In-app alerts for discussion activity</p>
+              </div>
+            </label>
+          </div>
+          
+          <div class="space-y-4">
+            <label class="flex items-center gap-3">
+              {{ form.in_app_risk_alerts }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Risk Alerts</span>
+                <p class="text-xs text-gray-500">In-app risk notifications</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.in_app_audit_alerts }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">Audit Alerts</span>
+                <p class="text-xs text-gray-500">In-app audit notifications</p>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3">
+              {{ form.in_app_system_updates }}
+              <div>
+                <span class="text-sm font-medium text-gray-700">System Updates</span>
+                <p class="text-xs text-gray-500">In-app system notifications</p>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frequency Settings -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Email Frequency</h2>
+        <div class="max-w-md">
+          {{ form.email_frequency }}
+          <p class="text-xs text-gray-500 mt-2">How often you want to receive email notifications</p>
+        </div>
+      </div>
+
+      <!-- Quiet Hours -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Quiet Hours</h2>
+        <div class="space-y-4">
+          <label class="flex items-center gap-3">
+            {{ form.quiet_hours_enabled }}
+            <div>
+              <span class="text-sm font-medium text-gray-700">Enable Quiet Hours</span>
+              <p class="text-xs text-gray-500">Suppress non-urgent notifications during specific hours</p>
+            </div>
+          </label>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+              {{ form.quiet_hours_start }}
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+              {{ form.quiet_hours_end }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Errors -->
+      {% if form.non_field_errors %}
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-800">{{ form.non_field_errors.0 }}</p>
+        </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-4">
+        <a href="{% url 'notifications:notification_center' %}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Cancel
+        </a>
+        <button type="submit" class="px-6 py-3 text-white rounded-lg hover:opacity-90 transition-opacity" style="background-color: #7dc143;">
+          Save Preferences
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Current Settings Summary -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mt-6">
+    <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Current Settings Summary</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h4 class="text-sm font-medium text-gray-700 mb-3">Email Notifications</h4>
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Meeting Reminders</span>
+            <span class="{% if preference.email_meeting_reminders %}text-green-600{% else %}text-red-600{% endif %}">
+              {% if preference.email_meeting_reminders %}Enabled{% else %}Disabled{% endif %}
+            </span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Voting Notifications</span>
+            <span class="{% if preference.email_voting_notifications %}text-green-600{% else %}text-red-600{% endif %}">
+              {% if preference.email_voting_notifications %}Enabled{% else %}Disabled{% endif %}
+            </span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Document Updates</span>
+            <span class="{% if preference.email_document_updates %}text-green-600{% else %}text-red-600{% endif %}">
+              {% if preference.email_document_updates %}Enabled{% else %}Disabled{% endif %}
+            </span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Email Frequency</span>
+            <span class="text-gray-900 capitalize">{{ preference.get_email_frequency_display }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <h4 class="text-sm font-medium text-gray-700 mb-3">Quiet Hours</h4>
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Status</span>
+            <span class="{% if preference.quiet_hours_enabled %}text-green-600{% else %}text-gray-600{% endif %}">
+              {% if preference.quiet_hours_enabled %}Enabled{% else %}Disabled{% endif %}
+            </span>
+          </div>
+          {% if preference.quiet_hours_enabled and preference.quiet_hours_start and preference.quiet_hours_end %}
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Hours</span>
+              <span class="text-gray-900">{{ preference.quiet_hours_start }} - {{ preference.quiet_hours_end }}</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

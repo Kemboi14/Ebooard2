@@ -1,0 +1,207 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Audit Log #{{ audit_log.pk }}{% endblock %}
+
+{% block page_title %}Audit Log Details{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Log Header -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-2xl font-bold" style="color: #2d1b5e;">{{ audit_log.description }}</h1>
+          <span class="px-3 py-1 text-sm font-medium rounded-full
+            {% if audit_log.severity == 'critical' %}
+              bg-red-100 text-red-800
+            {% elif audit_log.severity == 'high' %}
+              bg-orange-100 text-orange-800
+            {% elif audit_log.severity == 'medium' %}
+              bg-yellow-100 text-yellow-800
+            {% else %}
+              bg-green-100 text-green-800
+            {% endif %}">
+            {{ audit_log.get_severity_display }}
+          </span>
+          {% if not audit_log.success %}
+            <span class="px-3 py-1 text-sm font-medium bg-red-100 text-red-800 rounded-full">
+              Failed
+            </span>
+          {% endif %}
+        </div>
+        
+        <div class="flex items-center gap-4 text-sm text-gray-500">
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            {{ audit_log.user.get_full_name|default:"System" }}
+          </span>
+          
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+            </svg>
+            {{ audit_log.get_action_display }}
+          </span>
+          
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            {{ audit_log.get_module_display }}
+          </span>
+          
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ audit_log.timestamp|date:"M d, Y H:i:s" }}
+          </span>
+        </div>
+      </div>
+      
+      <a href="{% url 'audit:audit_list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+        Back to List
+      </a>
+    </div>
+  </div>
+
+  <!-- Detailed Information -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Request Information -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Request Information</h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-600">IP Address:</span>
+          <span class="font-medium">{{ audit_log.ip_address|default:"N/A" }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">User Agent:</span>
+          <span class="font-medium truncate max-w-xs" title="{{ audit_log.user_agent }}">
+            {{ audit_log.user_agent|default:"N/A"|truncatechars:50 }}
+          </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Session Key:</span>
+          <span class="font-medium">{{ audit_log.session_key|default:"N/A" }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Request ID:</span>
+          <span class="font-medium">{{ audit_log.request_id|default:"N/A" }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Success:</span>
+          <span class="font-medium {% if audit_log.success %}text-green-600{% else %}text-red-600{% endif %}">
+            {% if audit_log.success %}Yes{% else %}No{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Object Information -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Object Information</h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-600">Object Type:</span>
+          <span class="font-medium">{{ audit_log.object_type }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Object ID:</span>
+          <span class="font-medium">{{ audit_log.object_id|default:"N/A" }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Object:</span>
+          <span class="font-medium truncate max-w-xs" title="{{ audit_log.object_repr }}">
+            {{ audit_log.object_repr }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details and Changes -->
+  {% if audit_log.details or audit_log.changes_summary %}
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Details & Changes</h2>
+    
+    {% if audit_log.details %}
+    <div class="mb-4">
+      <h3 class="text-sm font-medium text-gray-700 mb-2">Description</h3>
+      <p class="text-gray-600 bg-gray-50 p-3 rounded-lg">{{ audit_log.details }}</p>
+    </div>
+    {% endif %}
+    
+    {% if audit_log.changes_summary %}
+    <div class="mb-4">
+      <h3 class="text-sm font-medium text-gray-700 mb-2">Changes Made</h3>
+      <p class="text-blue-600 bg-blue-50 p-3 rounded-lg">{{ audit_log.changes_summary }}</p>
+    </div>
+    {% endif %}
+    
+    {% if audit_log.old_values or audit_log.new_values %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {% if audit_log.old_values %}
+      <div>
+        <h3 class="text-sm font-medium text-gray-700 mb-2">Previous Values</h3>
+        <div class="bg-gray-50 p-3 rounded-lg">
+          <pre class="text-xs text-gray-600 whitespace-pre-wrap">{{ audit_log.old_values|pprint }}</pre>
+        </div>
+      </div>
+      {% endif %}
+      
+      {% if audit_log.new_values %}
+      <div>
+        <h3 class="text-sm font-medium text-gray-700 mb-2">New Values</h3>
+        <div class="bg-gray-50 p-3 rounded-lg">
+          <pre class="text-xs text-gray-600 whitespace-pre-wrap">{{ audit_log.new_values|pprint }}</pre>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Error Information -->
+  {% if not audit_log.success and audit_log.error_message %}
+  <div class="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4 text-red-800">Error Information</h2>
+    <p class="text-red-700 bg-red-100 p-3 rounded-lg">{{ audit_log.error_message }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Metadata -->
+  {% if audit_log.metadata %}
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Additional Metadata</h2>
+    <div class="bg-gray-50 p-3 rounded-lg">
+      <pre class="text-xs text-gray-600 whitespace-pre-wrap">{{ audit_log.metadata|pprint }}</pre>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Related Activity -->
+  {% if related_logs %}
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Related Activity</h2>
+    <div class="space-y-3">
+      {% for related_log in related_logs %}
+      <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+        <div class="flex items-center gap-3">
+          <span class="text-sm font-medium">{{ related_log.description }}</span>
+          <span class="text-xs text-gray-500">{{ related_log.timestamp|date:"M d, Y H:i" }}</span>
+        </div>
+        <a href="{% url 'audit:audit_detail' related_log.pk %}" class="text-sm text-blue-600 hover:text-blue-800">
+          View
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

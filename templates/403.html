@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied | Enwealth E-Board</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --color-primary: #1a0a3c;
+            --color-accent: #7dc143;
+            --color-accent-dark: #5a8a3c;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center" style="background-color: #1a0a3c;">
+    <div class="max-w-md w-full">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 text-center">
+            <!-- Lock Icon -->
+            <div class="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background-color: #fee2e2;">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            
+            <!-- Error Message -->
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Access Denied</h1>
+            <p class="text-gray-600 mb-8">
+                You don't have permission to access this page. Please contact your administrator if you believe this is an error.
+            </p>
+            
+            <!-- Action Buttons -->
+            <div class="space-y-4">
+                <a href="{% url 'dashboard' %}" 
+                   class="w-full inline-flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors duration-200"
+                   style="background-color: #7dc143;"
+                   onmouseover="this.style.backgroundColor='#5a8a3c'"
+                   onmouseout="this.style.backgroundColor='#7dc143'">
+                    Go to Dashboard
+                </a>
+                
+                <a href="{% url 'accounts:login' %}" 
+                   class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Sign in as different user
+                </a>
+            </div>
+            
+            <!-- Help Text -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <p class="text-xs text-gray-500">
+                    If you need assistance, please contact your system administrator or IT support.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-6">
+            <p class="text-xs text-gray-400">
+                © 2026 Enwealth Financial Services. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

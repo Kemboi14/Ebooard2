@@ -1,0 +1,163 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block page_title %}Notification Details{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Notification Card -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-start gap-4">
+      <!-- Priority Indicator -->
+      <div class="flex-shrink-0 mt-1">
+        {% if notification.priority == 'urgent' %}
+          <div class="w-4 h-4 rounded-full bg-red-500"></div>
+        {% elif notification.priority == 'high' %}
+          <div class="w-4 h-4 rounded-full bg-orange-500"></div>
+        {% elif notification.priority == 'normal' %}
+          <div class="w-4 h-4 rounded-full bg-blue-500"></div>
+        {% else %}
+          <div class="w-4 h-4 rounded-full bg-gray-300"></div>
+        {% endif %}
+      </div>
+      
+      <!-- Notification Content -->
+      <div class="flex-1">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-bold text-gray-900">{{ notification.title }}</h1>
+            
+            <span class="px-3 py-1 text-sm font-medium rounded-full
+              {% if notification.notification_type == 'meeting_reminder' %}
+                bg-blue-100 text-blue-800
+              {% elif notification.notification_type == 'voting_open' or notification.notification_type == 'voting_close' %}
+                bg-green-100 text-green-800
+              {% elif notification.notification_type == 'voting_result' %}
+                bg-purple-100 text-purple-800
+              {% elif notification.notification_type == 'risk_alert' %}
+                bg-red-100 text-red-800
+              {% elif notification.notification_type == 'document_shared' or notification.notification_type == 'document_updated' %}
+                bg-yellow-100 text-yellow-800
+              {% elif notification.notification_type == 'discussion_reply' or notification.notification_type == 'discussion_mention' %}
+                bg-indigo-100 text-indigo-800
+              {% elif notification.notification_type == 'system_update' %}
+                bg-gray-100 text-gray-800
+              {% elif notification.notification_type == 'security_alert' %}
+                bg-red-100 text-red-800
+              {% else %}
+                bg-orange-100 text-orange-800
+              {% endif %}">
+              {{ notification.get_notification_type_display }}
+            </span>
+            
+            {% if not notification.is_read %}
+              <span class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">New</span>
+            {% endif %}
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500 capitalize">{{ notification.priority }} priority</span>
+          </div>
+        </div>
+        
+        <div class="prose max-w-none mb-6">
+          <p class="text-gray-700 text-lg">{{ notification.message }}</p>
+        </div>
+        
+        <!-- Related Object -->
+        {% if notification.related_object %}
+          <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Related Item</h3>
+            <p class="text-gray-600">{{ notification.related_object }}</p>
+          </div>
+        {% endif %}
+        
+        <!-- Metadata -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Created</h3>
+            <p class="text-gray-600">{{ notification.created_at|date:"F d, Y H:i" }}</p>
+          </div>
+          
+          {% if notification.read_at %}
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Read</h3>
+            <p class="text-gray-600">{{ notification.read_at|date:"F d, Y H:i" }}</p>
+          </div>
+          {% endif %}
+          
+          {% if notification.expires_at %}
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Expires</h3>
+            <p class="text-gray-600">{{ notification.expires_at|date:"F d, Y H:i" }}</p>
+          </div>
+          {% endif %}
+          
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Status</h3>
+            <p class="text-gray-600">
+              {% if notification.is_expired %}
+                <span class="text-red-600">Expired</span>
+              {% elif notification.is_read %}
+                <span class="text-green-600">Read</span>
+              {% else %}
+                <span class="text-blue-600">Unread</span>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        
+        <!-- Action Button -->
+        {% if notification.action_url %}
+          <div class="mb-6">
+            <a href="{{ notification.action_url }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              View Related Item
+            </a>
+          </div>
+        {% endif %}
+        
+        <!-- Actions -->
+        <div class="flex gap-3 pt-6 border-t border-gray-200">
+          {% if not notification.is_read %}
+            <a href="{% url 'notifications:mark_read' notification.pk %}" 
+               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Mark as Read
+            </a>
+          {% else %}
+            <a href="{% url 'notifications:mark_unread' notification.pk %}" 
+               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+              Mark as Unread
+            </a>
+          {% endif %}
+          
+          <a href="{% url 'notifications:delete' notification.pk %}" 
+             class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+            Delete
+          </a>
+          
+          <a href="{% url 'notifications:notification_list' %}" 
+             class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+            Back to List
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Information -->
+  {% if notification.metadata %}
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Additional Information</h2>
+    <div class="space-y-2">
+      {% for key, value in notification.metadata.items %}
+        <div class="flex justify-between py-2 border-b border-gray-100">
+          <span class="text-sm font-medium text-gray-700">{{ key|title }}</span>
+          <span class="text-sm text-gray-600">{{ value }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

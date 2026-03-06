@@ -1,0 +1,130 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if is_update %}Update{% else %}Create{% endif %} Tag{% endblock %}
+
+{% block page_title %}{% if is_update %}Update{% else %}Create{% endif %} Tag{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post">
+      {% csrf_token %}
+      
+      <!-- Tag Information -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Tag Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tag Name *</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Short, descriptive name for the tag</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Color *</label>
+            {{ form.color }}
+            {% if form.color.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.color.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Hex color code (e.g., #007bff)</p>
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Optional description of what this tag represents</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color Preview -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Preview</h3>
+        <div class="p-6 border border-gray-200 rounded-lg">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center" id="color-preview" style="background-color: #007bff;">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-lg font-medium text-gray-900" id="name-preview">Tag Name</p>
+              <p class="text-sm text-gray-500" id="description-preview">Tag description will appear here</p>
+            </div>
+          </div>
+          
+          <div class="mt-4">
+            <p class="text-sm text-gray-600 mb-2">How it looks in threads:</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-2 py-1 text-xs rounded-full" id="thread-preview" style="background-color: #007bff20; color: #007bff;">
+                Tag Name
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Errors -->
+      {% if form.non_field_errors %}
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-800">{{ form.non_field_errors.0 }}</p>
+        </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-4">
+        <a href="{% url 'discussions:tag_list' %}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Cancel
+        </a>
+        <button type="submit" class="px-6 py-3 text-white rounded-lg hover:opacity-90 transition-opacity" style="background-color: #7dc143;">
+          {% if is_update %}Update Tag{% else %}Create Tag{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const nameInput = document.querySelector('input[name="name"]');
+  const colorInput = document.querySelector('input[name="color"]');
+  const descriptionInput = document.querySelector('textarea[name="description"]');
+  
+  const namePreview = document.getElementById('name-preview');
+  const colorPreview = document.getElementById('color-preview');
+  const descriptionPreview = document.getElementById('description-preview');
+  const threadPreview = document.getElementById('thread-preview');
+  
+  function updatePreview() {
+    // Update name preview
+    const name = nameInput.value || 'Tag Name';
+    namePreview.textContent = name;
+    threadPreview.textContent = name;
+    
+    // Update color preview
+    const color = colorInput.value || '#007bff';
+    colorPreview.style.backgroundColor = color;
+    threadPreview.style.backgroundColor = color + '20';
+    threadPreview.style.color = color;
+    
+    // Update description preview
+    const description = descriptionInput.value || 'Tag description will appear here';
+    descriptionPreview.textContent = description;
+  }
+  
+  // Add event listeners
+  nameInput.addEventListener('input', updatePreview);
+  colorInput.addEventListener('input', updatePreview);
+  descriptionInput.addEventListener('input', updatePreview);
+  
+  // Initialize preview
+  updatePreview();
+});
+</script>
+{% endblock %}

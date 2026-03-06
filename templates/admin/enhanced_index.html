@@ -1,0 +1,187 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/enhanced_admin.css' %}">{% endblock %}
+
+{% block bodyclass %}enhanced-admin{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="color: #2d1b5e; margin-right: 12px; vertical-align: middle;">
+            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+        </svg>
+        Enwealth Board Portal
+    </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}
+{% if user.is_authenticated %}
+<div id="user-tools">
+    <span style="margin-right: 16px;">
+        <strong>{{ user.get_full_name|default:user.username }}</strong>
+        <span style="color: #6c757d; margin-left: 8px;">
+            {{ user.role|title }}
+        </span>
+    </span>
+    
+    {% if user.mfa_enabled %}
+    <span style="color: #28a745; margin-right: 16px;" title="MFA Enabled">
+        🔐
+    </span>
+    {% endif %}
+    
+    <a href="{% url 'accounts:profile' %}" style="color: #2d1b5e !important;">Profile</a>
+    <a href="{% url 'accounts:change_password' %}" style="color: #2d1b5e !important;">Change Password</a>
+    <a href="{% url 'accounts:enable_2fa' %}" style="color: #2d1b5e !important;">2FA Settings</a>
+    {% if user.is_authenticated %}
+    <a href="{% url 'accounts:logout' %}" style="color: #dc3545 !important;">Log out</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block nav-sidebar %}
+{% if has_permission %}
+<div id="nav-sidebar">
+    <div class="app-list">
+        <div class="app-list__item">
+            <a href="{% url 'admin:index' %}" class="app-list__item--active">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c-.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                </svg>
+                Dashboard
+            </a>
+        </div>
+        
+        <div class="app-list__item">
+            <a href="{% url 'admin:apps_accounts_user_changelist' %}">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                Users
+            </a>
+        </div>
+        
+        <div class="app-list__item">
+            <a href="{% url 'admin:apps_evaluation_evaluation_changelist' %}">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                Evaluations
+            </a>
+        </div>
+        
+        <div class="app-list__item">
+            <a href="{% url 'admin:apps_meetings_meeting_changelist' %}">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Meetings
+            </a>
+        </div>
+        
+        <div class="app-list__item">
+            <a href="{% url 'admin:apps_documents_document_changelist' %}">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Documents
+            </a>
+        </div>
+        
+        <div class="app-list__item">
+            <a href="{% url 'admin:apps_voting_resolution_changelist' %}">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Voting
+            </a>
+        </div>
+        
+        <div class="app-list__item">
+            <a href="{% url 'admin:apps_discussions_post_changelist' %}">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                Discussions
+            </a>
+        </div>
+        
+        <div class="app-list__item">
+            <a href="{% url 'admin:apps_audit_securitylog_changelist' %}">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                Audit Logs
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="dashboard fade-in">
+    {% if user.is_authenticated and user.is_staff %}
+    <div class="module" style="text-align: center; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));">
+        <h2 style="margin-bottom: 20px; color: #2d1b5e;">Welcome to Enhanced Admin</h2>
+        <p style="font-size: 16px; color: #6c757d; margin-bottom: 24px;">
+            Manage your Enwealth Board Portal with our improved admin interface
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <a href="{% url 'admin:apps_accounts_user_changelist' %}" 
+               style="background: white; padding: 20px; border-radius: 12px; text-decoration: none; color: #2d1b5e; font-weight: 600; transition: all 0.3s ease; display: block; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);"
+               onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.1)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.05)'">
+                <div style="font-size: 24px; margin-bottom: 8px;">👥</div>
+                <div>User Management</div>
+                <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">Manage users and permissions</div>
+            </a>
+            
+            <a href="{% url 'admin:apps_evaluation_evaluation_changelist' %}" 
+               style="background: white; padding: 20px; border-radius: 12px; text-decoration: none; color: #2d1b5e; font-weight: 600; transition: all 0.3s ease; display: block; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);"
+               onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.1)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.05)'">
+                <div style="font-size: 24px; margin-bottom: 8px;">📋</div>
+                <div>Evaluations</div>
+                <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">Board evaluation management</div>
+            </a>
+            
+            <a href="{% url 'admin:apps_meetings_meeting_changelist' %}" 
+               style="background: white; padding: 20px; border-radius: 12px; text-decoration: none; color: #2d1b5e; font-weight: 600; transition: all 0.3s ease; display: block; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);"
+               onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.1)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.05)'">
+                <div style="font-size: 24px; margin-bottom: 8px;">📅</div>
+                <div>Meetings</div>
+                <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">Schedule and manage meetings</div>
+            </a>
+            
+            <a href="{% url 'admin:apps_documents_document_changelist' %}" 
+               style="background: white; padding: 20px; border-radius: 12px; text-decoration: none; color: #2d1b5e; font-weight: 600; transition: all 0.3s ease; display: block; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);"
+               onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.1)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.05)'">
+                <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
+                <div>Documents</div>
+                <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">Document management</div>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+    
+    {{ block content_main }}{{ block.content_end }}
+</div>
+{% endblock %}
+
+{% block footer %}
+<div id="footer" style="background: rgba(255, 255, 255, 0.9); padding: 20px; text-align: center; border-top: 1px solid rgba(0, 0, 0, 0.05);">
+    <p style="color: #6c757d; margin: 0;">
+        © {% now "Y" %} Enwealth Board Portal - Enhanced Admin Interface
+    </p>
+    <div style="margin-top: 8px;">
+        <a href="/" style="color: #667eea; text-decoration: none; margin-right: 16px;">Back to Portal</a>
+        <a href="{% url 'accounts:admin_dashboard' %}" style="color: #667eea; text-decoration: none;">Admin Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Cleanup Audit Logs{% endblock %}
+
+{% block page_title %}Cleanup Audit Logs{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Warning Header -->
+  <div class="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+    <div class="flex items-start gap-3">
+      <svg class="w-6 h-6 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+      </svg>
+      <div>
+        <h3 class="font-medium text-red-900">Warning: This action cannot be undone</h3>
+        <p class="text-sm text-red-800 mt-1">
+          Deleting audit logs will permanently remove them from the system. This action is irreversible and may affect compliance reporting.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post">
+      {% csrf_token %}
+      
+      <h2 class="text-lg font-semibold mb-6" style="color: #2d1b5e;">Cleanup Configuration</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Retention Period (days)</label>
+          <input type="number" name="days" value="365" min="1" max="3650" required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+          <p class="mt-1 text-sm text-gray-500">Delete logs older than this many days</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Module</label>
+          <select name="module" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+            <option value="all">All Modules</option>
+            <option value="accounts">Accounts</option>
+            <option value="meetings">Meetings</option>
+            <option value="documents">Documents</option>
+            <option value="voting">Voting</option>
+            <option value="risk">Risk Management</option>
+            <option value="policy">Policies</option>
+            <option value="audit">Audit Trail</option>
+            <option value="system">System</option>
+          </select>
+          <p class="mt-1 text-sm text-gray-500">Select specific module or all modules</p>
+        </div>
+      </div>
+
+      <!-- Preview Section -->
+      <div class="bg-gray-50 rounded-lg p-4 mb-6">
+        <h3 class="text-sm font-medium text-gray-700 mb-2">Preview</h3>
+        <p class="text-sm text-gray-600">
+          This will delete all audit logs older than 
+          <span id="preview-days" class="font-medium">365</span> days
+          from <span id="preview-module" class="font-medium">all modules</span>.
+        </p>
+        <p class="text-xs text-red-600 mt-2">
+          ⚠️ This action is permanent and cannot be undone.
+        </p>
+      </div>
+
+      <!-- Confirmation -->
+      <div class="mb-6">
+        <label class="flex items-center">
+          <input type="checkbox" name="confirm" required class="mr-2">
+          <span class="text-sm text-gray-700">
+            I understand that this action is permanent and cannot be undone
+          </span>
+        </label>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-4">
+        <a href="{% url 'audit:audit_list' %}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Cancel
+        </a>
+        <button type="submit" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+          Delete Logs
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.querySelector('input[name="days"]').addEventListener('input', function() {
+  document.getElementById('preview-days').textContent = this.value || '365';
+});
+
+document.querySelector('select[name="module"]').addEventListener('change', function() {
+  const moduleText = this.options[this.selectedIndex].text;
+  document.getElementById('preview-module').textContent = moduleText;
+});
+</script>
+{% endblock %}

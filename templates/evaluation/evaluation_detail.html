@@ -1,0 +1,263 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ evaluation.template.name }} - {{ evaluation.evaluatee.get_full_name }}{% endblock %}
+
+{% block page_title %}Evaluation Details{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Evaluation Header -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-2xl font-bold" style="color: #2d1b5e;">{{ evaluation.template.name }}</h1>
+          <span class="px-3 py-1 text-sm font-medium rounded-full
+            {% if evaluation.status == 'approved' %}
+              bg-green-100 text-green-800
+            {% elif evaluation.status == 'submitted' %}
+              bg-blue-100 text-blue-800
+            {% elif evaluation.status == 'in_progress' %}
+              bg-yellow-100 text-yellow-800
+            {% elif evaluation.status == 'draft' %}
+              bg-gray-100 text-gray-800
+            {% elif evaluation.status == 'rejected' %}
+              bg-red-100 text-red-800
+            {% else %}
+              bg-purple-100 text-purple-800
+            {% endif %}">
+            {{ evaluation.get_status_display }}
+          </span>
+          {% if evaluation.is_overdue %}
+            <span class="px-3 py-1 text-sm font-medium bg-red-100 text-red-800 rounded-full">
+              Overdue
+            </span>
+          {% endif %}
+        </div>
+        
+        <div class="flex items-center gap-4 text-sm text-gray-500">
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            {{ evaluation.evaluator.get_full_name }} → {{ evaluation.evaluatee.get_full_name }}
+          </span>
+          
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            {{ evaluation.evaluation_period }}
+          </span>
+          
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ evaluation.start_date|date:"M d, Y" }} - {{ evaluation.end_date|date:"M d, Y" }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="flex gap-2">
+        {% if can_edit %}
+          <a href="{% url 'evaluation:take_evaluation' evaluation.pk %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            {% if evaluation.status == 'draft' %}Start Evaluation{% else %}Continue{% endif %}
+          </a>
+        {% endif %}
+        
+        {% if evaluation.status == 'in_progress' and evaluation.evaluator == user %}
+          <a href="{% url 'evaluation:submit_evaluation' evaluation.pk %}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            Submit
+          </a>
+        {% endif %}
+        
+        {% if evaluation.status == 'submitted' and user.role in 'company_secretary,compliance_officer' %}
+          <a href="{% url 'evaluation:review_evaluation' evaluation.pk %}" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+            Review
+          </a>
+        {% endif %}
+        
+        <a href="{% url 'evaluation:evaluation_list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Back
+        </a>
+      </div>
+    </div>
+    
+    <!-- Score Display -->
+    {% if evaluation.percentage_score %}
+    <div class="border-t border-gray-200 pt-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-gray-700">Overall Score</span>
+        <span class="text-lg font-bold">{{ evaluation.percentage_score|floatformat:1 }}%</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-3">
+        <div class="bg-blue-600 h-3 rounded-full" style="width: {% widthratio evaluation.percentage_score 100 100 %}%"></div>
+      </div>
+      <div class="flex justify-between text-xs text-gray-500 mt-1">
+        <span>{{ evaluation.total_score|floatformat:1 }} / {{ evaluation.max_possible_score|floatformat:1 }}</span>
+        <span>Passing: {{ evaluation.template.passing_score }}%</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Questions and Answers -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Questions & Answers</h2>
+    
+    <div class="space-y-6">
+      {% for answer in answers %}
+      <div class="border border-gray-200 rounded-lg p-4">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-sm font-medium text-gray-500">Question {{ forloop.counter }}</span>
+              {% if answer.question.category %}
+                <span class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+                  {{ answer.question.category }}
+                </span>
+              {% endif %}
+              {% if answer.question.is_required %}
+                <span class="text-xs text-red-600">Required</span>
+              {% endif %}
+            </div>
+            <h3 class="font-medium text-gray-900">{{ answer.question.text }}</h3>
+          </div>
+          
+          {% if answer.score is not None %}
+            <div class="text-right">
+              <div class="text-sm text-gray-500">Score</div>
+              <div class="text-lg font-bold">{{ answer.score }}</div>
+              {% if answer.question.max_score %}
+                <div class="text-xs text-gray-500">/ {{ answer.question.max_score }}</div>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <!-- Answer Display -->
+        <div class="bg-gray-50 p-3 rounded-lg mb-3">
+          {% if answer.question.question_type == 'text' %}
+            <p class="text-gray-700">{{ answer.text_answer|default:"Not answered" }}</p>
+          {% elif answer.question.question_type in 'rating,numeric' %}
+            <p class="text-gray-700">{{ answer.numeric_answer|default:"Not answered" }}</p>
+          {% elif answer.question.question_type in 'yes_no,multiple_choice' %}
+            <p class="text-gray-700">{{ answer.choice_answer|default:"Not answered" }}</p>
+          {% endif %}
+        </div>
+        
+        <!-- Comments -->
+        {% if answer.comments %}
+        <div class="text-sm">
+          <span class="text-gray-600">Comments:</span>
+          <p class="text-gray-700 mt-1">{{ answer.comments }}</p>
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="text-center py-8 text-gray-500">
+        <p>No questions answered yet.</p>
+        {% if can_edit %}
+          <a href="{% url 'evaluation:take_evaluation' evaluation.pk %}" class="text-blue-600 hover:text-blue-800">
+            Start Evaluation
+          </a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Comments Section -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Comments & Feedback</h2>
+    
+    <div class="space-y-4">
+      {% for comment in comments %}
+      <div class="border border-gray-200 rounded-lg p-4">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style="background-color: #7dc143;">
+              {% if comment.is_anonymous %}A{% else %}{{ comment.author.first_name|slice:":1" }}{{ comment.author.last_name|slice:":1" }}{% endif %}
+            </div>
+            <div>
+              <p class="font-medium text-gray-900">
+                {% if comment.is_anonymous %}Anonymous{% else %}{{ comment.author.get_full_name }}{% endif %}
+              </p>
+              <p class="text-sm text-gray-500">{{ comment.created_at|date:"M d, Y H:i" }}</p>
+            </div>
+          </div>
+          
+          <span class="px-2 py-1 text-xs font-medium rounded-full
+            {% if comment.comment_type == 'strength' %}
+              bg-green-100 text-green-800
+            {% elif comment.comment_type == 'weakness' %}
+              bg-red-100 text-red-800
+            {% elif comment.comment_type == 'recommendation' %}
+              bg-blue-100 text-blue-800
+            {% else %}
+              bg-gray-100 text-gray-800
+            {% endif %}">
+            {{ comment.get_comment_type_display }}
+          </span>
+        </div>
+        
+        <p class="text-gray-700">{{ comment.text }}</p>
+        
+        {% if not comment.is_public %}
+          <div class="mt-2 text-xs text-orange-600">
+            🔒 Private comment (not visible to evaluatee)
+          </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="text-center py-6 text-gray-500">
+        <p>No comments yet.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Review Information -->
+  {% if evaluation.reviewed_by %}
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Review Information</h2>
+    
+    <div class="space-y-3 text-sm">
+      <div class="flex justify-between">
+        <span class="text-gray-600">Reviewed by:</span>
+        <span class="font-medium">{{ evaluation.reviewed_by.get_full_name }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-600">Reviewed at:</span>
+        <span class="font-medium">{{ evaluation.reviewed_at|date:"M d, Y H:i" }}</span>
+      </div>
+      {% if evaluation.review_comments %}
+      <div>
+        <span class="text-gray-600">Review comments:</span>
+        <p class="text-gray-700 mt-1 bg-gray-50 p-3 rounded-lg">{{ evaluation.review_comments }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Approval Information -->
+  {% if evaluation.approved_by %}
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Approval Information</h2>
+    
+    <div class="space-y-3 text-sm">
+      <div class="flex justify-between">
+        <span class="text-gray-600">Approved by:</span>
+        <span class="font-medium">{{ evaluation.approved_by.get_full_name }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-600">Approved at:</span>
+        <span class="font-medium">{{ evaluation.approved_at|date:"M d, Y H:i" }}</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

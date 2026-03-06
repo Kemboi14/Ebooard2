@@ -1,0 +1,207 @@
+{% extends 'base/base.html' %}
+
+{% block title %}User Engagement Analytics{% endblock %}
+
+{% block page_title %}User Engagement Analytics{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold" style="color: #2d1b5e;">
+          User Engagement Analytics
+        </h1>
+        <p class="text-gray-600 mt-1">
+          Comprehensive insights into user activity and engagement patterns
+        </p>
+      </div>
+      <div class="flex gap-3">
+        <a href="{% url 'analytics:dashboard' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Metrics -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Users</p>
+          <p class="text-2xl font-bold text-gray-900">{{ total_users }}</p>
+        </div>
+        <div class="p-3 bg-blue-100 rounded-lg">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Active Users (30d)</p>
+          <p class="text-2xl font-bold text-gray-900">{{ active_users }}</p>
+        </div>
+        <div class="p-3 bg-green-100 rounded-lg">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Active Percentage</p>
+          <p class="text-2xl font-bold text-gray-900">{{ active_percentage|floatformat:1 }}%</p>
+        </div>
+        <div class="p-3 bg-purple-100 rounded-lg">
+          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Top Contributors</p>
+          <p class="text-2xl font-bold text-gray-900">{{ top_contributors|length }}</p>
+        </div>
+        <div class="p-3 bg-orange-100 rounded-lg">
+          <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Engagement Distribution -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Engagement Distribution</h3>
+      <div class="space-y-4">
+        {% for range_name, count in engagement_ranges.items %}
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="w-4 h-4 rounded mr-3
+                {% if 'High' in range_name %}bg-green-500
+                {% elif 'Medium' in range_name %}bg-yellow-500
+                {% else %}bg-red-500{% endif %}">
+              </div>
+              <span class="text-sm font-medium text-gray-700">{{ range_name }}</span>
+            </div>
+            <div class="flex items-center">
+              <span class="text-sm font-semibold text-gray-900 mr-2">{{ count }}</span>
+              <div class="w-24 bg-gray-200 rounded-full h-2">
+                <div class="h-2 rounded-full
+                  {% if 'High' in range_name %}bg-green-500
+                  {% elif 'Medium' in range_name %}bg-yellow-500
+                  {% else %}bg-red-500{% endif %}"
+                  style="width: {% widthratio count total_users 100 %}%">
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Top Contributors -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Top Contributors</h3>
+      <div class="space-y-3">
+        {% for contributor in top_contributors %}
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div class="flex items-center">
+              <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium mr-3">
+                {{ contributor.user.get_full_name|first|default:contributor.user.email|first|upper }}
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900">{{ contributor.user.get_full_name|default:contributor.user.email }}</p>
+                <p class="text-xs text-gray-500">{{ contributor.overall_engagement_score|floatformat:1 }} engagement score</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-semibold text-blue-600">{{ contributor.meetings_attended }}</p>
+              <p class="text-xs text-gray-500">meetings</p>
+            </div>
+          </div>
+        {% empty %}
+          <p class="text-sm text-gray-500">No contributors yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- User Engagement Profiles -->
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">User Engagement Profiles</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Engagement Score</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meetings Attended</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents Viewed</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Votes Cast</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for profile in engagement_profiles %}
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                    {{ profile.user.get_full_name|first|default:profile.user.email|first|upper }}
+                  </div>
+                  <div class="ml-3">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ profile.user.get_full_name|default:profile.user.email }}
+                    </div>
+                    <div class="text-sm text-gray-500">{{ profile.user.role|title }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                  {% if profile.overall_engagement_score >= 80 %}bg-green-100 text-green-800
+                  {% elif profile.overall_engagement_score >= 50 %}bg-yellow-100 text-yellow-800
+                  {% else %}bg-red-100 text-red-800{% endif %}">
+                  {{ profile.overall_engagement_score|floatformat:1 }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ profile.meetings_attended }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ profile.documents_viewed }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ profile.votes_cast }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {% if profile.last_activity %}
+                  {{ profile.last_activity|timesince }} ago
+                {% else %}
+                  Never
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                No user engagement data available yet.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ document.title }}{% endblock %}
+
+{% block page_title %}{{ document.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Document Header -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h1 class="text-2xl font-bold" style="color: #2d1b5e;">{{ document.title }}</h1>
+        <div class="flex items-center gap-3 mt-2">
+          <!-- Status Badge -->
+          <span class="px-3 py-1 text-sm rounded-full
+            {% if document.status == 'draft' %}bg-gray-100 text-gray-800{% endif %}
+            {% if document.status == 'review' %}bg-yellow-100 text-yellow-800{% endif %}
+            {% if document.status == 'approved' %}bg-blue-100 text-blue-800{% endif %}
+            {% if document.status == 'published' %}bg-green-100 text-green-800{% endif %}
+            {% if document.status == 'archived' %}bg-red-100 text-red-800{% endif %}">
+            {{ document.get_status_display }}
+          </span>
+          
+          <!-- Access Level -->
+          <span class="px-3 py-1 text-sm rounded-full
+            {% if document.access_level == 'public' %}bg-green-100 text-green-800{% endif %}
+            {% if document.access_level == 'board' %}bg-blue-100 text-blue-800{% endif %}
+            {% if document.access_level == 'committee' %}bg-purple-100 text-purple-800{% endif %}
+            {% if document.access_level == 'restricted' %}bg-red-100 text-red-800{% endif %}">
+            {{ document.get_access_level_display }}
+          </span>
+          
+          {% if document.version > 1 %}
+          <span class="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800">
+            Version {{ document.version }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      {% if can_manage %}
+      <div class="flex space-x-2">
+        <a href="{% url 'documents:upload_document' %}" 
+           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+           style="background:#7dc143;"
+           onmouseover="this.style.backgroundColor='#5a8a3c'"
+           onmouseout="this.style.backgroundColor='#7dc143'">
+          Edit Document
+        </a>
+      </div>
+      {% endif %}
+    </div>
+    
+    <!-- Document Details Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Left Column -->
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">File Information</h3>
+          <div class="space-y-2">
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-24">File Name:</span>
+              <span class="text-sm text-gray-900">{{ document.file_name }}</span>
+            </div>
+            
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-24">File Size:</span>
+              <span class="text-sm text-gray-900">{{ document.file_size_display }}</span>
+            </div>
+            
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-24">File Type:</span>
+              <span class="text-sm text-gray-900">{{ document.file_extension|upper }}</span>
+            </div>
+            
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-24">Uploaded:</span>
+              <span class="text-sm text-gray-900">{{ document.created_at|date:"M d, Y" }} at {{ document.created_at|time:"g:i A" }}</span>
+            </div>
+            
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-24">Uploaded By:</span>
+              <span class="text-sm text-gray-900">{{ document.uploaded_by.get_full_name|default:"Unknown" }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Classification</h3>
+          <div class="space-y-2">
+            {% if document.category %}
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-24">Category:</span>
+              <span class="text-sm text-gray-900">{{ document.category.full_path }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-24">Access Level:</span>
+              <span class="text-sm text-gray-900">{{ document.get_access_level_display }}</span>
+            </div>
+          </div>
+        </div>
+        
+        {% if document.description %}
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Description</h3>
+          <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ document.description }}</p>
+        </div>
+        {% endif %}
+      </div>
+      
+      <!-- Right Column -->
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Actions</h3>
+          <div class="space-y-3">
+            <a href="{% url 'documents:download_document' document.id %}" 
+               class="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-7-7 7m6-3l3 3m-9-6V8a2 2 0 00-2 2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 00-2-2h5.586a1 1 0 00.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Download Document
+            </a>
+            
+            {% if can_edit %}
+            <button class="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h3a2 2 0 002 2v4a2 2 0 002 2z"/>
+              </svg>
+              Edit Document
+            </button>
+            {% endif %}
+          </div>
+        </div>
+        
+        {% if versions %}
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Version History</h3>
+          <div class="space-y-2 max-h-64 overflow-y-auto">
+            {% for version in versions %}
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center">
+                <span class="text-sm font-medium text-gray-900">Version {{ version.version_number }}</span>
+                {% if version.change_notes %}
+                <span class="ml-2 text-xs text-gray-500">({{ version.change_notes }})</span>
+                {% endif %}
+              </div>
+              
+              <div class="flex items-center text-sm text-gray-500">
+                <span>{{ version.created_at|date:"M d, Y" }}</span>
+                <span class="mx-2">by {{ version.created_by.get_full_name|default:"Unknown" }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

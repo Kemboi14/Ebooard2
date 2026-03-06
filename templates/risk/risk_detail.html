@@ -1,0 +1,325 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ risk.title }}{% endblock %}
+
+{% block page_title %}{{ risk.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Risk Header -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h1 class="text-2xl font-bold" style="color: #2d1b5e;">{{ risk.title }}</h1>
+        <div class="flex items-center gap-3 mt-2">
+          <!-- Risk Level Badge -->
+          <span class="px-3 py-1 text-sm rounded-full
+            {% if risk.risk_level == 'Critical' %}bg-red-100 text-red-800{% endif %}
+            {% if risk.risk_level == 'High' %}bg-orange-100 text-orange-800{% endif %}
+            {% if risk.risk_level == 'Medium' %}bg-yellow-100 text-yellow-800{% endif %}
+            {% if risk.risk_level == 'Low' %}bg-blue-100 text-blue-800{% endif %}
+            {% if risk.risk_level == 'Very Low' %}bg-gray-100 text-gray-800{% endif %}">
+            {{ risk.risk_level }} Risk (Score: {{ risk.risk_score }}/25)
+          </span>
+
+          <!-- Status Badge -->
+          <span class="px-3 py-1 text-sm rounded-full
+            {% if risk.status == 'identified' %}bg-gray-100 text-gray-800{% endif %}
+            {% if risk.status == 'assessed' %}bg-blue-100 text-blue-800{% endif %}
+            {% if risk.status == 'mitigated' %}bg-green-100 text-green-800{% endif %}
+            {% if risk.status == 'monitored' %}bg-purple-100 text-purple-800{% endif %}
+            {% if risk.status == 'closed' %}bg-gray-100 text-gray-800{% endif %}
+            {% if risk.status == 'escalated' %}bg-red-100 text-red-800{% endif %}">
+            {{ risk.get_status_display }}
+          </span>
+
+          {% if risk.days_overdue > 0 %}
+          <span class="px-3 py-1 text-sm rounded-full bg-red-100 text-red-800">
+            {{ risk.days_overdue }} days overdue
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      {% if can_manage %}
+      <div class="flex space-x-2">
+        <a href="{% url 'risk:create_assessment' risk.id %}"
+           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+           style="background:#7dc143;"
+           onmouseover="this.style.backgroundColor='#5a8a3c'"
+           onmouseout="this.style.backgroundColor='#7dc143'">
+          Assess Risk
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Risk Details Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Left Column -->
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Risk Information</h3>
+          <div class="space-y-2">
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-32">Category:</span>
+              <span class="text-sm text-gray-900">
+                {% if risk.category %}{{ risk.category.get_category_type_display }} - {{ risk.category.name }}{% else %}Uncategorized{% endif %}
+              </span>
+            </div>
+
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-32">Impact Level:</span>
+              <span class="text-sm text-gray-900">{{ risk.get_impact_level_display }}</span>
+            </div>
+
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-32">Probability:</span>
+              <span class="text-sm text-gray-900">{{ risk.get_probability_display }}</span>
+            </div>
+
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-32">Risk Owner:</span>
+              <span class="text-sm text-gray-900">{{ risk.risk_owner.get_full_name|default:"Unassigned" }}</span>
+            </div>
+
+            {% if risk.assigned_to %}
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-32">Assigned To:</span>
+              <span class="text-sm text-gray-900">{{ risk.assigned_to.get_full_name }}</span>
+            </div>
+            {% endif %}
+
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-32">Identified:</span>
+              <span class="text-sm text-gray-900">{{ risk.identified_date|date:"M d, Y" }}</span>
+            </div>
+
+            {% if risk.target_resolution_date %}
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-32">Target Date:</span>
+              <span class="text-sm text-gray-900">{{ risk.target_resolution_date|date:"M d, Y" }}</span>
+            </div>
+            {% endif %}
+
+            {% if risk.potential_impact %}
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-gray-700 w-32">Potential Impact:</span>
+              <span class="text-sm text-gray-900">${{ risk.potential_impact|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Description</h3>
+          <div class="prose prose-sm text-gray-900">{{ risk.description|linebreaks }}</div>
+        </div>
+
+        {% if risk.potential_impact_description %}
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Impact Description</h3>
+          <div class="prose prose-sm text-gray-900">{{ risk.potential_impact_description|linebreaks }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Right Column -->
+      <div class="space-y-4">
+        <!-- Quick Actions -->
+        {% if can_manage %}
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Quick Actions</h3>
+          <div class="space-y-3">
+            <a href="{% url 'risk:create_assessment' risk.id %}"
+               class="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Create Assessment
+            </a>
+
+            <a href="{% url 'risk:create_mitigation' risk.id %}"
+               class="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Add Mitigation
+            </a>
+
+            <a href="{% url 'risk:create_monitoring' risk.id %}"
+               class="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+              Add Monitoring
+            </a>
+
+            <a href="{% url 'risk:report_incident' risk.id %}"
+               class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+              </svg>
+              Report Incident
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Risk Statistics -->
+        <div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Risk Statistics</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-blue-50 rounded-lg">
+              <div class="text-2xl font-bold text-blue-600">{{ assessments|length }}</div>
+              <div class="text-sm text-blue-700">Assessments</div>
+            </div>
+
+            <div class="p-4 bg-green-50 rounded-lg">
+              <div class="text-2xl font-bold text-green-600">{{ mitigations|length }}</div>
+              <div class="text-sm text-green-700">Mitigations</div>
+            </div>
+
+            <div class="p-4 bg-purple-50 rounded-lg">
+              <div class="text-2xl font-bold text-purple-600">{{ monitoring_records|length }}</div>
+              <div class="text-sm text-purple-700">Monitoring Records</div>
+            </div>
+
+            <div class="p-4 bg-red-50 rounded-lg">
+              <div class="text-2xl font-bold text-red-600">{{ incidents|length }}</div>
+              <div class="text-sm text-red-700">Incidents</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assessments Section -->
+  {% if assessments %}
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Risk Assessments</h3>
+    <div class="space-y-4">
+      {% for assessment in assessments %}
+      <div class="border border-gray-200 rounded-lg p-4">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h4 class="font-medium text-gray-900">{{ assessment.get_assessment_type_display }}</h4>
+            <p class="text-sm text-gray-600">Assessed on {{ assessment.assessment_date|date:"M d, Y" }} by {{ assessment.assessed_by.get_full_name }}</p>
+          </div>
+          <span class="px-2 py-1 text-xs rounded-full bg-{{ assessment.priority_level }}-100 text-{{ assessment.priority_level }}-800">
+            {{ assessment.get_priority_level_display }} Priority
+          </span>
+        </div>
+
+        {% if assessment.recommended_actions %}
+        <div class="mb-3">
+          <h5 class="text-sm font-medium text-gray-700 mb-1">Recommended Actions:</h5>
+          <p class="text-sm text-gray-600">{{ assessment.recommended_actions }}</p>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          {% if assessment.impact_probability %}
+          <div>Impact Probability: {{ assessment.impact_probability|floatformat:2 }}</div>
+          {% endif %}
+          {% if assessment.impact_severity %}
+          <div>Impact Severity: {{ assessment.impact_severity|floatformat:2 }}</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Mitigations Section -->
+  {% if mitigations %}
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Risk Mitigations</h3>
+    <div class="space-y-4">
+      {% for mitigation in mitigations %}
+      <div class="border border-gray-200 rounded-lg p-4">
+        <div class="flex justify-between items-start mb-3">
+          <div class="flex-1">
+            <h4 class="font-medium text-gray-900">{{ mitigation.title }}</h4>
+            <p class="text-sm text-gray-600">{{ mitigation.get_mitigation_type_display }}</p>
+          </div>
+          <span class="px-2 py-1 text-xs rounded-full
+            {% if mitigation.status == 'planned' %}bg-gray-100 text-gray-800{% endif %}
+            {% if mitigation.status == 'in_progress' %}bg-yellow-100 text-yellow-800{% endif %}
+            {% if mitigation.status == 'implemented' %}bg-blue-100 text-blue-800{% endif %}
+            {% if mitigation.status == 'effective' %}bg-green-100 text-green-800{% endif %}
+            {% if mitigation.status == 'ineffective' %}bg-red-100 text-red-800{% endif %}">
+            {{ mitigation.get_status_display }}
+          </span>
+        </div>
+
+        {% if mitigation.description %}
+        <p class="text-sm text-gray-600 mb-3">{{ mitigation.description }}</p>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          {% if mitigation.responsible_party %}
+          <div>Responsible: {{ mitigation.responsible_party.get_full_name }}</div>
+          {% endif %}
+          {% if mitigation.target_completion_date %}
+          <div>Target Date: {{ mitigation.target_completion_date|date:"M d, Y" }}</div>
+          {% endif %}
+          {% if mitigation.estimated_cost %}
+          <div>Estimated Cost: ${{ mitigation.estimated_cost|floatformat:2 }}</div>
+          {% endif %}
+          {% if mitigation.actual_cost %}
+          <div>Actual Cost: ${{ mitigation.actual_cost|floatformat:2 }}</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Incidents Section -->
+  {% if incidents %}
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Risk Incidents</h3>
+    <div class="space-y-4">
+      {% for incident in incidents %}
+      <div class="border border-gray-200 rounded-lg p-4">
+        <div class="flex justify-between items-start mb-3">
+          <div class="flex-1">
+            <h4 class="font-medium text-gray-900">{{ incident.title }}</h4>
+            <p class="text-sm text-gray-600">{{ incident.incident_date|date:"M d, Y" }}</p>
+          </div>
+          <span class="px-2 py-1 text-xs rounded-full
+            {% if incident.severity == 'low' %}bg-green-100 text-green-800{% endif %}
+            {% if incident.severity == 'medium' %}bg-yellow-100 text-yellow-800{% endif %}
+            {% if incident.severity == 'high' %}bg-orange-100 text-orange-800{% endif %}
+            {% if incident.severity == 'critical' %}bg-red-100 text-red-800{% endif %}">
+            {{ incident.get_severity_display }} Severity
+          </span>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-3">{{ incident.description }}</p>
+
+        {% if incident.actual_impact %}
+        <div class="mb-3">
+          <h5 class="text-sm font-medium text-gray-700 mb-1">Actual Impact:</h5>
+          <p class="text-sm text-gray-600">{{ incident.actual_impact }}</p>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          {% if incident.financial_impact %}
+          <div>Financial Impact: ${{ incident.financial_impact|floatformat:2 }}</div>
+          {% endif %}
+          <div>Status: {{ incident.get_status_display }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,287 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ thread.title }}{% endblock %}
+
+{% block page_title %}Thread Discussion{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Thread Header -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-start justify-between mb-4">
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-2">
+          {% if thread.is_pinned %}
+            <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
+            </svg>
+          {% endif %}
+          
+          {% if thread.is_locked %}
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          {% endif %}
+          
+          <h1 class="text-2xl font-bold" style="color: #2d1b5e;">{{ thread.title }}</h1>
+          
+          <span class="px-2 py-1 text-xs font-medium rounded-full
+            {% if thread.priority == 'urgent' %}
+              bg-red-100 text-red-800
+            {% elif thread.priority == 'high' %}
+              bg-orange-100 text-orange-800
+            {% elif thread.priority == 'low' %}
+              bg-gray-100 text-gray-800
+            {% else %}
+              bg-blue-100 text-blue-800
+            {% endif %}">
+            {{ thread.get_priority_display }}
+          </span>
+        </div>
+        
+        <div class="flex items-center gap-4 text-sm text-gray-500">
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            {% if thread.is_anonymous %}Anonymous{% else %}{{ thread.author.get_full_name }}{% endif %}
+          </span>
+          
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            {{ thread.created_at|date:"M d, Y H:i" }}
+          </span>
+          
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            {{ thread.view_count }} views
+          </span>
+        </div>
+      </div>
+      
+      <!-- Tags -->
+      {% if thread.thread_tags.all %}
+        <div class="flex flex-wrap gap-2">
+          {% for thread_tag in thread.thread_tags.all %}
+            <span class="px-2 py-1 text-xs rounded-full" style="background-color: {{ thread_tag.tag.color }}; opacity: 0.2; color: {{ thread_tag.tag.color }};">
+              {{ thread_tag.tag.name }}
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Posts -->
+  <div class="space-y-4">
+    {% for post in posts %}
+      <div id="post-{{ post.pk }}" class="bg-white rounded-xl shadow-sm p-6 {% if post.is_original %}border-l-4 border-l-blue-500{% endif %}">
+        <div class="flex items-start gap-4">
+          <!-- Author Avatar -->
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white" style="background-color: #7dc143;">
+            {% if post.is_anonymous %}
+              A
+            {% else %}
+              {{ post.author.first_name|slice:":1" }}{{ post.author.last_name|slice:":1" }}
+            {% endif %}
+          </div>
+          
+          <!-- Post Content -->
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-3">
+                <h4 class="font-medium text-gray-900">
+                  {% if post.is_anonymous %}
+                    Anonymous
+                  {% else %}
+                    {{ post.author.get_full_name }}
+                  {% endif %}
+                </h4>
+                
+                {% if post.is_edited %}
+                  <span class="text-xs text-gray-500" title="Edited: {{ post.edited_at|date:'M d, Y H:i' }} ({{ post.edited_reason }})">
+                    (edited)
+                  </span>
+                {% endif %}
+              </div>
+              
+              <div class="flex items-center gap-2">
+                {% if post.author == user %}
+                  <a href="{% url 'discussions:edit_post' post.pk %}" class="text-sm text-blue-600 hover:text-blue-800">
+                    Edit
+                  </a>
+                {% endif %}
+                
+                <span class="text-sm text-gray-500">
+                  {{ post.created_at|date:"M d, Y H:i" }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="prose max-w-none">
+              <p class="text-gray-700 whitespace-pre-wrap">{{ post.content }}</p>
+            </div>
+            
+            <!-- Reactions -->
+            <div class="flex items-center gap-4 mt-4">
+              <button class="reaction-btn flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600" 
+                      data-post-id="{{ post.pk }}" data-reaction="like">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                </svg>
+                <span class="like-count">{{ post.like_count }}</span>
+              </button>
+              
+              <button class="reaction-btn flex items-center gap-1 text-sm text-gray-500 hover:text-red-600" 
+                      data-post-id="{{ post.pk }}" data-reaction="dislike">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/>
+                </svg>
+                <span class="dislike-count">{{ post.dislike_count }}</span>
+              </button>
+              
+              <a href="{{ post.get_absolute_url }}" class="text-sm text-gray-500 hover:text-blue-600">
+                #{{ forloop.counter }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Reply Form -->
+  {% if post_form and not thread.is_locked %}
+    <div class="bg-white rounded-xl shadow-sm p-6 mt-6">
+      <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Reply to Thread</h3>
+      <form method="post" action="{% url 'discussions:create_post' thread.pk %}">
+        {% csrf_token %}
+        <div class="mb-4">
+          {{ post_form.content }}
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="flex items-center gap-2">
+            {{ post_form.is_anonymous }}
+            <span class="text-sm text-gray-700">Post anonymously</span>
+          </label>
+        </div>
+        <div class="mt-4">
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Post Reply
+          </button>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+
+  <!-- Polls -->
+  {% if polls %}
+    {% for poll in polls %}
+      <div class="bg-white rounded-xl shadow-sm p-6 mt-6">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Poll: {{ poll.question }}</h3>
+        
+        {% if poll.description %}
+          <p class="text-gray-600 mb-4">{{ poll.description }}</p>
+        {% endif %}
+        
+        {% if poll.is_active %}
+          <form method="post" action="{% url 'discussions:vote_poll' poll.pk %}">
+            {% csrf_token %}
+            <div class="space-y-2 mb-4">
+              {% for option in poll.options.all %}
+                <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  {% if poll.allow_multiple_choices %}
+                    <input type="checkbox" name="options" value="{{ option.pk }}" class="w-4 h-4">
+                  {% else %}
+                    <input type="radio" name="options" value="{{ option.pk }}" class="w-4 h-4">
+                  {% endif %}
+                  <span>{{ option.text }}</span>
+                </label>
+              {% endfor %}
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Vote
+            </button>
+          </form>
+        {% else %}
+          <!-- Results -->
+          <div class="space-y-2">
+            {% for option in poll.options.all %}
+              <div class="p-3 border border-gray-200 rounded-lg">
+                <div class="flex justify-between items-center mb-2">
+                  <span>{{ option.text }}</span>
+                  <span class="text-sm text-gray-500">{{ option.vote_count }} votes ({{ option.vote_percentage|floatformat:1 }}%)</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-blue-600 h-2 rounded-full" style="width: {{ option.vote_percentage }}%"></div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <p class="text-sm text-gray-500 mt-4">Total votes: {{ poll.total_votes }}</p>
+        {% endif %}
+        
+        <div class="mt-4 text-sm text-gray-500">
+          {% if poll.is_anonymous %}Anonymous poll{% endif %}
+          {% if poll.ends_at %}• Ends: {{ poll.ends_at|date:"M d, Y H:i" }}{% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Subscription -->
+  {% if subscription_form %}
+    <div class="bg-white rounded-xl shadow-sm p-6 mt-6">
+      <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Notifications</h3>
+      <form method="post" action="{% url 'discussions:manage_subscription' thread.pk %}">
+        {% csrf_token %}
+        <div class="mb-4">
+          {{ subscription_form.subscription_type }}
+        </div>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Update Subscription
+        </button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+// Handle reactions
+document.querySelectorAll('.reaction-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const postId = this.dataset.postId;
+    const reaction = this.dataset.reaction;
+    
+    fetch(`/discussions/posts/${postId}/react/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `reaction_type=${reaction}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        console.error(data.error);
+        return;
+      }
+      
+      // Update counts
+      const likeCount = document.querySelector(`#post-${postId} .like-count`);
+      const dislikeCount = document.querySelector(`#post-${postId} .dislike-count`);
+      
+      if (likeCount) likeCount.textContent = data.like_count;
+      if (dislikeCount) dislikeCount.textContent = data.dislike_count;
+    })
+    .catch(error => console.error('Error:', error));
+  });
+});
+</script>
+{% endblock %}

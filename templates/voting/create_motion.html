@@ -1,0 +1,159 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Create Motion{% endblock %}
+
+{% block page_title %}Create Motion{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold" style="color: #2d1b5e;">Create New Motion</h1>
+      <p class="text-gray-600 mt-1">Create a new board motion for voting and discussion.</p>
+    </div>
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <!-- Basic Information -->
+      <div class="space-y-4">
+        <div>
+          {{ form.title.label_tag }}
+          {{ form.title }}
+          {% if form.title.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.title.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          {{ form.description.label_tag }}
+          {{ form.description }}
+          {% if form.description.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.description.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Provide detailed description of the motion</p>
+        </div>
+
+        <div>
+          {{ form.background.label_tag }}
+          {{ form.background }}
+          {% if form.background.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.background.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Optional: Provide background information for context</p>
+        </div>
+      </div>
+
+      <!-- Voting Configuration -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Voting Configuration</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {{ form.voting_type.label_tag }}
+            {{ form.voting_type }}
+            {% if form.voting_type.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.voting_type.errors }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">Choose the voting method for this motion</p>
+          </div>
+
+          <div>
+            {{ form.required_votes.label_tag }}
+            {{ form.required_votes }}
+            {% if form.required_votes.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.required_votes.errors }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">Number of votes required to pass</p>
+          </div>
+        </div>
+
+        <div>
+          {{ form.voting_deadline.label_tag }}
+          {{ form.voting_deadline }}
+          {% if form.voting_deadline.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.voting_deadline.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Deadline for voting on this motion</p>
+        </div>
+
+        <div>
+          {{ form.seconded_by.label_tag }}
+          {{ form.seconded_by }}
+          {% if form.seconded_by.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.seconded_by.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Optional: Select someone to second the motion</p>
+        </div>
+      </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end space-x-4">
+        <a href="{% url 'voting:motion_list' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50">
+          Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          Create Motion
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Voting Types Guide -->
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mt-6">
+    <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Voting Types Guide</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h4 class="font-medium text-blue-900 mb-2">Simple Majority</h4>
+        <ul class="space-y-1 text-sm text-blue-800">
+          <li>• More than 50% of votes cast</li>
+          <li>• Minimum: 1 vote</li>
+          <li>• Best for: Routine decisions</li>
+        </ul>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-blue-900 mb-2">Qualified Majority</h4>
+        <ul class="space-y-1 text-sm text-blue-800">
+          <li>• More than 60% of votes cast</li>
+          <li>• Minimum: 2 votes</li>
+          <li>• Best for: Important decisions</li>
+        </ul>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-blue-900 mb-2">Two-Thirds Majority</h4>
+        <ul class="space-y-1 text-sm text-blue-800">
+          <li>• More than 66.67% of votes cast</li>
+          <li>• Minimum: 3 votes</li>
+          <li>• Best for: Constitutional changes</li>
+        </ul>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-blue-900 mb-2">Unanimous</h4>
+        <ul class="space-y-1 text-sm text-blue-800">
+          <li>• 100% yes votes, no no votes</li>
+          <li>• Minimum: All eligible voters</li>
+          <li>• Best for: Critical decisions</li>
+        </ul>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-blue-900 mb-2">Consensus</h4>
+        <ul class="space-y-1 text-sm text-blue-800">
+          <li>• No no votes, max 10% abstain</li>
+          <li>• Minimum: All eligible voters</li>
+          <li>• Best for: Collaborative decisions</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

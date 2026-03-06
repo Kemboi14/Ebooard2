@@ -1,0 +1,92 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if is_update %}Update{% else %}Create{% endif %} Evaluation{% endblock %}
+
+{% block page_title %}{% if is_update %}Update{% else %}Create{% endif %} Evaluation{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post">
+      {% csrf_token %}
+      
+      <!-- Basic Information -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Evaluation Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Template *</label>
+            {{ form.template }}
+            {% if form.template.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.template.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Choose the evaluation template to use</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Evaluation Period *</label>
+            {{ form.evaluation_period }}
+            {% if form.evaluation_period.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.evaluation_period.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">e.g., Q1 2024, Annual 2024</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Evaluator *</label>
+            {{ form.evaluator }}
+            {% if form.evaluator.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.evaluator.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Person conducting the evaluation</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Evaluatee *</label>
+            {{ form.evaluatee }}
+            {% if form.evaluatee.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.evaluatee.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Person being evaluated</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
+            {{ form.start_date }}
+            {% if form.start_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.start_date.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">When evaluation period begins</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">End Date *</label>
+            {{ form.end_date }}
+            {% if form.end_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.end_date.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">When evaluation period ends</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Errors -->
+      {% if form.non_field_errors %}
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-800">{{ form.non_field_errors.0 }}</p>
+        </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-4">
+        <a href="{% url 'evaluation:evaluation_list' %}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Cancel
+        </a>
+        <button type="submit" class="px-6 py-3 text-white rounded-lg hover:opacity-90 transition-opacity" style="background-color: #7dc143;">
+          {% if is_update %}Update Evaluation{% else %}Create Evaluation{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

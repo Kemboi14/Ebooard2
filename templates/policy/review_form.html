@@ -1,0 +1,120 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Add Review - {{ policy.title }}{% endblock %}
+
+{% block page_title %}Add Review - {{ policy.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Policy Info -->
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+    <div class="flex items-start gap-3">
+      <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      <div>
+        <h3 class="font-medium text-blue-900">Policy Review</h3>
+        <p class="text-sm text-blue-800 mt-1">
+          Adding a review for: <strong>{{ policy.title }}</strong> (Version {{ policy.version }})
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post">
+      {% csrf_token %}
+      
+      <!-- Review Information -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Review Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Reviewer</label>
+            {{ form.reviewer }}
+            {% if form.reviewer.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.reviewer.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Review Date *</label>
+            {{ form.review_date }}
+            {% if form.review_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.review_date.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Review Type *</label>
+            {{ form.review_type }}
+            {% if form.review_type.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.review_type.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Next Review Date</label>
+            {{ form.next_review_date }}
+            {% if form.next_review_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.next_review_date.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Review Content -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Review Content</h2>
+        <div class="grid grid-cols-1 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Findings</label>
+            {{ form.findings }}
+            {% if form.findings.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.findings.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">What did you discover during this review?</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Recommendations</label>
+            {{ form.recommendations }}
+            {% if form.recommendations.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.recommendations.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">What actions or improvements do you recommend?</p>
+          </div>
+          
+          <div class="flex items-center">
+            {{ form.action_required }}
+            <label for="{{ form.action_required.id_for_label }}" class="ml-2 text-sm text-gray-700">
+              Action Required
+            </label>
+            {% if form.action_required.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.action_required.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500 ml-6">Check if follow-up actions are needed.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Errors -->
+      {% if form.non_field_errors %}
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-800">{{ form.non_field_errors.0 }}</p>
+        </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-4">
+        <a href="{% url 'policy:policy_detail' policy.pk %}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Cancel
+        </a>
+        <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Add Review
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

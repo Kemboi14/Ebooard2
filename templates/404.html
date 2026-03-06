@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found | Enwealth E-Board</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --color-primary: #1a0a3c;
+            --color-accent: #7dc143;
+            --color-accent-dark: #5a8a3c;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center" style="background-color: #1a0a3c;">
+    <div class="max-w-md w-full">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 text-center">
+            <!-- 404 Icon -->
+            <div class="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background-color: #fef3c7;">
+                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+            </div>
+            
+            <!-- Error Message -->
+            <h1 class="text-6xl font-bold text-gray-900 mb-4">404</h1>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">Page Not Found</h2>
+            <p class="text-gray-600 mb-8">
+                The page you're looking for doesn't exist or has been moved. Please check the URL and try again.
+            </p>
+            
+            <!-- Action Buttons -->
+            <div class="space-y-4">
+                <a href="{% url 'dashboard' %}" 
+                   class="w-full inline-flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors duration-200"
+                   style="background-color: #7dc143;"
+                   onmouseover="this.style.backgroundColor='#5a8a3c'"
+                   onmouseout="this.style.backgroundColor='#7dc143'">
+                    Go to Dashboard
+                </a>
+                
+                <button onclick="history.back()" 
+                   class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Go Back
+                </button>
+            </div>
+            
+            <!-- Help Text -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <p class="text-xs text-gray-500">
+                    If you believe this is an error, please contact your system administrator.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-6">
+            <p class="text-xs text-gray-400">
+                © 2026 Enwealth Financial Services. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Evaluation Cycles{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900" style="color: #2d1b5e;">Evaluation Cycles</h1>
+      <p class="text-gray-600 mt-2">Manage evaluation cycles and scheduling</p>
+    </div>
+    {% if user.role in ['company_secretary', 'compliance_officer', 'it_administrator'] %}
+    <a href="{% url 'evaluation:cycle_create' %}" 
+       class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      Create Cycle
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Active Cycles -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold mb-4" style="color: #2d1b5e;">Active Cycles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for cycle in cycles %}
+      {% if cycle.is_active %}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">{{ cycle.name }}</h3>
+            <p class="text-sm text-gray-600 mt-1">{{ cycle.description|truncatewords:15 }}</p>
+          </div>
+          <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+            Active
+          </span>
+        </div>
+        
+        <div class="space-y-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Period:</span>
+            <span class="font-medium">{{ cycle.start_date|date:"M d, Y" }} - {{ cycle.end_date|date:"M d, Y" }}</span>
+          </div>
+          
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Evaluations:</span>
+            <span class="font-medium">{{ cycle.evaluations.count }}</span>
+          </div>
+          
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Completion:</span>
+            <span class="font-medium">
+              {% if cycle.evaluations.count > 0 %}
+                {% widthratio cycle.evaluations.filter|length 1 cycle.evaluations.count %}%
+              {% else %}
+                0%
+              {% endif %}
+            </span>
+          </div>
+        </div>
+        
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                 style="width: {% if cycle.evaluations.count > 0 %}{% widthratio cycle.evaluations.filter|length 1 cycle.evaluations.count %}{% else %}0{% endif %}%"></div>
+          </div>
+        </div>
+        
+        <div class="mt-4 flex gap-2">
+          <a href="{% url 'evaluation:cycle_detail' cycle.pk %}" 
+             class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+            View Details
+          </a>
+          {% if user.role in ['company_secretary', 'compliance_officer', 'it_administrator'] %}
+          <a href="{% url 'evaluation:cycle_edit' cycle.pk %}" 
+             class="text-gray-600 hover:text-gray-800 text-sm font-medium">
+            Edit
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      {% empty %}
+      <div class="col-span-full">
+        <div class="text-center py-12">
+          <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No Active Cycles</h3>
+          <p class="text-gray-600">There are no active evaluation cycles at the moment.</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Completed Cycles -->
+  {% if cycles %}
+  <div>
+    <h2 class="text-xl font-semibold mb-4" style="color: #2d1b5e;">Completed Cycles</h2>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cycle Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Evaluations</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for cycle in cycles %}
+            {% if not cycle.is_active %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">{{ cycle.name }}</div>
+                <div class="text-sm text-gray-500">{{ cycle.description|truncatewords:10 }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ cycle.start_date|date:"M d, Y" }} - {{ cycle.end_date|date:"M d, Y" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ cycle.evaluations.count }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {% if cycle.evaluations.count > 0 %}
+                  {% widthratio cycle.evaluations.filter|length 1 cycle.evaluations.count %}%
+                {% else %}
+                  0%
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                  Completed
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <a href="{% url 'evaluation:cycle_detail' cycle.pk %}" class="text-blue-600 hover:text-blue-900 mr-3">
+                  View
+                </a>
+                {% if user.role in ['company_secretary', 'compliance_officer', 'it_administrator'] %}
+                <a href="{% url 'evaluation:cycle_edit' cycle.pk %}" class="text-gray-600 hover:text-gray-900">
+                  Edit
+                </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

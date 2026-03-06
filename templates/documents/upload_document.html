@@ -1,0 +1,405 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Upload Document{% endblock %}
+
+{% block page_title %}Upload Document{% endblock %}
+
+{% block extra_head %}
+<style>
+  .drag-drop-zone {
+    border: 2px dashed #cbd5e0;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: #f7fafc;
+  }
+  .drag-drop-zone.dragover {
+    border-color: #7dc143;
+    background-color: #f0f9e8;
+  }
+  .drag-drop-zone.has-file {
+    border-color: #7dc143;
+    background-color: #f0f9e8;
+  }
+  .file-preview {
+    display: none;
+    margin-top: 1rem;
+  }
+  .file-preview.show {
+    display: block;
+  }
+  .file-info {
+    background: #e2e8f0;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    margin-top: 0.5rem;
+  }
+  .progress-bar {
+    width: 100%;
+    height: 0.5rem;
+    background-color: #e2e8f0;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    margin-top: 0.5rem;
+  }
+  .progress-fill {
+    height: 100%;
+    background-color: #7dc143;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold" style="color: #2d1b5e;">Upload New Document</h1>
+      <p class="text-gray-600 mt-1">Upload a new document to the repository with automatic file type detection and enhanced security.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6" id="upload-form">
+      {% csrf_token %}
+
+      <!-- File Upload Section -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">File Upload</h3>
+
+        <div class="drag-drop-zone" id="drag-drop-zone">
+          <div class="upload-icon">
+            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <div class="mt-4">
+            <p class="text-sm text-gray-600">
+              <span class="font-medium text-gray-900">Click to upload</span> or drag and drop
+            </p>
+            <p class="text-xs text-gray-500 mt-1">
+              PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, images, archives up to 100MB
+            </p>
+          </div>
+          <input type="file" name="file" id="id_file" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.webp,.zip,.rar,.7z,.json,.xml,.csv,.html,.htm" required>
+        </div>
+
+        <!-- File Preview -->
+        <div class="file-preview" id="file-preview">
+          <div class="file-info">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <svg class="h-5 w-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-gray-900" id="file-name">File Name</p>
+                  <p class="text-xs text-gray-500" id="file-details">Size and type will appear here</p>
+                </div>
+              </div>
+              <button type="button" id="remove-file" class="text-red-500 hover:text-red-700">
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        {% if form.file.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.file.errors }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Basic Information -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Document Information</h3>
+
+        <div>
+          {{ form.title.label_tag }}
+          {{ form.title }}
+          {% if form.title.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.title.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          {{ form.description.label_tag }}
+          {{ form.description }}
+          {% if form.description.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.description.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Optional: Provide a brief description of the document</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {{ form.category.label_tag }}
+            {{ form.category }}
+            {% if form.category.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.category.errors }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            {{ form.status.label_tag }}
+            {{ form.status }}
+            {% if form.status.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.status.errors }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Access Control -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Access Control</h3>
+
+        <div>
+          {{ form.access_level.label_tag }}
+          {{ form.access_level }}
+          {% if form.access_level.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.access_level.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Choose who can access this document</p>
+        </div>
+
+        <div class="flex items-center">
+          {{ form.is_collaborative }}
+          {{ form.is_collaborative.label_tag }}
+          <p class="ml-2 text-xs text-gray-500">Allow multiple users to collaborate on this document</p>
+        </div>
+
+        <div id="collaborators-section" class="hidden">
+          {{ form.collaborators.label_tag }}
+          {{ form.collaborators }}
+          {% if form.collaborators.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.collaborators.errors }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Version Control -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Version Control</h3>
+
+        <div class="flex items-center">
+          {{ form.create_version }}
+          {{ form.create_version.label_tag }}
+          <p class="ml-2 text-xs text-gray-500">Upload as a new version of an existing document with the same title</p>
+        </div>
+
+        <div id="version-notes-section" class="hidden">
+          {{ form.change_notes.label_tag }}
+          {{ form.change_notes }}
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Tags</h3>
+
+        {{ form.tags.label_tag }}
+        {{ form.tags }}
+        {% if form.tags.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.tags.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-xs text-gray-500">Optional: Add tags to help categorize and find this document</p>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end space-x-4">
+        <a href="{% url 'documents:document_list' %}"
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50">
+          Cancel
+        </a>
+        <button type="submit"
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'"
+                id="submit-btn">
+          Upload Document
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- File Type Guidelines -->
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mt-6">
+    <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">File Guidelines & Security</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h4 class="font-medium text-blue-900 mb-2">Supported File Types</h4>
+        <ul class="space-y-1 text-sm text-blue-800">
+          <li>• PDF documents (.pdf)</li>
+          <li>• Word documents (.doc, .docx)</li>
+          <li>• Excel spreadsheets (.xls, .xlsx)</li>
+          <li>• PowerPoint presentations (.ppt, .pptx)</li>
+          <li>• Text files (.txt, .rtf)</li>
+          <li>• Images (.jpg, .jpeg, .png, .gif, .bmp, .tiff, .webp)</li>
+          <li>• Archives (.zip, .rar, .7z)</li>
+          <li>• Data files (.json, .xml, .csv, .html)</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-medium text-blue-900 mb-2">Security Features</h4>
+        <ul class="space-y-1 text-sm text-blue-800">
+          <li>• Automatic file type detection</li>
+          <li>• Malware scanning integration</li>
+          <li>• Content validation</li>
+          <li>• Secure file storage</li>
+          <li>• Access control enforcement</li>
+          <li>• Audit trail logging</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <h4 class="font-medium text-blue-900 mb-2">Document Status</h4>
+      <ul class="space-y-1 text-sm text-blue-800">
+        <li>• <strong>Draft:</strong> Internal document, not yet ready for publication</li>
+        <li>• <strong>Under Review:</strong> Document is being reviewed</li>
+        <li>• <strong>Approved:</strong> Document approved but not yet published</li>
+        <li>• <strong>Published:</strong> Document is live and accessible</li>
+        <li>• <strong>Archived:</strong> Document is no longer active</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// Drag and drop functionality
+const dragDropZone = document.getElementById('drag-drop-zone');
+const fileInput = document.getElementById('id_file');
+const filePreview = document.getElementById('file-preview');
+const fileName = document.getElementById('file-name');
+const fileDetails = document.getElementById('file-details');
+const removeFileBtn = document.getElementById('remove-file');
+const progressFill = document.getElementById('progress-fill');
+const submitBtn = document.getElementById('submit-btn');
+const isCollaborativeCheckbox = document.getElementById('id_is_collaborative');
+const collaboratorsSection = document.getElementById('collaborators-section');
+const createVersionCheckbox = document.getElementById('id_create_version');
+const versionNotesSection = document.getElementById('version-notes-section');
+
+// Drag and drop events
+dragDropZone.addEventListener('click', () => fileInput.click());
+
+dragDropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dragDropZone.classList.add('dragover');
+});
+
+dragDropZone.addEventListener('dragleave', () => {
+  dragDropZone.classList.remove('dragover');
+});
+
+dragDropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dragDropZone.classList.remove('dragover');
+
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    fileInput.files = files;
+    handleFileSelect(files[0]);
+  }
+});
+
+// File input change
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length > 0) {
+    handleFileSelect(e.target.files[0]);
+  }
+});
+
+// Handle file selection
+function handleFileSelect(file) {
+  fileName.textContent = file.name;
+
+  // Format file size
+  const size = file.size;
+  let sizeText = '';
+  if (size < 1024) {
+    sizeText = size + ' B';
+  } else if (size < 1024 * 1024) {
+    sizeText = (size / 1024).toFixed(1) + ' KB';
+  } else if (size < 1024 * 1024 * 1024) {
+    sizeText = (size / (1024 * 1024)).toFixed(1) + ' MB';
+  } else {
+    sizeText = (size / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+  }
+
+  fileDetails.textContent = `${sizeText} • ${file.type || 'Unknown type'}`;
+
+  // Show preview
+  filePreview.classList.add('show');
+  dragDropZone.classList.add('has-file');
+
+  // Simulate upload progress
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    progress += Math.random() * 15;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(progressInterval);
+    }
+    progressFill.style.width = progress + '%';
+  }, 100);
+}
+
+// Remove file
+removeFileBtn.addEventListener('click', () => {
+  fileInput.value = '';
+  filePreview.classList.remove('show');
+  dragDropZone.classList.remove('has-file');
+  progressFill.style.width = '0%';
+});
+
+// Collaborative checkbox toggle
+isCollaborativeCheckbox.addEventListener('change', function() {
+  if (this.checked) {
+    collaboratorsSection.classList.remove('hidden');
+  } else {
+    collaboratorsSection.classList.add('hidden');
+  }
+});
+
+// Version control checkbox toggle
+createVersionCheckbox.addEventListener('change', function() {
+  if (this.checked) {
+    versionNotesSection.classList.remove('hidden');
+  } else {
+    versionNotesSection.classList.add('hidden');
+  }
+});
+
+// Form validation
+document.getElementById('upload-form').addEventListener('submit', function(e) {
+  const file = fileInput.files[0];
+  if (!file) {
+    e.preventDefault();
+    alert('Please select a file to upload.');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Uploading...';
+});
+
+// Auto-generate title from filename if empty
+fileInput.addEventListener('change', function() {
+  const titleField = document.getElementById('id_title');
+  if (!titleField.value && this.files.length > 0) {
+    const fileName = this.files[0].name;
+    // Remove extension and capitalize first letter
+    const baseName = fileName.replace(/\.[^/.]+$/, "");
+    titleField.value = baseName.charAt(0).toUpperCase() + baseName.slice(1).replace(/[_-]/g, ' ');
+  }
+});
+</script>
+{% endblock %}

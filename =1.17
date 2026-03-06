@@ -1,0 +1,5 @@
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: django-htmx in /home/nick/.local/lib/python3.14/site-packages (1.27.0)
+Requirement already satisfied: asgiref>=3.6 in /home/nick/.local/lib/python3.14/site-packages (from django-htmx) (3.11.1)
+Requirement already satisfied: django>=4.2 in /home/nick/.local/lib/python3.14/site-packages (from django-htmx) (5.0.2)
+Requirement already satisfied: sqlparse>=0.3.1 in /home/nick/.local/lib/python3.14/site-packages (from django>=4.2->django-htmx) (0.5.5)

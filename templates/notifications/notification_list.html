@@ -1,0 +1,234 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold" style="color: #2d1b5e;">
+          Notifications
+        </h1>
+        <p class="text-gray-600 mt-1">
+          {% if unread_count %}{{ unread_count }} unread notification{{ unread_count|pluralize }}{% else %}All notifications{% endif %}
+        </p>
+      </div>
+      <div class="flex gap-3">
+        <a href="{% url 'notifications:notification_center' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Dashboard
+        </a>
+        {% if unread_count > 0 %}
+          <form method="post" action="{% url 'notifications:mark_all_read' %}" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Mark All Read
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <form method="get" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="lg:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+          {{ search_form.query }}
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+          {{ search_form.notification_type }}
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+          {{ search_form.priority }}
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          {{ search_form.is_read }}
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+          {{ search_form.date_from }}
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+          {{ search_form.date_to }}
+        </div>
+        
+        <div class="flex items-end">
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Filter
+          </button>
+        </div>
+        
+        <div class="flex items-end">
+          <a href="{% url 'notifications:notification_list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+            Clear
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Notifications List -->
+  <div class="space-y-3">
+    {% for notification in notifications %}
+      <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow {% if not notification.is_read %}border-l-4 border-l-blue-500 bg-blue-50{% endif %}">
+        <div class="flex items-start gap-4">
+          <!-- Priority Indicator -->
+          <div class="flex-shrink-0 mt-1">
+            {% if notification.priority == 'urgent' %}
+              <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            {% elif notification.priority == 'high' %}
+              <div class="w-3 h-3 rounded-full bg-orange-500"></div>
+            {% elif notification.priority == 'normal' %}
+              <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+            {% else %}
+              <div class="w-3 h-3 rounded-full bg-gray-300"></div>
+            {% endif %}
+          </div>
+          
+          <!-- Notification Content -->
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-3">
+                <h3 class="text-lg font-medium text-gray-900 {% if not notification.is_read %}font-semibold{% endif %}">
+                  {% if notification.action_url %}
+                    <a href="{{ notification.action_url }}" class="hover:text-blue-600">
+                      {{ notification.title }}
+                    </a>
+                  {% else %}
+                    <a href="{% url 'notifications:notification_detail' notification.pk %}" class="hover:text-blue-600">
+                      {{ notification.title }}
+                    </a>
+                  {% endif %}
+                </h3>
+                
+                <span class="px-2 py-1 text-xs font-medium rounded-full
+                  {% if notification.notification_type == 'meeting_reminder' %}
+                    bg-blue-100 text-blue-800
+                  {% elif notification.notification_type == 'voting_open' or notification.notification_type == 'voting_close' %}
+                    bg-green-100 text-green-800
+                  {% elif notification.notification_type == 'voting_result' %}
+                    bg-purple-100 text-purple-800
+                  {% elif notification.notification_type == 'risk_alert' %}
+                    bg-red-100 text-red-800
+                  {% elif notification.notification_type == 'document_shared' or notification.notification_type == 'document_updated' %}
+                    bg-yellow-100 text-yellow-800
+                  {% elif notification.notification_type == 'discussion_reply' or notification.notification_type == 'discussion_mention' %}
+                    bg-indigo-100 text-indigo-800
+                  {% elif notification.notification_type == 'system_update' %}
+                    bg-gray-100 text-gray-800
+                  {% elif notification.notification_type == 'security_alert' %}
+                    bg-red-100 text-red-800
+                  {% else %}
+                    bg-orange-100 text-orange-800
+                  {% endif %}">
+                  {{ notification.get_notification_type_display }}
+                </span>
+                
+                {% if not notification.is_read %}
+                  <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">New</span>
+                {% endif %}
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">{{ notification.time_since_created }} ago</span>
+              </div>
+            </div>
+            
+            <p class="text-gray-700 mb-3">{{ notification.message }}</p>
+            
+            {% if notification.related_object %}
+              <p class="text-sm text-gray-500 mb-3">
+                Related to: {{ notification.related_object }}
+              </p>
+            {% endif %}
+            
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4 text-sm text-gray-500">
+                <span class="capitalize">{{ notification.priority }} priority</span>
+                {% if notification.expires_at %}
+                  <span>Expires: {{ notification.expires_at|date:"M d, Y H:i" }}</span>
+                {% endif %}
+              </div>
+              
+              <div class="flex gap-3">
+                {% if not notification.is_read %}
+                  <a href="{% url 'notifications:mark_read' notification.pk %}" 
+                     class="text-sm text-blue-600 hover:text-blue-800">Mark Read</a>
+                {% else %}
+                  <a href="{% url 'notifications:mark_unread' notification.pk %}" 
+                     class="text-sm text-gray-600 hover:text-gray-800">Mark Unread</a>
+                {% endif %}
+                <a href="{% url 'notifications:delete' notification.pk %}" 
+                   class="text-sm text-red-600 hover:text-red-800">Delete</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No notifications found</h3>
+        <p class="text-gray-500 mb-6">
+          {% if request.GET %}
+            No notifications match your search criteria. Try adjusting your filters.
+          {% else %}
+            You don't have any notifications yet.
+          {% endif %}
+        </p>
+        <a href="{% url 'notifications:notification_center' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Go to Dashboard
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+      <nav class="flex items-center space-x-2">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{{ request.GET.urlencode }}" class="px-3 py-2 text-gray-500 hover:text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </a>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <span class="px-3 py-2 bg-blue-600 text-white rounded-lg">{{ num }}</span>
+          {% else %}
+            <a href="?page={{ num }}{{ request.GET.urlencode }}" class="px-3 py-2 text-gray-500 hover:text-gray-700 rounded-lg">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{{ request.GET.urlencode }}" class="px-3 py-2 text-gray-500 hover:text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if is_update %}Update{% else %}Create{% endif %} Meeting{% endblock %}
+
+{% block page_title %}{% if is_update %}Update{% else %}Create{% endif %} Meeting{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold" style="color: #2d1b5e;">
+        {% if is_update %}Update Meeting{% else %}Create New Meeting{% endif %}
+      </h1>
+      <p class="text-gray-600 mt-1">
+        {% if is_update %}
+          Update the meeting details below.
+        {% else %}
+          Schedule a new meeting and invite attendees.
+        {% endif %}
+      </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      
+      <!-- Basic Information -->
+      <div class="space-y-4">
+        <div>
+          {{ form.title.label_tag }}
+          {{ form.title }}
+          {% if form.title.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.title.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          {{ form.description.label_tag }}
+          {{ form.description }}
+          {% if form.description.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.description.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {{ form.meeting_type.label_tag }}
+            {{ form.meeting_type }}
+            {% if form.meeting_type.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.meeting_type.errors }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            {{ form.status.label_tag }}
+            {{ form.status }}
+            {% if form.status.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.status.errors }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheduling -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Scheduling</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {{ form.scheduled_date.label_tag }}
+            {{ form.scheduled_date }}
+            {% if form.scheduled_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.scheduled_date.errors }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            {{ form.scheduled_end_time.label_tag }}
+            {{ form.scheduled_end_time }}
+            {% if form.scheduled_end_time.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.scheduled_end_time.errors }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {{ form.location.label_tag }}
+            {{ form.location }}
+            {% if form.location.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.location.errors }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            {{ form.virtual_platform.label_tag }}
+            {{ form.virtual_platform }}
+            {% if form.virtual_platform.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.virtual_platform.errors }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">Select virtual meeting platform if applicable</p>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          {{ form.virtual_meeting_url.label_tag }}
+          {{ form.virtual_meeting_url }}
+          {% if form.virtual_meeting_url.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.virtual_meeting_url.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Virtual meeting link (Zoom, Teams, Google Meet, etc.)</p>
+        </div>
+      </div>
+
+      <!-- Meeting Details -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Meeting Details</h3>
+        
+        <div>
+          {{ form.agenda.label_tag }}
+          {{ form.agenda }}
+          {% if form.agenda.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.agenda.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">List the agenda items for this meeting</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {{ form.attendees.label_tag }}
+            {{ form.attendees }}
+            {% if form.attendees.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.attendees.errors }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">Select attendees for this meeting</p>
+          </div>
+
+          <div>
+            {{ form.required_attendees.label_tag }}
+            {{ form.required_attendees }}
+            {% if form.required_attendees.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.required_attendees.errors }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">Select required attendees (must attend)</p>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end space-x-4">
+        <a href="{% url 'meetings:meeting_list' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50">
+          Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if is_update %}Update Meeting{% else %}Create Meeting{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

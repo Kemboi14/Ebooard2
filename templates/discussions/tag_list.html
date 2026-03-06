@@ -1,0 +1,182 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Discussion Tags{% endblock %}
+
+{% block page_title %}Discussion Tags{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold" style="color: #2d1b5e;">
+          Discussion Tags
+        </h1>
+        <p class="text-gray-600 mt-1">
+          Browse and manage discussion tags for categorization
+        </p>
+      </div>
+      <div class="flex gap-3">
+        <a href="{% url 'discussions:forum_list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Back to Forums
+        </a>
+        {% if user.role in 'company_secretary,it_administrator' %}
+          <a href="{% url 'discussions:tag_create' %}" class="px-4 py-2" style="background-color: #7dc143; color: white;" class="rounded-lg hover:opacity-90 transition-opacity">
+            Create Tag
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Tags</p>
+          <p class="text-2xl font-bold text-gray-900">{{ tags|length }}</p>
+        </div>
+        <div class="p-3 bg-blue-100 rounded-lg">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Most Used</p>
+          <p class="text-2xl font-bold text-gray-900">
+            {% if tags %}{{ tags.0.thread_count }}{% else %}0{% endif %}
+          </p>
+        </div>
+        <div class="p-3 bg-green-100 rounded-lg">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Threads</p>
+          <p class="text-2xl font-bold text-gray-900">
+            {% for tag in tags %}{% if forloop.first %}{{ tag.thread_count }}{% endif %}{% endfor %}
+          </p>
+        </div>
+        <div class="p-3 bg-purple-100 rounded-lg">
+          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tags Grid -->
+  <div class="space-y-4">
+    {% for tag in tags %}
+      <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-4">
+            <!-- Tag Color Indicator -->
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: {{ tag.color }};">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <h3 class="text-lg font-semibold text-gray-900">
+                  <a href="{% url 'discussions:tag_detail' tag.pk %}" class="hover:text-blue-600">
+                    {{ tag.name }}
+                  </a>
+                </h3>
+                <span class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+                  {{ tag.thread_count }} thread{{ tag.thread_count|pluralize }}
+                </span>
+              </div>
+              
+              {% if tag.description %}
+                <p class="text-gray-600 text-sm mb-3">{{ tag.description }}</p>
+              {% endif %}
+              
+              <div class="flex items-center gap-4 text-sm text-gray-500">
+                <span class="flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                  </svg>
+                  Color: {{ tag.color }}
+                </span>
+                
+                <span class="flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Created: {{ tag.created_at|date:"M d, Y" }}
+                </span>
+                
+                <span class="flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  </svg>
+                  Usage: {{ tag.usage_count }} times
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex gap-2">
+            <a href="{% url 'discussions:tag_detail' tag.pk %}" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+              View Threads
+            </a>
+            {% if user.role in 'company_secretary,it_administrator' %}
+              <a href="#" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm">
+                Edit
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No tags found</h3>
+        <p class="text-gray-500 mb-6">Get started by creating your first discussion tag.</p>
+        {% if user.role in 'company_secretary,it_administrator' %}
+          <a href="{% url 'discussions:tag_create' %}" class="px-4 py-2" style="background-color: #7dc143; color: white;" class="rounded-lg hover:opacity-90 transition-opacity">
+            Create Tag
+          </a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Popular Tags Cloud -->
+  {% if tags %}
+    <div class="bg-white rounded-xl shadow-sm p-6 mt-6">
+      <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Tag Cloud</h2>
+      <div class="flex flex-wrap gap-3">
+        {% for tag in tags %}
+          <a href="{% url 'discussions:tag_detail' tag.pk %}" 
+             class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors hover:opacity-80"
+             style="background-color: {{ tag.color }}20; color: {{ tag.color }};">
+            <span>{{ tag.name }}</span>
+            <span class="text-xs opacity-75">{{ tag.thread_count }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if is_update %}Update{% else %}Create{% endif %} Policy{% endblock %}
+
+{% block page_title %}{% if is_update %}Update{% else %}Create{% endif %} Policy{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      <!-- Basic Information -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Basic Information</h2>
+        <div class="grid grid-cols-1 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Policy Title *</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Policy Content *</label>
+            {{ form.content }}
+            {% if form.content.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.content.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Enter the full policy content with sections, clauses, and requirements.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Classification -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Classification</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <div class="flex gap-2">
+              {{ form.category }}
+              {% if can_manage %}
+                <a href="{% url 'policy:category_create' %}" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap" title="Create new category">
+                  + New
+                </a>
+              {% endif %}
+            </div>
+            {% if form.category.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.category.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Category Type *</label>
+            {{ form.category_type }}
+            {% if form.category_type.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.category_type.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Access Level *</label>
+            {{ form.access_level }}
+            {% if form.access_level.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.access_level.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Who can view this policy.</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Policy Owner</label>
+            {{ form.policy_owner }}
+            {% if form.policy_owner.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.policy_owner.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Person responsible for this policy.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dates -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Important Dates</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Effective Date</label>
+            {{ form.effective_date }}
+            {% if form.effective_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.effective_date.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">When the policy becomes effective.</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Review Date</label>
+            {{ form.review_date }}
+            {% if form.review_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.review_date.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Next scheduled review date.</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+            {{ form.expiry_date }}
+            {% if form.expiry_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.expiry_date.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">When the policy expires (optional).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attachment -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Attachment</h2>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Policy Document</label>
+          {{ form.attachment }}
+          {% if form.attachment.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.attachment.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-sm text-gray-500">Upload a PDF or document file (optional).</p>
+        </div>
+      </div>
+
+      <!-- Form Errors -->
+      {% if form.non_field_errors %}
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-800">{{ form.non_field_errors.0 }}</p>
+        </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-4">
+        <a href="{% url 'policy:policy_list' %}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Cancel
+        </a>
+        <button type="submit" class="px-6 py-3 text-white rounded-lg hover:opacity-90 transition-opacity" style="background-color: #7dc143;">
+          {% if is_update %}Update Policy{% else %}Create Policy{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+/* Enwealth E-Board Design System */
+:root {
+  --color-primary: #1a0a3c;   /* Deep purple — sidebar, navbar bg */
+  --color-accent: #7dc143;   /* Brand green — buttons, active nav, badges */
+  --color-accent-dark: #5a8a3c;   /* Olive green — hover states */
+  --color-teal: #2d7a6e;   /* Teal — secondary buttons */
+  --color-bg-light: #e8f5d0;   /* Light green — page backgrounds */
+  --color-bg-white: #ffffff;   /* Cards, modals */
+  --color-text-dark: #2d1b5e;   /* Purple text — headings */
+  --color-text-muted: #6b7280;   /* Muted text */
+  --color-border: #d1d5db;
+  --sidebar-width: 260px;
+}
+
+/* Base styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--color-text-dark);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-dark);
+}
+
+/* Focus styles */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

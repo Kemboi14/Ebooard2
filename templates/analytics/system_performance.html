@@ -1,0 +1,182 @@
+{% extends 'base/base.html' %}
+
+{% block title %}System Performance Analytics{% endblock %}
+
+{% block page_title %}System Performance Analytics{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold" style="color: #2d1b5e;">
+          System Performance Analytics
+        </h1>
+        <p class="text-gray-600 mt-1">
+          Monitor system health, response times, and performance metrics
+        </p>
+      </div>
+      <div class="flex gap-3">
+        <a href="{% url 'analytics:dashboard' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Performance Metrics -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Avg Response Time</p>
+          <p class="text-2xl font-bold text-gray-900">{{ avg_response_time|floatformat:2 }}s</p>
+        </div>
+        <div class="p-3 bg-blue-100 rounded-lg">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">System Uptime</p>
+          <p class="text-2xl font-bold text-gray-900">{{ avg_uptime|floatformat:1 }}%</p>
+        </div>
+        <div class="p-3 bg-green-100 rounded-lg">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Active Users (Avg)</p>
+          <p class="text-2xl font-bold text-gray-900">{{ recent_activity.active_users|floatformat:0 }}</p>
+        </div>
+        <div class="p-3 bg-purple-100 rounded-lg">
+          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Logins (Avg)</p>
+          <p class="text-2xl font-bold text-gray-900">{{ recent_activity.logins|floatformat:0 }}</p>
+        </div>
+        <div class="p-3 bg-orange-100 rounded-lg">
+          <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Activity Overview -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">System Activity (Last 30 Days)</h3>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-600">Average Daily Logins</span>
+          <span class="text-lg font-semibold text-blue-600">{{ recent_activity.logins|floatformat:1 }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-600">Average Active Users</span>
+          <span class="text-lg font-semibold text-green-600">{{ recent_activity.active_users|floatformat:1 }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-600">Average Documents</span>
+          <span class="text-lg font-semibold text-purple-600">{{ recent_activity.documents|floatformat:1 }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-600">Average Meetings</span>
+          <span class="text-lg font-semibold text-orange-600">{{ recent_activity.meetings|floatformat:1 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Trends Chart Placeholder -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Performance Trends</h3>
+      <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+        <div class="text-center">
+          <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          <p class="text-sm text-gray-500">Performance trends chart would be displayed here</p>
+          <p class="text-xs text-gray-400 mt-1">Data: {{ performance_trends|length }} data points</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Performance Snapshots -->
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h3 class="text-lg font-semibold mb-4" style="color: #2d1b5e;">Recent Performance Snapshots</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Response Time</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uptime</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active Users</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Users</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meetings</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for snapshot in snapshots %}
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {{ snapshot.snapshot_date|date:"M d, Y" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ snapshot.average_response_time|floatformat:2 }}s
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                  {% if snapshot.system_uptime >= 99 %}bg-green-100 text-green-800
+                  {% elif snapshot.system_uptime >= 95 %}bg-yellow-100 text-yellow-800
+                  {% else %}bg-red-100 text-red-800{% endif %}">
+                  {{ snapshot.system_uptime|floatformat:1 }}%
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ snapshot.active_users }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ snapshot.total_users }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ snapshot.total_documents }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ snapshot.total_meetings }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                No performance snapshots available yet.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// Performance trends data is available as: {{ performance_trends|safe }}
+// In a real implementation, you would use a charting library like Chart.js to display this data
+console.log('Performance trends data:', {{ performance_trends|safe }});
+</script>
+{% endblock %}

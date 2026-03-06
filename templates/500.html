@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error | Enwealth E-Board</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --color-primary: #1a0a3c;
+            --color-accent: #7dc143;
+            --color-accent-dark: #5a8a3c;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center" style="background-color: #1a0a3c;">
+    <div class="max-w-md w-full">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 text-center">
+            <!-- Error Icon -->
+            <div class="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background-color: #fee2e2;">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            
+            <!-- Error Message -->
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Something went wrong</h1>
+            <p class="text-gray-600 mb-8">
+                We're experiencing some technical difficulties. Please try again in a few moments, or contact your system administrator if the problem persists.
+            </p>
+            
+            <!-- Action Buttons -->
+            <div class="space-y-4">
+                <button onclick="location.reload()" 
+                   class="w-full inline-flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors duration-200"
+                   style="background-color: #7dc143;"
+                   onmouseover="this.style.backgroundColor='#5a8a3c'"
+                   onmouseout="this.style.backgroundColor='#7dc143'">
+                    Try Again
+                </button>
+                
+                <a href="{% url 'dashboard' %}" 
+                   class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Go to Dashboard
+                </a>
+            </div>
+            
+            <!-- Help Text -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <p class="text-xs text-gray-500">
+                    Error ID: {% now "Y-m-d H:i:s" %}<br>
+                    If this error continues, please report it to your IT support team.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-6">
+            <p class="text-xs text-gray-400">
+                © 2026 Enwealth Financial Services. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
