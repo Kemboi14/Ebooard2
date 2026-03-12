@@ -1,833 +1,806 @@
-# Enwealth Board Management System
-
-[![Django](https://img.shields.io/badge/Django-5.2.12-green.svg)](https://djangoproject.com/)
-[![Python](https://img.shields.io/badge/Python-3.14.3-blue.svg)](https://python.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)](https://postgresql.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-A comprehensive enterprise-grade board management system built with Django, designed to streamline corporate governance, enhance board communication, and provide powerful analytics for decision-making.
-
-## 🌟 Overview
-
-Enwealth is a sophisticated digital platform that transforms traditional board governance into a modern, efficient, and transparent process. Built with enterprise-grade security and compliance in mind, it serves as the central hub for all board-related activities, from strategic planning to operational execution.
-
-### 🎯 Key Objectives
-
-- **Centralized Governance Hub** - Single platform for all board activities
-- **Enhanced Communication** - Real-time collaboration and notifications
-- **Regulatory Compliance** - Comprehensive audit trails and reporting
-- **Operational Efficiency** - Automated workflows and intelligent insights
-- **Stakeholder Engagement** - Inclusive participation across all board levels
-
-## 🏗️ System Architecture
-
-### Technology Stack
-
-#### Backend Framework
-- **Django 5.2.12** - Enterprise-grade Python web framework
-- **Python 3.14.3** - Modern Python with advanced features
-- **PostgreSQL 15+** - Robust database with full-text search capabilities
-- **Redis** - High-performance caching and session management
-
-#### Frontend Technologies
-- **Tailwind CSS** - Modern utility-first CSS framework
-- **HTMX** - Progressive enhancement for dynamic interactions
-- **Alpine.js** - Lightweight JavaScript for reactive components
-- **Chart.js** - Advanced data visualization library
-
-#### Infrastructure & DevOps
-- **Celery** - Distributed task queue for background processing
-- **Docker** - Containerization for consistent deployment
-- **Nginx** - High-performance web server and reverse proxy
-- **Gunicorn** - Production-ready WSGI HTTP Server
-
-#### Security & Authentication
-- **OTP (TOTP)** - Multi-factor authentication
-- **JWT Tokens** - Secure API authentication
-- **Role-Based Access Control** - Granular permission management
-- **OAuth 2.0** - External service integrations
-
-## 📋 Complete Feature Set
-
-### 🔐 User Management & Authentication
-
-#### Advanced User System
-- **Custom User Model** - Email-based authentication with role management
-- **Multi-Role Support** - Board Members, Company Secretaries, IT Administrators
-- **Profile Management** - Comprehensive user profiles with preferences
-- **OTP Integration** - Two-factor authentication for enhanced security
-
-#### Permission Framework
-- **Granular Permissions** - Object-level access control
-- **Dynamic Role Assignment** - Flexible role-based permissions
-- **Audit Logging** - Complete user activity tracking
-
-### 📊 Dashboard & Navigation
-
-#### Intelligent Dashboard
-- **Role-Based Views** - Customized interfaces for different user types
-- **Real-Time Updates** - Live data refresh and notifications
-- **Quick Actions** - One-click access to frequently used features
-- **Responsive Design** - Mobile-optimized interface
-
-#### Navigation System
-- **Contextual Menus** - Dynamic navigation based on user permissions
-- **Breadcrumb Navigation** - Clear navigation hierarchy
-- **Search Integration** - Global search across all modules
-
-### 📅 Meeting Management
-
-#### Comprehensive Meeting System
-- **Meeting Scheduling** - Advanced calendar integration with conflict detection
-- **Multi-Format Support** - In-person, virtual, and hybrid meetings
-- **Agenda Management** - Structured agendas with presenter assignments
-- **Minutes Recording** - Automated minute-taking with approval workflows
-
-#### Video Conferencing Integration (Phase 1)
-- **Multi-Platform Support** - Zoom, Teams, Google Meet, Webex, Jitsi, Whereby
-- **Session Analytics** - Real-time participant tracking and engagement metrics
-- **Recording Management** - Automated recording with secure storage and access control
-- **Platform-Specific Features** - Breakout rooms, chat, screen sharing, waiting rooms
-
-#### Attendance & Participation
-- **RSVP Management** - Automated invitation and response tracking
-- **Real-Time Attendance** - Live attendance monitoring during meetings
-- **Participation Analytics** - Detailed engagement metrics and reporting
-
-### 📄 Document Management
-
-#### Enterprise Document System
-- **Secure File Upload** - Encrypted storage with integrity verification
-- **Advanced Organization** - Hierarchical categories and tagging system
-- **Access Control** - Granular permissions with expiration dates
-- **File Versioning** - Complete version history with change tracking
-
-#### Enhanced Version Control (Phase 1)
-- **SHA-256 Checksums** - File integrity verification and tamper detection
-- **Major/Minor Versioning** - Semantic versioning for document lifecycle
-- **Approval Workflows** - Multi-stage approval processes with audit trails
-- **Change Documentation** - Detailed notes for each version change
-
-#### Collaboration Features (Phase 1)
-- **Real-Time Comments** - Threaded discussions with @mention support
-- **Document Sharing** - Secure sharing with customizable permissions
-- **Collaboration Spaces** - Team-based document workspaces
-- **Activity Tracking** - Complete document interaction history
-
-#### Advanced Search & Discovery (Phase 1)
-- **PostgreSQL Full-Text Search** - Lightning-fast document discovery
-- **Metadata Filtering** - Advanced filtering by author, date, category, tags
-- **Content Preview** - Rich document previews with highlighting
-- **Search Analytics** - Popular search terms and user behavior insights
-
-### 🗳️ Voting & Motions
-
-#### Sophisticated Voting System
-- **Motion Management** - Comprehensive motion creation and tracking
-- **Multiple Voting Types** - Yes/No, Multiple Choice, Ranked Choice, Weighted Voting
-- **Anonymous Voting** - Optional anonymity for sensitive decisions
-- **Real-Time Results** - Live vote counting and progress tracking
-
-#### Advanced Voting Features
-- **Quorum Management** - Automatic quorum calculation and tracking
-- **Proxy Voting** - Authorized representative voting capabilities
-- **Vote Validation** - Fraud prevention and vote integrity checks
-- **Audit Trails** - Complete voting history with tamper-proof records
-
-#### Election Management
-- **Board Elections** - Automated election processes with candidate management
-- **Committee Appointments** - Streamlined committee member selection
-- **Term Management** - Automatic term limits and rotation scheduling
-
-### ⚠️ Risk Management
-
-#### Comprehensive Risk Framework
-- **Risk Identification** - Systematic risk assessment and categorization
-- **Risk Assessment Matrix** - Probability vs Impact analysis
-- **Mitigation Strategies** - Action plans and responsibility assignment
-- **Monitoring & Reporting** - Ongoing risk status tracking and escalation
-
-#### Advanced Risk Features
-- **Risk Heat Maps** - Visual risk portfolio analysis
-- **Regulatory Compliance** - Built-in compliance checklists and tracking
-- **Risk Dependencies** - Interconnected risk relationship mapping
-- **Scenario Planning** - "What-if" analysis for risk scenarios
-
-### 📋 Policy Management
-
-#### Policy Lifecycle Management
-- **Policy Creation** - Structured policy development with templates
-- **Version Control** - Complete policy version history and comparisons
-- **Approval Workflows** - Multi-level approval processes with notifications
-- **Publication Management** - Controlled policy distribution and access
-
-#### Compliance & Training
-- **Policy Acknowledgment** - Mandatory policy acceptance tracking
-- **Training Integration** - Policy-related training assignment and completion
-- **Audit Compliance** - Regulatory compliance reporting and certification
-
-### 📊 Audit Trail & Compliance
-
-#### Comprehensive Auditing
-- **Activity Logging** - All system activities with detailed metadata
-- **User Action Tracking** - Who did what and when with IP logging
-- **Data Change History** - Before/after comparisons for critical data changes
-- **Compliance Reporting** - Automated compliance report generation
-
-#### Advanced Audit Features
-- **Retention Policies** - Automated log retention and archival
-- **Export Capabilities** - Audit data export for external auditing
-- **Real-Time Monitoring** - Live audit dashboards and alerts
-- **Forensic Analysis** - Detailed investigation tools for security incidents
-
-### 🎯 Board Evaluation
-
-#### 360-Degree Evaluation System
-- **Self-Assessment** - Individual board member self-evaluation
-- **Peer Reviews** - Anonymous peer feedback and rating systems
-- **Performance Metrics** - Quantitative performance indicators
-- **Development Planning** - Individual development plan creation
-
-#### Advanced Analytics
-- **Trend Analysis** - Performance trends over time
-- **Benchmarking** - Industry and peer group comparisons
-- **Action Planning** - Improvement action tracking and follow-up
-- **Confidentiality Management** - Secure evaluation data handling
-
-### 💬 Discussion Forums
-
-#### Collaborative Communication
-- **Forum Structure** - Hierarchical forum organization with categories
-- **Thread Management** - Discussion threads with rich formatting
-- **Real-Time Updates** - Live discussion updates and notifications
-- **Moderation Tools** - Content moderation and community management
-
-#### Advanced Features
-- **Tag System** - Discussion tagging and search capabilities
-- **Subscription Management** - Custom notification preferences
-- **Poll Integration** - Discussion-embedded polls and surveys
-- **File Attachments** - Rich media support in discussions
-
-### 🔔 Real-Time Notifications (Phase 1)
-
-#### Intelligent Alert System
-- **Priority-Based Notifications** - Urgent, High, Normal, Low priority levels
-- **Multi-Channel Delivery** - Email, in-app, and SMS notifications
-- **Template System** - Reusable notification templates with dynamic content
-- **Batch Processing** - Efficient mass notification delivery
-
-#### Advanced Notification Features
-- **User Preferences** - Granular notification control by type and channel
-- **Quiet Hours** - Respectful notification scheduling
-- **Expiration Management** - Automatic notification cleanup
-- **Delivery Tracking** - Notification delivery confirmation and analytics
-
-### 📈 Analytics Dashboard (Phase 1)
-
-#### Real-Time Business Intelligence
-- **Key Performance Indicators** - Meeting attendance, document engagement, voting participation
-- **User Analytics** - Individual and group engagement metrics
-- **System Performance** - Response times, uptime, and usage statistics
-- **Trend Analysis** - Historical data trends and forecasting
-
-#### Advanced Reporting
-- **Custom Dashboards** - Role-specific dashboard customization
-- **Export Capabilities** - PDF, Excel, and CSV report generation
-- **Scheduled Reports** - Automated report delivery
-- **Interactive Charts** - Drill-down analytics and data exploration
-
-## 🚀 Quick Start Guide
-
-### System Requirements
-
-- **Python**: 3.14.3+
-- **Database**: PostgreSQL 15+
-- **Memory**: 4GB RAM minimum, 8GB recommended
-- **Storage**: 50GB available space for documents and logs
-- **Network**: Stable internet connection for video conferencing
-
-### Installation Process
-
-#### 1. Environment Setup
-```bash
-# Clone repository
-git clone https://github.com/your-organization/enwealth.git
-cd enwealth
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements/production.txt
-```
-
-#### 2. Configuration
-```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit configuration
-nano .env
-```
-
-#### 3. Database Initialization
-```bash
-# Run migrations
-python manage.py migrate
-
-# Create superuser
-python manage.py createsuperuser
-
-# Load initial data (if available)
-python manage.py loaddata initial_data.json
-```
-
-#### 4. Static Files & Launch
-```bash
-# Collect static files
-python manage.py collectstatic --noinput
-
-# Start development server
-python manage.py runserver
-```
-
-### First-Time Setup
-
-1. **Access Admin Panel** - Configure system settings and user roles
-2. **Create Board Members** - Add board members with appropriate permissions
-3. **Configure Categories** - Set up document categories and meeting types
-4. **Set Up Notifications** - Configure email settings and notification templates
-5. **Import Legacy Data** - Migrate existing board data if applicable
-
-## 📖 User Guide
-
-### Getting Started
-
-#### For Board Members
-1. **Complete Profile Setup** - Personal information and notification preferences
-2. **Review Calendar** - Upcoming meetings and important dates
-3. **Access Documents** - Review board materials and policies
-4. **Participate in Discussions** - Engage in board-level conversations
-
-#### For Company Secretaries
-1. **Meeting Management** - Schedule and organize board meetings
-2. **Document Oversight** - Manage document lifecycle and approvals
-3. **Compliance Monitoring** - Track regulatory requirements and deadlines
-4. **Reporting** - Generate board reports and analytics
-
-#### For IT Administrators
-1. **System Configuration** - Set up integrations and security settings
-2. **User Management** - Create accounts and manage permissions
-3. **Performance Monitoring** - Monitor system health and usage
-4. **Backup & Recovery** - Ensure data integrity and disaster recovery
-
-### Key Workflows
-
-#### Meeting Lifecycle
-```
-Planning → Scheduling → Invitation → Preparation → Execution → Minutes → Follow-up
-```
-
-#### Document Workflow
-```
-Creation → Review → Approval → Publication → Archival → Retention
-```
-
-#### Decision Process
-```
-Motion → Discussion → Voting → Resolution → Implementation → Review
-```
-
-## 🔧 Configuration & Administration
-
-### Environment Variables
-
-```bash
-# Core Django Settings
-SECRET_KEY=your-256-bit-secret-key
-DEBUG=False
-ALLOWED_HOSTS=enwealth.yourcompany.com
-
-# Database Configuration
-DATABASE_URL=postgresql://user:password@localhost:5432/enwealth
-
-# Email Configuration
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_HOST_USER=noreply@yourcompany.com
-EMAIL_HOST_PASSWORD=app-specific-password
-
-# External Service Integrations
-ZOOM_API_KEY=your-zoom-api-key
-ZOOM_API_SECRET=your-zoom-api-secret
-MS_TEAMS_CLIENT_ID=your-teams-client-id
-GOOGLE_CLIENT_ID=your-google-client-id
-
-# Security Settings
-OTP_ISSUER=Enwealth Board System
-SESSION_COOKIE_SECURE=True
-CSRF_COOKIE_SECURE=True
-
-# Performance & Caching
-REDIS_URL=redis://localhost:6379/1
-CACHE_TIMEOUT=3600
-```
-
-### Video Conferencing Setup
-
-#### Zoom Integration
-1. Create OAuth App in Zoom Marketplace
-2. Configure webhook endpoints for real-time events
-3. Set up meeting recording permissions
-4. Configure breakout room and polling features
-
-#### Microsoft Teams Integration
-1. Register application in Azure Active Directory
-2. Configure Graph API permissions for calendar and meetings
-3. Set up webhook notifications for meeting events
-4. Enable guest access and external sharing
-
-#### Google Meet Integration
-1. Create project in Google Cloud Console
-2. Enable Calendar and Meet APIs
-3. Configure OAuth 2.0 credentials
-4. Set up domain-wide delegation for enterprise accounts
-
-### Security Configuration
-
-#### Multi-Factor Authentication
-- **OTP Setup**: Configure TOTP for all administrative accounts
-- **Backup Codes**: Generate backup authentication codes
-- **Recovery Process**: Document MFA recovery procedures
-
-#### Access Control
-- **Role Definitions**: Clearly define permissions for each role
-- **Permission Matrix**: Document what each role can access
-- **Approval Workflows**: Set up required approvals for sensitive actions
-
-#### Data Protection
-- **Encryption**: Enable database and file encryption
-- **Backup Strategy**: Implement regular automated backups
-- **Retention Policies**: Configure data retention and deletion policies
-
-## 🔒 Security & Compliance
-
-### Authentication & Authorization
-
-#### Advanced Security Features
-- **JWT Authentication** - Stateless API authentication with expiration
-- **OTP Integration** - Time-based one-time passwords for MFA
-- **Session Management** - Secure session handling with timeout controls
-- **Password Policies** - Enforced strong password requirements
-
-#### Access Control Framework
-- **Role-Based Access Control** - Hierarchical permission system
-- **Object-Level Permissions** - Fine-grained control over individual resources
-- **Context-Aware Security** - Dynamic permissions based on context
-- **Permission Inheritance** - Efficient permission management
-
-### Data Protection & Privacy
-
-#### Encryption & Security
-- **End-to-End Encryption** - Sensitive data encrypted in transit and at rest
-- **File Encryption** - All uploaded documents automatically encrypted
-- **Database Encryption** - Sensitive fields encrypted in database
-- **Key Management** - Secure key rotation and management
-
-#### Compliance Features
-- **GDPR Compliance** - Data portability, right to erasure, consent management
-- **Audit Trails** - Complete activity logging with tamper-proof records
-- **Data Retention** - Automated data lifecycle management
-- **Privacy Controls** - Granular privacy settings for users
-
-### Regulatory Compliance
-
-#### Governance Standards
-- **SOX Compliance** - Sarbanes-Oxley financial reporting controls
-- **Board Governance** - Best practices for board operations
-- **Regulatory Reporting** - Automated compliance report generation
-- **Risk Management** - Integrated compliance risk assessment
-
-## 📊 API Documentation
-
-### REST API Endpoints
-
-#### Authentication APIs
-```
-POST /api/auth/login/           # User login
-POST /api/auth/logout/          # User logout
-POST /api/auth/refresh/         # Token refresh
-POST /api/auth/verify/          # OTP verification
-```
-
-#### Core Business APIs
-```
-GET    /api/meetings/           # List meetings
-POST   /api/meetings/           # Create meeting
-GET    /api/meetings/{id}/      # Get meeting details
-PUT    /api/meetings/{id}/      # Update meeting
-DELETE /api/meetings/{id}/      # Delete meeting
-
-GET    /api/documents/          # List documents
-POST   /api/documents/          # Upload document
-GET    /api/documents/{id}/     # Get document
-PUT    /api/documents/{id}/     # Update document
-DELETE /api/documents/{id}/     # Delete document
-
-GET    /api/voting/motions/     # List motions
-POST   /api/voting/motions/     # Create motion
-POST   /api/voting/vote/        # Cast vote
-
-GET    /api/analytics/dashboard/# Dashboard data
-GET    /api/analytics/reports/  # Generate reports
-```
-
-#### Webhook Endpoints
-```
-POST /webhooks/zoom/            # Zoom meeting events
-POST /webhooks/teams/           # Teams meeting events
-POST /webhooks/calendar/        # Calendar synchronization
-POST /webhooks/notifications/   # Notification delivery status
-```
-
-### API Integration Examples
-
-#### Python SDK Usage
-```python
-from enwealth_client import EnwealthClient
-
-client = EnwealthClient(
-    base_url='https://enwealth.yourcompany.com',
-    api_key='your-api-key'
-)
-
-# Create meeting
-meeting = client.meetings.create({
-    'title': 'Board Meeting',
-    'scheduled_date': '2024-02-01T10:00:00Z',
-    'meeting_type': 'board'
-})
-
-# Upload document
-with open('board_minutes.pdf', 'rb') as f:
-    document = client.documents.upload(f, {
-        'title': 'Board Minutes',
-        'category': 'minutes',
-        'access_level': 'board'
-    })
-```
-
-## 🚀 Deployment & Operations
-
-### Production Deployment
-
-#### Docker Containerization
-```yaml
-version: '3.8'
-services:
-  web:
-    build: .
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
-    environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.production
-    volumes:
-      - static:/app/static
-      - media:/app/media
-    depends_on:
-      - db
-      - redis
-
-  db:
-    image: postgres:15
-    environment:
-      - POSTGRES_DB=enwealth
-      - POSTGRES_USER=enwealth
-      - POSTGRES_PASSWORD=secure-password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis_data:/data
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - static:/app/static
-      - media:/app/media
-      - ./ssl:/etc/ssl/certs
-```
-
-#### Cloud Deployment Options
-
-##### AWS Deployment
-- **EC2/ECS**: Containerized deployment with auto-scaling
-- **RDS**: Managed PostgreSQL database
-- **ElastiCache**: Redis caching layer
-- **S3**: Secure document storage
-- **CloudFront**: Global CDN for static assets
-
-##### Azure Deployment
-- **App Service**: PaaS deployment with built-in scaling
-- **Database for PostgreSQL**: Managed database service
-- **Cache for Redis**: Managed caching service
-- **Blob Storage**: Secure document storage
-- **Front Door**: Global CDN and security
-
-### Monitoring & Maintenance
-
-#### System Monitoring
-- **Application Performance Monitoring** - Response times, error rates, throughput
-- **Database Performance** - Query performance, connection pooling, replication lag
-- **Infrastructure Monitoring** - CPU, memory, disk usage, network I/O
-- **Security Monitoring** - Failed login attempts, suspicious activities
-
-#### Automated Tasks
-```python
-# Celery beat schedule
-CELERY_BEAT_SCHEDULE = {
-    'cleanup-expired-notifications': {
-        'task': 'notifications.tasks.cleanup_expired_notifications',
-        'schedule': crontab(hour=2, minute=0),  # Daily at 2 AM
-    },
-    'generate-daily-analytics': {
-        'task': 'analytics.tasks.generate_daily_snapshot',
-        'schedule': crontab(hour=1, minute=0),  # Daily at 1 AM
-    },
-    'backup-database': {
-        'task': 'maintenance.tasks.database_backup',
-        'schedule': crontab(hour=3, minute=0),  # Daily at 3 AM
-    },
-}
-```
-
-## 🧪 Testing & Quality Assurance
-
-### Testing Strategy
-
-#### Unit Testing
-```bash
-# Run all unit tests
-python manage.py test --verbosity=2
-
-# Run specific app tests
-python manage.py test apps.accounts
-
-# Generate coverage report
-coverage run manage.py test
-coverage html
-```
-
-#### Integration Testing
-```bash
-# API integration tests
-python manage.py test tests.api
-
-# External service integration
-python manage.py test tests.integrations
-```
-
-#### End-to-End Testing
-```bash
-# Selenium-based E2E tests
-python manage.py test tests.e2e
-```
-
-### Code Quality
-
-#### Code Standards
-- **PEP 8 Compliance** - Python style guide adherence
-- **Type Hints** - Static type checking with mypy
-- **Documentation** - Comprehensive docstrings and comments
-- **Security Scanning** - Automated security vulnerability detection
-
-#### Performance Testing
-- **Load Testing** - Concurrent user simulation
-- **Stress Testing** - System limits and failure points
-- **Scalability Testing** - Horizontal and vertical scaling validation
-
-## 🤝 Contributing & Development
-
-### Development Environment Setup
-
-1. **Fork Repository**
-   ```bash
-   git clone https://github.com/your-username/enwealth.git
-   cd enwealth
-   git remote add upstream https://github.com/original-org/enwealth.git
-   ```
-
-2. **Create Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-3. **Install Development Dependencies**
-   ```bash
-   pip install -r requirements/development.txt
-   ```
-
-4. **Run Tests**
-   ```bash
-   python manage.py test
-   ```
-
-5. **Code Quality Checks**
-   ```bash
-   # Format code
-   black .
-
-   # Type checking
-   mypy .
-
-   # Lint code
-   flake8 .
-   ```
-
-### Contribution Guidelines
-
-#### Code Standards
-- Follow Django and Python best practices
-- Write comprehensive unit tests
-- Include docstrings for all public methods
-- Use type hints for function parameters
-- Follow REST API conventions
-
-#### Commit Standards
-```
-feat: add video conferencing integration
-fix: resolve notification delivery issue
-docs: update API documentation
-test: add unit tests for user authentication
-refactor: optimize database queries
-```
-
-#### Pull Request Process
-1. **Create Feature Branch** - Descriptive branch name from main
-2. **Write Tests** - Comprehensive test coverage for new features
-3. **Update Documentation** - README and docstring updates
-4. **Code Review** - Peer review and approval process
-5. **Merge to Main** - Squash commits and clean merge
-
-## 📈 Roadmap & Future Development
-
-### Phase 2: Advanced Intelligence (Q2 2024)
-- [ ] **AI-Powered Meeting Summaries** - Automatic meeting transcription and summarization
-- [ ] **Predictive Analytics** - Board performance forecasting and trend analysis
-- [ ] **Intelligent Recommendations** - Automated governance suggestions
-- [ ] **Natural Language Processing** - Document analysis and sentiment tracking
-
-### Phase 3: Extended Ecosystem (Q3 2024)
-- [ ] **Mobile Applications** - Native iOS and Android apps
-- [ ] **Advanced Workflow Automation** - Intelligent process orchestration
-- [ ] **Third-Party Integrations** - Expanded API ecosystem
-- [ ] **Multi-Tenant Architecture** - White-label solutions
-
-### Phase 4: Global Scale (Q4 2024)
-- [ ] **Multi-Language Support** - Internationalization and localization
-- [ ] **Blockchain Integration** - Immutable audit trails and voting
-- [ ] **Advanced Security** - Zero-trust architecture and quantum-resistant encryption
-- [ ] **Machine Learning** - Predictive governance and risk assessment
-
-### Long-Term Vision (2025+)
-- [ ] **Metaverse Integration** - Virtual reality board meetings
-- [ ] **IoT Integration** - Smart boardroom automation
-- [ ] **Quantum Computing** - Advanced cryptographic security
-- [ ] **AI Governance** - Autonomous governance decision support
-
-## 📄 License & Legal
-
-### MIT License
-
-Copyright (c) 2024 Enwealth Technologies
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-### Data Privacy & Compliance
-
-- **GDPR Compliant** - EU General Data Protection Regulation
-- **CCPA Ready** - California Consumer Privacy Act compliance
-- **Data Residency** - Configurable data storage locations
-- **Privacy by Design** - Privacy considerations built into architecture
-
-## 📞 Support & Community
-
-### Support Channels
-
-#### Technical Support
-- **Email**: support@enwealth.com
-- **Help Desk**: https://support.enwealth.com
-- **Response Time**: < 4 hours for critical issues
-
-#### Community Resources
-- **Documentation**: https://docs.enwealth.com
-- **API Reference**: https://api.enwealth.com
-- **Community Forum**: https://community.enwealth.com
-
-#### Training & Certification
-- **Online Training**: Comprehensive video courses
-- **Certification Programs**: System administrator and user certifications
-- **Webinars**: Regular feature updates and best practices
-
-### Professional Services
-
-#### Implementation Services
-- **System Setup** - Complete installation and configuration
-- **Data Migration** - Legacy system data migration
-- **User Training** - Comprehensive training programs
-- **Customization** - Tailored solutions for specific requirements
-
-#### Managed Services
-- **24/7 Monitoring** - Proactive system monitoring
-- **Regular Updates** - Security patches and feature updates
-- **Performance Optimization** - Ongoing system tuning
-- **Backup & Recovery** - Comprehensive data protection
-
-## 🙏 Acknowledgments
-
-### Technology Contributors
-- **Django Community** - Exceptional web framework
-- **PostgreSQL Team** - Robust database technology
-- **Python Core Team** - Programming language excellence
-- **Open Source Community** - Libraries and tools
-
-### Domain Experts
-- **Corporate Governance Specialists** - Board governance best practices
-- **Legal & Compliance Experts** - Regulatory requirement guidance
-- **Security Researchers** - Cybersecurity and data protection
-- **UX/UI Designers** - User experience optimization
-
-### Project Team
-- **Development Team** - Dedicated engineering excellence
-- **Product Managers** - Vision and strategy
-- **Quality Assurance** - Rigorous testing and validation
-- **DevOps Engineers** - Reliable deployment and operations
+# Enwealth E-Board Portal
+
+<p align="center">
+  <img src="static/images/logo.png" alt="Enwealth Logo" width="180"/>
+</p>
+
+<p align="center">
+  <strong>A secure, full-featured digital board governance platform for multi-branch organizations.</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Django-5.x-green?logo=django" />
+  <img src="https://img.shields.io/badge/Python-3.12+-blue?logo=python" />
+  <img src="https://img.shields.io/badge/PostgreSQL-15+-blue?logo=postgresql" />
+  <img src="https://img.shields.io/badge/Celery-5.3+-brightgreen?logo=celery" />
+  <img src="https://img.shields.io/badge/Redis-7+-red?logo=redis" />
+  <img src="https://img.shields.io/badge/License-Proprietary-lightgrey" />
+</p>
 
 ---
 
-**Enwealth Board Management System** - Transforming corporate governance through technology, transparency, and innovation.
+## Table of Contents
 
-*Built with ❤️ for the future of board governance*
+1. [Overview](#overview)
+2. [Key Features](#key-features)
+3. [Architecture](#architecture)
+4. [Tech Stack](#tech-stack)
+5. [Project Structure](#project-structure)
+6. [Apps & Modules](#apps--modules)
+   - [Accounts](#accounts)
+   - [Agencies](#agencies)
+   - [Dashboard](#dashboard)
+   - [Meetings](#meetings)
+   - [Documents](#documents)
+   - [E-Signature](#e-signature)
+   - [Voting](#voting)
+   - [Risk Management](#risk-management)
+   - [Policy](#policy)
+   - [Evaluation](#evaluation)
+   - [Discussions](#discussions)
+   - [Notifications](#notifications)
+   - [Audit](#audit)
+   - [Analytics](#analytics)
+7. [Getting Started](#getting-started)
+   - [Prerequisites](#prerequisites)
+   - [Installation](#installation)
+   - [Environment Variables](#environment-variables)
+   - [Database Setup](#database-setup)
+   - [Running the Development Server](#running-the-development-server)
+   - [Running Celery Workers](#running-celery-workers)
+8. [User Roles & Permissions](#user-roles--permissions)
+9. [Multi-Timezone Support](#multi-timezone-support)
+10. [E-Signature Workflow](#e-signature-workflow)
+11. [Security](#security)
+12. [API](#api)
+13. [Deployment](#deployment)
+14. [Contributing](#contributing)
+15. [License](#license)
+
+---
+
+## Overview
+
+**Enwealth E-Board Portal** is an enterprise-grade digital governance platform designed for Enwealth's multi-branch, multi-country organizational structure. It brings together every aspect of board governance — from scheduling meetings and managing documents, to electronic signing, risk management, policy lifecycle, board evaluations, and secure communications — into a single, secure, role-controlled web application.
+
+The platform is purpose-built for organizations operating across **Kenya, Uganda, Mauritius, and other African and international markets**, with first-class support for per-user timezone rendering, multi-branch access control, and a complete electronic signature workflow that is legally traceable.
+
+---
+
+## Key Features
+
+| Area | Highlights |
+|---|---|
+| **Authentication & MFA** | Email-based login, TOTP multi-factor authentication (django-otp), role-based access control, session expiry, rate limiting |
+| **Multi-Branch Governance** | Organizations → Branches (with hierarchy) → Committees; per-branch roles, unlimited depth, quorum tracking |
+| **Board Meetings** | Full meeting lifecycle, agenda, minutes, attendance, action items, quorum enforcement, virtual platform links (Zoom, Teams, Meet, etc.) |
+| **Document Management** | Upload, version, tag, share, comment on governance documents with fine-grained access control |
+| **Electronic Signatures** | End-to-end PDF signing: upload → assign signers (internal & external) → OTP verification → capture signature (draw / type / upload) → finalization with SHA-256 audit hash; full audit trail |
+| **Voting & Resolutions** | Motions lifecycle (draft → proposed → debate → voting → result), multiple voting types (simple majority, qualified, two-thirds, unanimous), anonymous voting option, auto-close expired resolutions |
+| **Risk Management** | Risk register with categorisation, probability/impact scoring, heat-map ready data, treatment plans, review cycles |
+| **Policy Management** | Policy lifecycle (draft → review → approved → published → archived), version history, category hierarchy |
+| **Board Evaluation** | Configurable evaluation templates, assigned evaluation cycles, individual responses, aggregate scoring |
+| **Discussions** | Threaded forum-style discussions with forum types, access levels, mentions, pinning, and rich content |
+| **Notifications** | Real-time in-app notifications with type classification (meeting, voting, document, risk, security, etc.), priority levels, read/unread tracking |
+| **Audit Trail** | Immutable audit log for all critical actions across every module |
+| **Analytics** | Participation, attendance, voting trend, and engagement analytics dashboards |
+| **Timezone Awareness** | Per-user preferred timezone; meetings and events rendered in local time; timezone notice when user differs from branch timezone |
+| **Celery Background Tasks** | Async email sending, meeting reminders, document finalization, OTP delivery, auto-close resolutions, database backups |
+
+---
+
+## Architecture
+
+```
+/dev/null/diagram.txt#L1-18
+┌─────────────────────────────────────────────────────────────────┐
+│                        Browser (HTMX + Alpine.js + Tailwind)    │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │ HTTP / WebSocket
+┌───────────────────────────▼─────────────────────────────────────┐
+│               Django 5.x  (Gunicorn / WSGI)                     │
+│  ┌──────────┐ ┌──────────┐ ┌─────────────┐ ┌────────────────┐  │
+│  │ Accounts │ │ Agencies │ │  Meetings   │ │  E-Signature   │  │
+│  │  + MFA   │ │ + Branches│ │ + Agenda    │ │  + PDF Service │  │
+│  └──────────┘ └──────────┘ └─────────────┘ └────────────────┘  │
+│  ┌──────────┐ ┌──────────┐ ┌─────────────┐ ┌────────────────┐  │
+│  │  Voting  │ │   Risk   │ │   Policy    │ │   Evaluation   │  │
+│  └──────────┘ └──────────┘ └─────────────┘ └────────────────┘  │
+│  ┌──────────┐ ┌──────────┐ ┌─────────────┐ ┌────────────────┐  │
+│  │   Docs   │ │  Audit   │ │  Discuss.   │ │  Notifications │  │
+│  └──────────┘ └──────────┘ └─────────────┘ └────────────────┘  │
+└───────────────────────────┬─────────────────────────────────────┘
+              ┌─────────────┼─────────────────┐
+    ┌─────────▼──────┐ ┌────▼─────┐ ┌─────────▼──────┐
+    │  PostgreSQL 15  │ │  Redis   │ │   File Storage  │
+    │  (primary DB)   │ │  (broker │ │  (media / PDFs) │
+    └────────────────┘ │  + cache)│ └─────────────────┘
+                       └──────────┘
+                            │
+                   ┌────────▼────────┐
+                   │  Celery Workers │
+                   │  + Celery Beat  │
+                   └─────────────────┘
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Language** | Python 3.12+ |
+| **Framework** | Django 5.x |
+| **Database** | PostgreSQL 15+ |
+| **Cache / Message Broker** | Redis 7+ |
+| **Task Queue** | Celery 5.3 + django-celery-beat |
+| **Frontend** | HTMX, Alpine.js, Tailwind CSS (via CDN / CLI) |
+| **Forms** | django-crispy-forms + crispy-tailwind |
+| **MFA / OTP** | django-otp (TOTP), custom email OTP |
+| **PDF Generation** | ReportLab |
+| **File Validation** | python-magic |
+| **Image Processing** | Pillow |
+| **Static Files** | WhiteNoise |
+| **REST API** | Django REST Framework |
+| **WSGI Server** | Gunicorn |
+| **Config Management** | python-decouple (.env files) |
+| **Rate Limiting** | django-ratelimit |
+
+---
+
+## Project Structure
+
+```
+/dev/null/tree.txt#L1-50
+Enwealth/
+├── apps/
+│   ├── accounts/          # Custom user model, auth, MFA, roles, permissions
+│   ├── agencies/          # Organizations, branches, committees, memberships, invitations
+│   ├── analytics/         # Dashboards, participation & voting analytics
+│   ├── audit/             # Immutable audit log across all modules
+│   ├── board_evaluation/  # Legacy evaluation scaffold (superseded by apps/evaluation)
+│   ├── dashboard/         # Landing dashboard views
+│   ├── discussions/       # Threaded board forums & comments
+│   ├── documents/         # Document upload, versioning, sharing, comments
+│   ├── esignature/        # Full e-signing workflow (upload → assign → sign → finalize)
+│   ├── evaluation/        # Configurable evaluation templates & cycles
+│   ├── meetings/          # Meeting scheduling, agenda, minutes, attendance, actions
+│   ├── notifications/     # In-app notification engine
+│   ├── policy/            # Policy lifecycle management
+│   ├── risk/              # Risk register, scoring, treatment plans
+│   └── voting/            # Motions, voting rounds, results
+├── config/
+│   ├── settings/
+│   │   ├── base.py        # Shared settings
+│   │   ├── development.py # Dev overrides (DEBUG=True, dev CSRF cookie, etc.)
+│   │   └── production.py  # Production overrides
+│   ├── celery.py          # Celery app configuration
+│   ├── urls.py            # Root URL configuration
+│   ├── wsgi.py
+│   └── asgi.py
+├── templates/             # Project-wide HTML templates (per-app subdirectories)
+├── static/                # Static assets (CSS, JS, images)
+├── media/                 # User-uploaded files (not tracked in git)
+├── logs/                  # Application logs (not tracked in git)
+├── requirements/
+│   ├── base.txt           # Core dependencies
+│   ├── development.txt    # Dev-only (debug toolbar, etc.)
+│   └── production.txt     # Production-only (sentry, etc.)
+├── manage.py
+└── .env.example           # Template for required environment variables
+```
+
+---
+
+## Apps & Modules
+
+### Accounts
+
+**Path:** `apps/accounts/`
+
+The foundation of the platform. Implements a fully custom Django user model using email (not username) as the primary identifier.
+
+**Models:**
+- `User` — UUID primary key, email login, role-based (`board_member`, `company_secretary`, `executive_management`, `compliance_officer`, `it_administrator`, `internal_audit`), MFA flag, preferred timezone, profile photo, department, job title.
+- `PasswordHistory` — Prevents reuse of recent passwords.
+
+**Key features:**
+- Custom `CustomUserManager` with `create_user` / `create_superuser`
+- TOTP-based Multi-Factor Authentication via `django-otp`
+- Role-based permission decorators and mixins (`apps/accounts/decorators.py`, `mixins.py`, `permissions.py`)
+- Enhanced custom admin site (`enhanced_admin.py`) with separate URL at `/admin/`
+- Context processor (`context_processors.py`) that injects user permissions into every template
+- Custom CSRF failure view (`csrf_failure_view.py`)
+- Safe GET/POST logout with CSRF exemption (`custom_logout.py`)
+- Timezone template tags (`templatetags/tz_tags.py`) — `localtime`, `tz_abbr`, `meeting_time`, `meeting_time_range`, `user_timezone_label`, `timezone_notice`
+
+---
+
+### Agencies
+
+**Path:** `apps/agencies/`
+
+Manages the multi-entity structure of the organization.
+
+**Models:**
+- `Organization` — Top-level legal entity; holds branches, logo, country, contacts.
+- `Branch` — A regional office, subsidiary, or country entity. Supports unlimited parent-child hierarchy (`parent_branch` self-FK). Has a `get_hierarchy_path()` method returning ancestors list (root-first) for breadcrumb rendering. IANA timezone field.
+- `Committee` — Governance committee within a branch (Board of Directors, Audit, Risk, Finance, etc.). Supports quorum calculation, sub-committees, chairperson and secretary FKs.
+- `CommitteeMembership` — User ↔ Committee with role (chairperson, secretary, member, observer, etc.), term management, voting rights.
+- `UserBranchMembership` — User ↔ Branch with branch-level role and access level. Primary access control layer.
+- `BranchInvitation` — Token-based email invitations for onboarding users to branches.
+
+**Branch Types:** Headquarters, Regional Office, Country Office, Subsidiary, Affiliate, Joint Venture, Representative Office.
+
+**Committee Types:** Board of Directors, Executive, Audit, Risk & Compliance, Finance, Remuneration, Nomination, Investment, Strategy, Governance, Technical, Special/Ad-hoc, Subsidiary Board.
+
+---
+
+### Dashboard
+
+**Path:** `apps/dashboard/`
+
+The main landing page after login. Aggregates summary widgets across meetings, documents, votings, notifications, and risk alerts relevant to the authenticated user's branches and role.
+
+---
+
+### Meetings
+
+**Path:** `apps/meetings/`
+
+Full meeting lifecycle management.
+
+**Models:**
+- `Meeting` — UUID PK, title, type (Board, Committee, AGM, Emergency, Workshop, EGM), status (Scheduled, In Progress, Completed, Cancelled, Postponed), scheduled date/time, location, virtual platform (Zoom, Teams, Meet, Webex, Skype, Jitsi, Whereby), agenda, minutes, quorum status, reference number.
+- `MeetingAttendance` — Tracks each invited member's attendance status (attending, declined, tentative, attended, absent).
+- `AgendaItem` — Ordered agenda items with presenter, duration, attachments, status.
+- `MeetingDocument` — Documents attached to a meeting.
+- `MeetingAction` — Action items arising from meetings with assignee, due date, and completion status.
+- `VideoConferenceParticipant` — Logs virtual attendees.
+- `VideoConferenceRecording` — Links to recordings of virtual sessions.
+
+**Timezone support:** Meeting datetimes are stored UTC-aware. Templates use `tz_tags` to render them in the logged-in user's preferred timezone, with a notice banner if the user's timezone differs from the branch timezone.
+
+---
+
+### Documents
+
+**Path:** `apps/documents/`
+
+Governance document repository.
+
+**Models:**
+- `Document` — File upload, version, category, access level, tags, status (draft, review, approved, published, archived).
+- `DocumentComment` — Threaded comments on documents.
+- `DocumentShare` — Controlled sharing of a document to specific users.
+- `DocumentTag` — Tagging for search and filtering.
+
+---
+
+### E-Signature
+
+**Path:** `apps/esignature/`
+
+A complete, legally traceable electronic document signing workflow.
+
+**Models:**
+- `SignableDocument` — The PDF to be signed. Stores original file, original SHA-256 hash, signed file, signed SHA-256 hash, status (draft → pending → in_progress → fully_signed / rejected / expired / cancelled), expiry, ordered-signing flag, OTP requirement, access level, branch context, auto-generated reference (`ESIG-YYYY-NNNNN`).
+- `SignerAssignment` — One row per (document, signer). Supports internal users and external signers (name + email only). Tracks signing order, role (signer, approver, witness, cc), status (pending → notified → viewed → otp_verified → signed / rejected), unique signing token (UUID), OTP verification flag, signed timestamp, rejection reason, forensic metadata (IP, user agent, device info), reminder count.
+- `CapturedSignature` — The actual signature image. Sources: drawn on canvas, typed text rendered as image, uploaded image. Stores image file, base64 data URI, typed text + font, is_default flag for reuse.
+- `DocumentSigningEvent` — The final linking record connecting a `SignerAssignment` to its `CapturedSignature`, with event type (signed, rejected, viewed, otp_sent, otp_verified, reminder_sent, finalised), IP, user agent, and notes.
+- `SigningOTP` — Short-lived OTP records for verifying signer identity via email.
+- `AuditEntry` — Immutable per-document audit log entries (actor, action, timestamp, IP, extra JSON).
+
+**Workflow:**
+1. Uploader submits PDF via `DocumentUploadView` with signer count, names, emails, and order.
+2. `SignableDocumentUploadSerializer.create()` saves the PDF, computes SHA-256, creates `SignerAssignment` rows, and advances status from `draft` → `pending`.
+3. Celery task `send_signing_invitation` emails each signer a unique tokenized signing URL.
+4. Signer clicks link → `SigningInterfaceView` validates token and shows the signing interface.
+5. If OTP required: signer requests OTP → `send_otp_email` task fires → signer enters code → verified.
+6. Signer draws/types/uploads signature → `CaptureSignatureView` saves `CapturedSignature` + `DocumentSigningEvent`, updates `SignerAssignment.status = signed`.
+7. After all required signers have signed: Celery task `finalise_signed_document` embeds all captured signatures into the PDF using ReportLab, appends a manifest/audit page, computes final SHA-256, stores `signed_file`, and sets status `fully_signed`.
+8. Uploader and all signers receive a completion notification with the final signed PDF.
+
+**PDF Service (`pdf_service.py`):** Handles embedding signature images into the correct PDF page coordinates and appending a full cryptographic audit manifest as a final page.
+
+---
+
+### Voting
+
+**Path:** `apps/voting/`
+
+Board motions and electronic voting.
+
+**Models:**
+- `Motion` — Title, description, background, category (governance, financial, strategic, operational, compliance, personnel), voting type (simple majority, qualified majority, two-thirds, unanimous, consensus), status (draft → proposed → debate → voting → passed/failed/withdrawn/tabled), linked meeting, proposer, seconder, anonymous voting flag.
+- `Vote` — Individual vote record (for, against, abstain) with voter and timestamp.
+- `VotingRound` — Groups votes in a timed round with open/close timestamps.
+- `MotionComment` — Comments/debate contributions on a motion.
+
+**Celery task:** `auto_close_expired_resolutions` runs every 5 minutes to close voting rounds past their deadline and tally results.
+
+---
+
+### Risk Management
+
+**Path:** `apps/risk/`
+
+Enterprise risk register.
+
+**Models:**
+- `RiskCategory` — Hierarchical risk categories (Strategic, Operational, Financial, Compliance, Reputational, Cybersecurity, Market, Regulatory, Environmental).
+- `Risk` — Individual risk entry with probability (1-5), impact (1-5), risk score = probability × impact, owner, status (identified, assessed, mitigated, accepted, transferred, closed), linked category, residual risk, treatment plan.
+- `RiskReview` — Periodic review records with updated scores and reviewer notes.
+- `RiskTreatment` — Treatment actions with assignee and due date.
+
+---
+
+### Policy
+
+**Path:** `apps/policy/`
+
+Full governance policy lifecycle.
+
+**Models:**
+- `PolicyCategory` — Hierarchical categories with `get_full_path()` for breadcrumbs.
+- `Policy` — Document body, version, status (draft → review → approved → published → archived → superseded), review cycle, owner, approver, effective date, expiry date, related policies.
+- `PolicyVersion` — Historical version snapshots for full audit history.
+- `PolicyReview` — Review assignments with feedback and outcome.
+
+---
+
+### Evaluation
+
+**Path:** `apps/evaluation/`
+
+Board and director performance evaluation.
+
+**Models:**
+- `EvaluationTemplate` — Configurable questionnaire with evaluator instructions, evaluation type (board, director, committee, CEO), and linked questions.
+- `EvaluationQuestion` — Question text, type (rating, text, yes/no), weight, category.
+- `EvaluationCycle` — A named evaluation run assigned to evaluators with deadline and status.
+- `EvaluationResponse` — Individual response records (scores + comments per question).
+- `EvaluationResult` — Aggregated results per cycle.
+
+**Template tags** (`apps/evaluation/templatetags/evaluation_tags.py`): Helper filters for rendering evaluation scores, progress bars, and result summaries in templates.
+
+---
+
+### Discussions
+
+**Path:** `apps/discussions/`
+
+Secure threaded discussion forums for board communications.
+
+**Models:**
+- `DiscussionForum` — Named forums with type (general, strategy, governance, finance, operations, risk, policy, confidential, committee, emergency) and access level (public, restricted, confidential, private).
+- `DiscussionThread` — A topic thread within a forum, with pin, lock, and view-count.
+- `DiscussionPost` — Threaded replies with rich content, mentions, attachments.
+- `DiscussionParticipant` — Tracks who has been added to restricted/private forums.
+
+---
+
+### Notifications
+
+**Path:** `apps/notifications/`
+
+In-app notification engine.
+
+**Models:**
+- `Notification` — Typed notification (meeting_reminder, voting_open, document_shared, risk_alert, security_alert, etc.) with priority (low, normal, high, urgent), read status, target URL, and delivery timestamps.
+
+**Types covered:** Meeting reminders & updates, voting open/close/results, document shared/updated, policy update, risk alert, evaluation assigned/reminder, discussion reply/mention, audit alert, system update, security alert.
+
+**Template:** `templates/notifications/quick_notification.html` — HTMX-powered quick notification panel.
+
+---
+
+### Audit
+
+**Path:** `apps/audit/`
+
+Immutable, system-wide audit trail.
+
+**Models:**
+- `AuditLog` — Records actor, action performed, content type + object ID (via generic FK), before/after field values, IP address, user agent, timestamp. Append-only — no update/delete endpoints exist.
+
+Celery task `run_database_backup` fires daily at 2 AM (Nairobi time) via Celery Beat.
+
+---
+
+### Analytics
+
+**Path:** `apps/analytics/`
+
+Governance engagement and participation analytics.
+
+**Features:**
+- Meeting attendance rates per branch / committee / period
+- Voting participation and trend charts
+- Document access and sharing statistics
+- User engagement scoring
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.12+
+- PostgreSQL 15+
+- Redis 7+
+- Node.js (optional — only if rebuilding Tailwind CSS from source)
+- Git
+
+---
+
+### Installation
+
+```
+/dev/null/bash.sh#L1-20
+# 1. Clone the repository
+git clone https://github.com/Kemboi14/Ebooard2.git
+cd Ebooard2
+
+# 2. Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate          # Linux / macOS
+# venv\Scripts\activate           # Windows
+
+# 3. Install dependencies
+pip install -r requirements/development.txt
+
+# 4. Copy the example environment file and fill in your values
+cp .env.example .env
+```
+
+---
+
+### Environment Variables
+
+Create a `.env` file in the project root (never commit this file). All variables are read via `python-decouple`.
+
+```
+/dev/null/.env.example#L1-30
+# ── Django Core ──────────────────────────────────────────────────
+SECRET_KEY=your-very-long-random-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# ── Database ─────────────────────────────────────────────────────
+DB_NAME=enwealth_eboard
+DB_USER=enwealth_user
+DB_PASSWORD=your_db_password
+DB_HOST=localhost
+DB_PORT=5432
+
+# ── Redis / Celery ───────────────────────────────────────────────
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/1
+
+# ── Email ────────────────────────────────────────────────────────
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+DEFAULT_FROM_EMAIL=Enwealth Board Portal <noreply@enwealth.com>
+
+# ── Site URL (used in email links) ───────────────────────────────
+SITE_URL=http://localhost:8000
+
+# ── Session ──────────────────────────────────────────────────────
+SESSION_COOKIE_AGE=3600
+```
+
+---
+
+### Database Setup
+
+```
+/dev/null/bash.sh#L1-12
+# Create the PostgreSQL database and user
+psql -U postgres -c "CREATE USER enwealth_user WITH PASSWORD 'your_db_password';"
+psql -U postgres -c "CREATE DATABASE enwealth_eboard OWNER enwealth_user;"
+psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE enwealth_eboard TO enwealth_user;"
+
+# Run migrations
+python manage.py migrate
+
+# Create a superuser (admin account)
+python manage.py createsuperuser
+
+# (Optional) Load initial fixture data
+python manage.py loaddata fixtures/initial_data.json
+```
+
+---
+
+### Running the Development Server
+
+```
+/dev/null/bash.sh#L1-5
+# Make sure your virtual environment is active and .env is populated
+export DJANGO_SETTINGS_MODULE=config.settings.development
+
+python manage.py runserver
+# → http://127.0.0.1:8000
+```
+
+---
+
+### Running Celery Workers
+
+Open two additional terminals (with venv activated):
+
+```
+/dev/null/bash.sh#L1-8
+# Terminal 1 — Celery worker (processes async tasks)
+celery -A config.celery worker --loglevel=info
+
+# Terminal 2 — Celery Beat (periodic / scheduled tasks)
+celery -A config.celery beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+```
+
+**Scheduled tasks (via Celery Beat):**
+
+| Task | Schedule |
+|---|---|
+| `apps.voting.tasks.auto_close_expired_resolutions` | Every 5 minutes |
+| `apps.meetings.tasks.send_upcoming_meeting_reminders` | Daily at 08:00 EAT |
+| `apps.audit.tasks.run_database_backup` | Daily at 02:00 EAT |
+
+---
+
+## User Roles & Permissions
+
+| Role | Description | Key Permissions |
+|---|---|---|
+| `board_member` | Director / Board Member | View meetings, vote, sign documents, access discussions |
+| `company_secretary` | Board Secretary | Full meeting management, document upload, e-signature, notifications |
+| `executive_management` | C-Suite / Executive | Full read access, voting, risk management |
+| `compliance_officer` | Compliance & Risk Officer | Risk register, policy management, audit trail |
+| `it_administrator` | IT / System Admin | User management, system settings, audit trail |
+| `internal_audit` | Internal Auditor | Read-only access to all modules + audit trail |
+
+**MFA Required Roles:** `it_administrator`, `company_secretary`, `executive_management`, `compliance_officer`, `board_member` — these roles must complete TOTP setup within 7 days of account creation.
+
+Permissions are enforced at three levels:
+1. **Global role** — `user.role` on the `User` model
+2. **Branch role** — `UserBranchMembership.branch_role` (can differ from global role)
+3. **Committee role** — `CommitteeMembership.committee_role`
+
+---
+
+## Multi-Timezone Support
+
+The platform operates across multiple time zones:
+
+| Region | Timezone | Offset |
+|---|---|---|
+| Kenya, Uganda, Tanzania | `Africa/Nairobi` | UTC+3 (EAT) |
+| Mauritius | `Indian/Mauritius` | UTC+4 (MUT) |
+| South Africa | `Africa/Johannesburg` | UTC+2 (SAST) |
+| Nigeria | `Africa/Lagos` | UTC+1 (WAT) |
+| United Kingdom | `Europe/London` | UTC+0 / UTC+1 (BST) |
+| UAE | `Asia/Dubai` | UTC+4 (GST) |
+
+**Implementation:**
+- All datetimes are stored as UTC-aware in PostgreSQL (`USE_TZ = True`).
+- The project default timezone is `Africa/Nairobi` (`TIME_ZONE` setting).
+- Each `User` has a `preferred_timezone` field (IANA timezone string).
+- Template tag library `apps/accounts/templatetags/tz_tags.py` provides:
+  - `{{ dt|localtime:request.user }}` — Converts a datetime to the user's local time
+  - `{% tz_abbr request.user %}` — Renders timezone abbreviation (e.g. EAT, MUT)
+  - `{% meeting_time meeting request.user %}` — Renders a formatted meeting time in user's tz
+  - `{% timezone_notice meeting request.user %}` — Shows a notice banner when the user's tz differs from the branch's tz
+
+---
+
+## E-Signature Workflow
+
+```
+/dev/null/esign-flow.txt#L1-18
+Uploader
+  │
+  ├─► POST /esignature/upload/
+  │       └─ SavePDF → SHA-256 hash → Create SignerAssignment rows
+  │           └─ Status: draft → pending
+  │
+  ├─► Celery: send_signing_invitation → Email tokenized link to each signer
+  │
+Signer (internal user or external by email)
+  │
+  ├─► GET /esignature/sign/<token>/
+  │       └─ Validate token → Show signing interface
+  │
+  ├─► POST /esignature/sign/<token>/otp/request/   (if OTP required)
+  │       └─ Generate OTP → Celery: send_otp_email
+  │
+  ├─► POST /esignature/sign/<token>/otp/verify/
+  │       └─ Verify OTP → Mark SignerAssignment.otp_verified = True
+  │
+  ├─► POST /esignature/sign/<token>/capture/
+  │       └─ Save CapturedSignature (drawn/typed/uploaded)
+  │           └─ Create DocumentSigningEvent
+  │               └─ Update SignerAssignment.status = signed
+  │                   └─ If all signed → Celery: finalise_signed_document
+  │
+Celery: finalise_signed_document
+  │
+  └─► Embed all signatures into PDF (ReportLab)
+      └─ Append audit manifest page
+          └─ Compute signed SHA-256
+              └─ Store signed_file, set status = fully_signed
+                  └─ Notify uploader + all signers
+```
+
+**Security features:**
+- Each signer gets a unique UUID token that expires.
+- OTP is short-lived (configurable via `ESIGNATURE_OTP_EXPIRY_MINUTES`, default 10 minutes).
+- Forensic metadata (IP, user agent, device info) is captured at signing time.
+- Both original and signed file SHA-256 hashes are stored for tamper detection.
+- An immutable `AuditEntry` is written for every step.
+- Max file size enforced (`ESIGNATURE_MAX_FILE_SIZE_MB`, default 20 MB).
+- Only PDF MIME type accepted (`ESIGNATURE_ALLOWED_MIME_TYPES`).
+
+---
+
+## Security
+
+- **CSRF:** Enforced on all state-changing requests. Development uses a separate cookie name (`csrftoken_dev`) to avoid stale-cookie issues. Logout is CSRF-exempt and accepts GET (safe to do for logout actions).
+- **Session:** `SESSION_EXPIRE_AT_BROWSER_CLOSE = True`. Configurable `SESSION_COOKIE_AGE` (default 1 hour).
+- **HTTPS in production:** Set `CSRF_COOKIE_SECURE = True`, `SESSION_COOKIE_SECURE = True`, and configure your reverse proxy (Nginx/Caddy) to terminate TLS.
+- **MFA:** TOTP mandatory for privileged roles. Grace period enforced.
+- **Password history:** Prevents reuse of recent passwords (`PasswordHistory` model).
+- **Rate limiting:** `django-ratelimit` applied to login and OTP endpoints.
+- **File validation:** `python-magic` validates MIME types on upload (not just file extension).
+- **Secrets:** All secrets read from `.env` via `python-decouple`. Never hard-coded.
+- **Audit trail:** All critical actions are logged immutably in `AuditLog`.
+- **Permissions:** Every view is protected by role-based decorators/mixins. Anonymous users are redirected to login.
+- **XSS / Clickjacking:** Django's `XFrameOptionsMiddleware` and template auto-escaping active by default.
+
+---
+
+## API
+
+The platform exposes a Django REST Framework API for programmatic access and HTMX partial rendering.
+
+**Base URL:** `/api/` (extend in `config/urls.py` as needed)
+
+**Authentication:** Session authentication (cookie-based) and HTTP Basic Authentication.
+
+**Throttling:**
+- Anonymous: 20 requests/hour
+- Authenticated: 200 requests/hour
+
+**Pagination:** Page-number pagination, 25 results per page.
+
+**Key serializers:**
+- `SignableDocumentUploadSerializer` — Accepts flat signer fields from upload form, maps to nested `initial_signers`, creates assignments, and transitions document status.
+
+DRF browsable API is available in development at `/api/`.
+
+---
+
+## Deployment
+
+### Production Checklist
+
+```
+/dev/null/bash.sh#L1-20
+# 1. Set production environment variables in .env
+DEBUG=False
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+SITE_URL=https://yourdomain.com
+
+# 2. Install production dependencies
+pip install -r requirements/production.txt
+
+# 3. Collect static files
+python manage.py collectstatic --noinput
+
+# 4. Run migrations
+python manage.py migrate
+
+# 5. Start Gunicorn
+gunicorn config.wsgi:application \
+  --workers 4 \
+  --bind 0.0.0.0:8000 \
+  --timeout 120 \
+  --access-logfile logs/access.log \
+  --error-logfile logs/error.log
+
+# 6. Start Celery (use supervisord or systemd in production)
+celery -A config.celery worker --loglevel=warning --concurrency=4
+celery -A config.celery beat --loglevel=warning
+```
+
+### Nginx Configuration (example)
+
+```
+/dev/null/nginx.conf#L1-25
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com;
+
+    ssl_certificate     /etc/ssl/certs/yourdomain.crt;
+    ssl_certificate_key /etc/ssl/private/yourdomain.key;
+
+    location /static/ {
+        alias /path/to/Ebooard2/staticfiles/;
+        expires 30d;
+    }
+
+    location /media/ {
+        alias /path/to/Ebooard2/media/;
+        internal;  # Serve via X-Accel-Redirect for protected files
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Production Security Settings
+
+Ensure these are set in `config/settings/production.py`:
+
+```
+/dev/null/production_settings.py#L1-10
+DEBUG = False
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+X_FRAME_OPTIONS = "DENY"
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+```
+
+### File Storage
+
+For production, consider replacing the local `MEDIA_ROOT` with Amazon S3 or compatible object storage using `django-storages`:
+
+```
+/dev/null/s3_settings.py#L1-8
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+AWS_STORAGE_BUCKET_NAME = "your-bucket-name"
+AWS_S3_REGION_NAME = "af-south-1"
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = "private"
+AWS_S3_CUSTOM_DOMAIN = None
+MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
+```
+
+---
+
+## Contributing
+
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Make your changes with tests where applicable.
+4. Run the test suite: `python manage.py test`
+5. Commit with a descriptive message following [Conventional Commits](https://www.conventionalcommits.org/).
+6. Open a Pull Request against the `main` branch.
+
+**Code style:** PEP 8. Use `black` for formatting and `flake8` for linting.
+
+---
+
+## License
+
+This project is proprietary software owned by **Enwealth**. All rights reserved.  
+Unauthorized copying, modification, distribution, or use of this software is strictly prohibited.
+
+---
+
+<p align="center">Built with ❤️ for better board governance across Africa and beyond.</p>
