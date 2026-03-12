@@ -1,0 +1,53 @@
+Enwealth E-Board — Electronic Signature Request
+================================================
+
+Dear {{ signer_name }},
+
+You have been requested to electronically sign a document on the Enwealth
+E-Board platform. Your signature is required as a {{ role_display }}{% if total_signers > 1 %} (Signer {{ signing_order }} of {{ total_signers }}){% endif %}.
+
+DOCUMENT DETAILS
+----------------
+Title     : {{ document_title }}
+Reference : {{ document_reference }}
+Requested : {{ uploaded_by_name }} <{{ uploaded_by_email }}>{% if expires_at %}
+Deadline  : {{ expires_at|date:"d M Y H:i" }} UTC{% endif %}
+
+
+HOW TO SIGN
+-----------
+1. Visit the secure signing link below.{% if require_otp %}
+2. Verify your identity with the 6-digit code sent to {{ signer_email }}.
+3. Review the document, draw or upload your signature, then submit.{% else %}
+2. Review the document carefully.
+3. Draw or upload your signature and submit.{% endif %}
+
+SIGNING LINK
+------------
+{{ signing_url }}
+
+This link is unique to you and should not be forwarded to others.
+
+{% if require_otp %}
+IDENTITY VERIFICATION
+---------------------
+A one-time verification code will be sent to your email address before you
+can sign. This ensures your signature is legally traceable to you.
+
+{% endif %}
+{% if expires_at %}
+IMPORTANT — DEADLINE
+--------------------
+This signing request expires on {{ expires_at|date:"d M Y" }}. Please sign
+before this date to avoid delays.
+
+{% endif %}
+
+If you believe you received this message in error, please contact
+{{ uploaded_by_email }} and do not use the signing link.
+
+--
+{{ platform_name }}
+Legally traceable electronic signatures for corporate governance
+
+View document details: {{ detail_url }}

@@ -1,0 +1,205 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Accept Invitation — {{ invitation.branch.name }}{% endblock %}
+
+{% block page_title %}Accept Invitation{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+
+  <!-- Invitation card -->
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+
+    <!-- Card header -->
+    <div class="px-6 py-8 text-center"
+         style="background:linear-gradient(135deg,#1a0a3c 0%,#2d1b5e 100%);">
+      <div class="h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4"
+           style="background:rgba(125,193,67,0.2);">
+        <svg class="w-8 h-8" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-white mb-1">You've been invited!</h1>
+      <p class="text-purple-300 text-sm">
+        You have been invited to join a branch on the Enwealth E-Board platform.
+      </p>
+    </div>
+
+    <!-- Invitation details -->
+    <div class="px-6 py-6 border-b border-gray-100">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="h-14 w-14 rounded-xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
+             style="background:#1a0a3c;">
+          {{ invitation.branch.code|slice:":3"|upper }}
+        </div>
+        <div>
+          <h2 class="text-lg font-bold" style="color:#2d1b5e;">{{ invitation.branch.name }}</h2>
+          <p class="text-sm text-gray-500">{{ invitation.branch.organization.name }}</p>
+          {% if invitation.branch.country %}
+          <p class="text-xs text-gray-400 mt-0.5">{{ invitation.branch.country }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between items-center py-2 border-b border-gray-50">
+          <dt class="text-gray-500">Invited email</dt>
+          <dd class="font-medium text-gray-900">{{ invitation.invited_email }}</dd>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-gray-50">
+          <dt class="text-gray-500">Role upon joining</dt>
+          <dd>
+            <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 capitalize">
+              {{ invitation.intended_role|default:"Member" }}
+            </span>
+          </dd>
+        </div>
+        {% if invitation.intended_committee %}
+        <div class="flex justify-between items-center py-2 border-b border-gray-50">
+          <dt class="text-gray-500">Also added to</dt>
+          <dd class="font-medium" style="color:#2d7a6e;">{{ invitation.intended_committee.name }}</dd>
+        </div>
+        {% endif %}
+        <div class="flex justify-between items-center py-2 border-b border-gray-50">
+          <dt class="text-gray-500">Invited by</dt>
+          <dd class="font-medium text-gray-900">
+            {% if invitation.created_by %}
+              {{ invitation.created_by.get_full_name }}
+            {% else %}
+              Enwealth Administrator
+            {% endif %}
+          </dd>
+        </div>
+        <div class="flex justify-between items-center py-2">
+          <dt class="text-gray-500">Link expires</dt>
+          <dd class="text-sm {% if invitation.is_expired %}text-red-500 font-semibold{% else %}text-gray-700{% endif %}">
+            {% if invitation.expires_at %}
+              {{ invitation.expires_at|date:"F d, Y" }} at {{ invitation.expires_at|time:"g:i A" }}
+              {% if invitation.is_expired %}
+                <span class="ml-1 px-1.5 py-0.5 text-xs rounded bg-red-100 text-red-600">Expired</span>
+              {% endif %}
+            {% else %}
+              No expiry
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+
+      {% if invitation.message %}
+      <div class="mt-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Personal Message</p>
+        <p class="text-sm text-gray-700 italic">"{{ invitation.message }}"</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Accept section -->
+    <div class="px-6 py-6">
+
+      {% if user.is_authenticated %}
+        {% if user.email|lower == invitation.invited_email|lower %}
+          <!-- Matching authenticated user — ready to accept -->
+          <div class="mb-5 p-3 rounded-lg flex items-center gap-3"
+               style="background:#f0fdf4; border:1px solid #86efac;">
+            <svg class="w-5 h-5 flex-shrink-0" style="color:#16a34a;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-sm text-green-800">
+              Logged in as <strong>{{ user.get_full_name }}</strong> ({{ user.email }}).
+              Ready to accept.
+            </p>
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit"
+                    class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white text-base font-semibold transition-colors duration-200"
+                    style="background:#7dc143;"
+                    onmouseover="this.style.backgroundColor='#5a8a3c'"
+                    onmouseout="this.style.backgroundColor='#7dc143'"
+                    {% if invitation.is_expired %}disabled style="background:#9ca3af;cursor:not-allowed;"{% endif %}>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M5 13l4 4L19 7"/>
+              </svg>
+              {% if invitation.is_expired %}Invitation Expired{% else %}Accept &amp; Join {{ invitation.branch.name }}{% endif %}
+            </button>
+          </form>
+
+        {% else %}
+          <!-- Wrong user logged in -->
+          <div class="mb-5 p-4 rounded-lg border-l-4 flex items-start gap-3"
+               style="background:#fff8f0;border-color:#f59e0b;">
+            <svg class="w-5 h-5 mt-0.5 flex-shrink-0" style="color:#d97706;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div class="text-sm" style="color:#92400e;">
+              <p class="font-semibold mb-1">Wrong account</p>
+              <p>
+                You are currently logged in as <strong>{{ user.email }}</strong>, but this invitation
+                was sent to <strong>{{ invitation.invited_email }}</strong>.
+              </p>
+              <p class="mt-1">
+                Please log out and sign in with the correct account to accept this invitation.
+              </p>
+            </div>
+          </div>
+
+          <a href="{% url 'accounts:logout' %}?next={{ request.path }}"
+             class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white text-base font-semibold transition-colors duration-200"
+             style="background:#1a0a3c;"
+             onmouseover="this.style.backgroundColor='#2d1b5e'"
+             onmouseout="this.style.backgroundColor='#1a0a3c'">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            Sign Out &amp; Switch Account
+          </a>
+        {% endif %}
+
+      {% else %}
+        <!-- Not logged in -->
+        <p class="text-sm text-gray-600 mb-5 text-center">
+          To accept this invitation you need to log in (or create an account) with
+          <strong>{{ invitation.invited_email }}</strong>.
+        </p>
+
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit"
+                  class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white text-base font-semibold transition-colors duration-200"
+                  style="background:#7dc143;"
+                  onmouseover="this.style.backgroundColor='#5a8a3c'"
+                  onmouseout="this.style.backgroundColor='#7dc143'"
+                  {% if invitation.is_expired %}disabled style="background:#9ca3af;cursor:not-allowed;"{% endif %}>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14"/>
+            </svg>
+            {% if invitation.is_expired %}Invitation Expired{% else %}Log In to Accept{% endif %}
+          </button>
+        </form>
+
+        <p class="mt-4 text-xs text-center text-gray-400">
+          Don't have an account yet?
+          <a href="/auth/register/?email={{ invitation.invited_email|urlencode }}&next={{ request.path }}"
+             class="font-medium hover:underline" style="color:#7dc143;">
+            Create one here
+          </a>
+        </p>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <p class="mt-6 text-xs text-center text-gray-400 px-4">
+    This invitation was sent by the <strong>{{ invitation.branch.organization.name }}</strong> team via Enwealth E-Board.
+    If you did not expect this invitation, you can safely ignore this page.
+  </p>
+
+</div>
+{% endblock %}

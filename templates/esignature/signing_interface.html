@@ -1,0 +1,894 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_head %}
+<!-- Signature Pad Library -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<style>
+  .sig-pad-wrapper {
+    position: relative;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    background: #ffffff;
+    transition: border-color 0.2s;
+    overflow: hidden;
+  }
+  .sig-pad-wrapper.has-sig {
+    border-color: #7dc143;
+    border-style: solid;
+  }
+  .sig-pad-wrapper.active {
+    border-color: #1a0a3c;
+  }
+  #signature-pad {
+    display: block;
+    width: 100%;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .sig-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .sig-placeholder.hidden { opacity: 0; }
+  .otp-digit {
+    width: 52px;
+    height: 60px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    color: #1a0a3c;
+    background: #f9fafb;
+  }
+  .otp-digit:focus {
+    border-color: #7dc143;
+    box-shadow: 0 0 0 3px rgba(125, 193, 67, 0.18);
+    background: #fff;
+  }
+  .otp-digit.filled {
+    border-color: #7dc143;
+    background: #f0fdf4;
+  }
+  .tab-btn {
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn.active {
+    background: #1a0a3c;
+    color: #fff;
+    border-color: #1a0a3c;
+  }
+  .tab-btn:not(.active) {
+    background: #fff;
+    color: #6b7280;
+    border-color: #e5e7eb;
+  }
+  .tab-btn:not(.active):hover {
+    border-color: #7dc143;
+    color: #1a0a3c;
+  }
+  .typed-preview {
+    font-size: 42px;
+    color: #1a0a3c;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-style: italic;
+    padding: 24px;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #fafafa;
+    border: 2px solid #e5e7eb;
+    word-break: break-word;
+    text-align: center;
+    user-select: none;
+  }
+  .saved-sig-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fff;
+  }
+  .saved-sig-card:hover {
+    border-color: #7dc143;
+  }
+  .saved-sig-card.selected {
+    border-color: #7dc143;
+    box-shadow: 0 0 0 3px rgba(125, 193, 67, 0.15);
+  }
+  .step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-circle.done { background: #7dc143; color: #fff; }
+  .step-circle.active { background: #1a0a3c; color: #fff; }
+  .step-circle.pending { background: #e5e7eb; color: #9ca3af; }
+  .doc-preview-area {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto" style="background:#e8f5d0;"
+     x-data="signingApp()"
+     x-init="init()">
+
+  <!-- Top status bar -->
+  <div class="sticky top-0 z-30 border-b border-gray-200 bg-white shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+
+      <!-- Document info -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#1a0a3c;">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <p class="font-bold text-sm truncate" style="color:#1a0a3c;">{{ document.title }}</p>
+          <p class="text-xs" style="color:#6b7280;">{{ document.reference_number }}
+            &bull; Signer {{ assignment.signing_order }} of {{ document.total_signers }}</p>
+        </div>
+      </div>
+
+      <!-- Progress steps -->
+      <div class="hidden md:flex items-center gap-2">
+
+        <!-- Step 1: Review -->
+        <div class="flex items-center gap-1.5">
+          <div class="step-circle {% if otp_verified or not require_otp %}done{% else %}active{% endif %}">
+            {% if otp_verified or not require_otp %}
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            {% else %}1{% endif %}
+          </div>
+          <span class="text-xs font-semibold {% if otp_verified or not require_otp %}text-green-600{% else %}text-gray-800{% endif %}">Review</span>
+        </div>
+
+        <div class="w-8 h-0.5 bg-gray-200 rounded"></div>
+
+        <!-- Step 2: Verify (only if OTP required) -->
+        {% if require_otp %}
+        <div class="flex items-center gap-1.5">
+          <div class="step-circle {% if otp_verified %}done{% elif not require_otp %}pending{% else %}active{% endif %}">
+            {% if otp_verified %}
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            {% else %}2{% endif %}
+          </div>
+          <span class="text-xs font-semibold {% if otp_verified %}text-green-600{% else %}text-gray-800{% endif %}">Verify</span>
+        </div>
+        <div class="w-8 h-0.5 bg-gray-200 rounded"></div>
+        {% endif %}
+
+        <!-- Step 3: Sign -->
+        <div class="flex items-center gap-1.5">
+          <div class="step-circle {% if show_signing_pad %}active{% else %}pending{% endif %}">
+            {% if require_otp %}3{% else %}2{% endif %}
+          </div>
+          <span class="text-xs font-semibold {% if show_signing_pad %}text-gray-800{% else %}text-gray-400{% endif %}">Sign</span>
+        </div>
+
+      </div>
+
+      <!-- Assignment role badge -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold px-3 py-1 rounded-full"
+              style="background:rgba(125,193,67,0.15);color:#5a8a3c;border:1px solid rgba(125,193,67,0.3);">
+          {{ assignment.get_role_display }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+  <div class="max-w-5xl mx-auto px-4 pt-4">
+    {% for message in messages %}
+    <div class="flex items-start gap-3 px-4 py-3 rounded-xl mb-3 text-sm font-medium
+      {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-700
+      {% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-700
+      {% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-700
+      {% else %}bg-blue-50 border border-blue-200 text-blue-700{% endif %}">
+      <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+    <!-- ======================================================
+         LEFT COLUMN: Document info + summary
+         ====================================================== -->
+    <div class="lg:col-span-2 space-y-4">
+
+      <!-- Document Card -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100" style="background:#1a0a3c;">
+          <p class="text-xs font-semibold uppercase tracking-wider" style="color:#7dc143;">Document to Sign</p>
+        </div>
+        <div class="p-5 space-y-3">
+          <div>
+            <p class="text-base font-bold leading-snug" style="color:#1a0a3c;">{{ document.title }}</p>
+            {% if document.description %}
+            <p class="text-sm mt-1" style="color:#6b7280;">{{ document.description }}</p>
+            {% endif %}
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-xs">
+              <svg class="w-4 h-4 flex-shrink-0" style="color:#6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+              </svg>
+              <span style="color:#6b7280;">Reference:</span>
+              <span class="font-mono font-semibold" style="color:#1a0a3c;">{{ document.reference_number }}</span>
+            </div>
+
+            <div class="flex items-center gap-2 text-xs">
+              <svg class="w-4 h-4 flex-shrink-0" style="color:#6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <span style="color:#6b7280;">Requested by:</span>
+              <span class="font-semibold" style="color:#1a0a3c;">{{ document.uploaded_by.get_full_name }}</span>
+            </div>
+
+            <div class="flex items-center gap-2 text-xs">
+              <svg class="w-4 h-4 flex-shrink-0" style="color:#6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span style="color:#6b7280;">File size:</span>
+              <span style="color:#374151;">{{ document.file_size_display }}</span>
+            </div>
+
+            {% if document.expires_at %}
+            <div class="flex items-center gap-2 text-xs">
+              <svg class="w-4 h-4 flex-shrink-0 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span style="color:#6b7280;">Deadline:</span>
+              <span class="font-semibold text-yellow-600">{{ document.expires_at|date:"d M Y H:i" }} UTC</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Signing order card -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider mb-4" style="color:#6b7280;">Signing Order</p>
+        <div class="space-y-2">
+          {% for signer in document.signers.all %}
+          <div class="flex items-center gap-3 p-2.5 rounded-lg
+            {% if signer.pk == assignment.pk %}ring-2 ring-green-400{% endif %}"
+               style="{% if signer.pk == assignment.pk %}background:rgba(125,193,67,0.08);{% endif %}">
+            <!-- Status indicator -->
+            <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0
+              {% if signer.status == 'signed' %}bg-green-500
+              {% elif signer.status == 'rejected' %}bg-red-500
+              {% elif signer.pk == assignment.pk %}bg-yellow-400
+              {% else %}bg-gray-200{% endif %}">
+              {% if signer.status == 'signed' %}
+              <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              {% elif signer.status == 'rejected' %}
+              <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+              {% elif signer.pk == assignment.pk %}
+              <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+              </svg>
+              {% else %}
+              <span class="text-xs font-bold text-gray-500">{{ signer.signing_order }}</span>
+              {% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold truncate {% if signer.pk == assignment.pk %}text-green-700{% else %}text-gray-700{% endif %}">
+                {{ signer.display_name }}
+                {% if signer.pk == assignment.pk %}
+                <span class="ml-1 font-normal text-green-500">(You)</span>
+                {% endif %}
+              </p>
+              <p class="text-xs text-gray-400">{{ signer.get_role_display }}</p>
+            </div>
+            {% if signer.status == 'signed' %}
+            <span class="text-xs text-green-600 font-semibold flex-shrink-0">Signed</span>
+            {% elif signer.status == 'rejected' %}
+            <span class="text-xs text-red-500 font-semibold flex-shrink-0">Rejected</span>
+            {% elif signer.pk == assignment.pk %}
+            <span class="text-xs text-yellow-600 font-semibold flex-shrink-0">Your turn</span>
+            {% else %}
+            <span class="text-xs text-gray-400 flex-shrink-0">Pending</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Security badge -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(26,10,60,0.08);">
+            <svg class="w-5 h-5" style="color:#1a0a3c;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold mb-1" style="color:#1a0a3c;">Legally Traceable Signature</p>
+            <ul class="text-xs space-y-1" style="color:#6b7280;">
+              <li class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                Your IP address and timestamp are recorded
+              </li>
+              <li class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                Document SHA-256 hash preserved
+              </li>
+              {% if require_otp %}
+              <li class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                OTP identity verification required
+              </li>
+              {% endif %}
+              <li class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                Immutable audit trail maintained
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================
+         RIGHT COLUMN: OTP + Signing Pad
+         ====================================================== -->
+    <div class="lg:col-span-3 space-y-5">
+
+      {% if require_otp and not otp_verified %}
+      <!-- ── OTP Verification Panel ────────────────────────────────── -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b" style="background:#1a0a3c;">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-yellow-400 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-white font-bold text-sm">Identity Verification Required</p>
+              <p class="text-xs" style="color:#7dc143;">Step 1 of 2 — Verify before signing</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <p class="text-sm mb-6" style="color:#374151;">
+            To protect the integrity of this electronic signature, you must verify your identity
+            with a one-time code sent to <strong>{{ assignment.display_email }}</strong>.
+          </p>
+
+          <!-- Request OTP -->
+          <form method="post" action="{{ request.path }}" id="otp-request-form" class="mb-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="request_otp">
+            <button type="submit"
+                    class="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white transition-colors flex items-center justify-center gap-2"
+                    style="background:#1a0a3c;"
+                    id="request-otp-btn">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              Send Verification Code to My Email
+            </button>
+          </form>
+
+          <!-- Enter OTP -->
+          <div class="border-t border-gray-100 pt-6">
+            <p class="text-sm font-semibold mb-4 text-center" style="color:#1a0a3c;">
+              Enter the 6-digit code from your email:
+            </p>
+            <form method="post" action="{{ request.path }}" id="otp-verify-form"
+                  @submit.prevent="submitOTP">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="verify_otp">
+
+              <!-- OTP digit inputs -->
+              <div class="flex justify-center gap-2 mb-6">
+                {% for i in "123456" %}
+                <input type="text"
+                       maxlength="1"
+                       inputmode="numeric"
+                       pattern="[0-9]"
+                       class="otp-digit"
+                       :class="otpDigits[{{ forloop.counter0 }}] ? 'filled' : ''"
+                       x-model="otpDigits[{{ forloop.counter0 }}]"
+                       @input="onOTPInput($event, {{ forloop.counter0 }})"
+                       @keydown.backspace="onOTPBackspace($event, {{ forloop.counter0 }})"
+                       @paste.prevent="onOTPPaste($event)"
+                       :id="'otp-{{ forloop.counter0 }}'">
+                {% endfor %}
+              </div>
+
+              <!-- Hidden combined value -->
+              <input type="hidden" name="otp_code" :value="otpCode" id="otp-code-hidden">
+
+              <button type="submit"
+                      class="w-full py-3 px-4 rounded-xl text-sm font-bold text-white transition-all flex items-center justify-center gap-2"
+                      :class="otpCode.length === 6 ? 'opacity-100 cursor-pointer' : 'opacity-40 cursor-not-allowed'"
+                      :disabled="otpCode.length !== 6"
+                      style="background:#7dc143;">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Verify &amp; Proceed to Sign
+              </button>
+            </form>
+          </div>
+
+          <p class="text-center text-xs mt-4" style="color:#9ca3af;">
+            The code is valid for 10 minutes. Didn't receive it?
+            <button type="button"
+                    onclick="document.getElementById('otp-request-form').submit()"
+                    class="font-semibold hover:underline" style="color:#7dc143;">
+              Resend code
+            </button>
+          </p>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- ── Signing Pad Panel ────────────────────────────────────── -->
+      {% if otp_verified %}
+      <div class="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+        <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span class="text-sm font-semibold text-green-700">Identity verified. You may now sign the document.</span>
+      </div>
+      {% endif %}
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b" style="background:#1a0a3c;">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#7dc143;">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-white font-bold text-sm">Create Your Signature</p>
+                <p class="text-xs" style="color:#7dc143;">Draw, type, or use a saved signature</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6">
+
+          <!-- Signature type tabs -->
+          <div class="flex gap-2 mb-6">
+            <button type="button" class="tab-btn"
+                    :class="sigTab === 'draw' ? 'active' : ''"
+                    @click="sigTab = 'draw'; resetPad()">
+              ✏️ Draw
+            </button>
+            <button type="button" class="tab-btn"
+                    :class="sigTab === 'type' ? 'active' : ''"
+                    @click="sigTab = 'type'">
+              Aa Type
+            </button>
+            {% if saved_signatures %}
+            <button type="button" class="tab-btn"
+                    :class="sigTab === 'saved' ? 'active' : ''"
+                    @click="sigTab = 'saved'">
+              🗂️ Saved
+            </button>
+            {% endif %}
+          </div>
+
+          <!-- DRAW tab -->
+          <div x-show="sigTab === 'draw'" x-transition>
+            <div class="sig-pad-wrapper mb-3"
+                 :class="{'has-sig': hasSignature, 'active': isPadActive}"
+                 id="sig-pad-container">
+              <canvas id="signature-pad" height="200"></canvas>
+              <div class="sig-placeholder" :class="{'hidden': hasSignature}" id="sig-placeholder">
+                <svg class="w-10 h-10" style="color:#d1d5db;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z"/>
+                </svg>
+                <p class="text-sm font-medium" style="color:#9ca3af;">Draw your signature here</p>
+                <p class="text-xs" style="color:#d1d5db;">Use your mouse or touchscreen</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <button type="button"
+                      @click="clearPad()"
+                      class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Clear
+              </button>
+              <span class="text-xs" style="color:#9ca3af;">
+                Pen colour:
+                <button type="button" @click="setPenColor('#1a0a3c')"
+                        class="inline-block w-4 h-4 rounded-full border-2 ml-1 align-middle transition-transform hover:scale-110"
+                        :class="penColor === '#1a0a3c' ? 'border-gray-800 scale-110' : 'border-gray-300'"
+                        style="background:#1a0a3c;"></button>
+                <button type="button" @click="setPenColor('#000000')"
+                        class="inline-block w-4 h-4 rounded-full border-2 ml-1 align-middle transition-transform hover:scale-110"
+                        :class="penColor === '#000000' ? 'border-gray-800 scale-110' : 'border-gray-300'"
+                        style="background:#000;"></button>
+                <button type="button" @click="setPenColor('#1e40af')"
+                        class="inline-block w-4 h-4 rounded-full border-2 ml-1 align-middle transition-transform hover:scale-110"
+                        :class="penColor === '#1e40af' ? 'border-gray-800 scale-110' : 'border-gray-300'"
+                        style="background:#1e40af;"></button>
+              </span>
+            </div>
+          </div>
+
+          <!-- TYPE tab -->
+          <div x-show="sigTab === 'type'" x-transition>
+            <div class="mb-4">
+              <input type="text"
+                     x-model="typedText"
+                     @input="updateTypedPreview()"
+                     placeholder="Type your full name…"
+                     maxlength="60"
+                     class="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2"
+                     style="--tw-ring-color:#7dc143;">
+            </div>
+            <div class="typed-preview mb-3" x-text="typedText || 'Your Signature'"></div>
+            <p class="text-xs text-center" style="color:#9ca3af;">
+              Your typed name will be rendered as a signature in the document.
+            </p>
+          </div>
+
+          <!-- SAVED tab -->
+          {% if saved_signatures %}
+          <div x-show="sigTab === 'saved'" x-transition>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              {% for sig in saved_signatures %}
+              <div class="saved-sig-card"
+                   :class="selectedSavedId === '{{ sig.pk }}' ? 'selected' : ''"
+                   @click="selectSaved('{{ sig.pk }}')">
+                {% if sig.source == 'drawn' or sig.source == 'uploaded' %}
+                  {% if sig.image %}
+                  <img src="{{ sig.image.url }}" alt="Signature"
+                       class="w-full h-16 object-contain rounded-lg bg-gray-50 mb-2">
+                  {% else %}
+                  <div class="w-full h-16 bg-gray-50 rounded-lg flex items-center justify-center mb-2">
+                    <span class="text-xs text-gray-400">No preview</span>
+                  </div>
+                  {% endif %}
+                {% else %}
+                <div class="w-full h-16 bg-gray-50 rounded-lg flex items-center justify-center mb-2"
+                     style="font-style:italic;font-size:20px;color:#1a0a3c;">
+                  {{ sig.typed_text }}
+                </div>
+                {% endif %}
+                <div class="flex items-center justify-between">
+                  <span class="text-xs" style="color:#6b7280;">{{ sig.get_source_display }}</span>
+                  {% if sig.is_default %}
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:rgba(125,193,67,0.15);color:#5a8a3c;">Default</span>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Signing Form (submit) -->
+      <form method="post" action="{{ request.path }}" id="sign-form" @submit.prevent="submitSignature">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="sign">
+        <input type="hidden" name="signature_data_uri" id="sig-data-uri" x-model="signatureDataURI">
+        <input type="hidden" name="typed_text" id="typed-text-input" x-model="typedText">
+        <input type="hidden" name="saved_signature_id" id="saved-sig-id" x-model="selectedSavedId">
+        <input type="hidden" name="signature_source" id="sig-source" x-model="sigSource">
+        <input type="hidden" name="device_info" id="device-info" :value="deviceInfoJSON">
+
+        <!-- Review & confirm -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox"
+                   x-model="agreedToSign"
+                   class="mt-0.5 w-5 h-5 rounded border-gray-300 cursor-pointer"
+                   style="accent-color:#7dc143;">
+            <span class="text-sm" style="color:#374151;">
+              I have reviewed the document <strong>{{ document.title }}</strong>
+              and I agree that my electronic signature constitutes a legally binding
+              signature. I understand that my IP address, timestamp, and browser
+              information will be recorded as part of the audit trail.
+            </span>
+          </label>
+        </div>
+
+        <!-- Sign button -->
+        <button type="submit"
+                :disabled="!canSign"
+                :class="canSign ? 'opacity-100 cursor-pointer hover:opacity-90' : 'opacity-40 cursor-not-allowed'"
+                class="w-full py-4 px-6 rounded-xl text-base font-bold text-white transition-all flex items-center justify-center gap-3 shadow-lg mt-4"
+                style="background: linear-gradient(135deg, #7dc143 0%, #5a8a3c 100%);">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z"/>
+          </svg>
+          <span x-text="signing ? 'Applying Signature…' : 'Apply Electronic Signature'"></span>
+          <svg x-show="signing" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </button>
+
+        <p class="text-xs text-center mt-3" style="color:#9ca3af;">
+          By clicking the button you are electronically signing this document.
+          This action is final and cannot be undone.
+        </p>
+      </form>
+
+      <!-- Reject option -->
+      <div class="text-center" x-data="{ showRejectForm: false }">
+        <button type="button"
+                @click="showRejectForm = !showRejectForm"
+                class="text-sm font-medium text-red-500 hover:text-red-700 hover:underline transition-colors">
+          I need to reject this document
+        </button>
+
+        <div x-show="showRejectForm" x-transition
+             class="bg-white border border-red-200 rounded-xl p-5 mt-4 text-left">
+          <p class="text-sm font-semibold text-red-700 mb-3">
+            ⚠ Reject Document
+          </p>
+          <p class="text-sm text-gray-600 mb-4">
+            Rejecting will notify the document owner and stop the signing process.
+            Please provide a clear reason so the owner can address the issue.
+          </p>
+          <form method="post" action="{{ request.path }}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+            <textarea name="rejection_reason"
+                      rows="3"
+                      required
+                      placeholder="Please explain why you are rejecting this document…"
+                      class="w-full px-3 py-2 text-sm border border-red-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                      maxlength="1000"></textarea>
+            <div class="flex gap-3">
+              <button type="submit"
+                      class="flex-1 py-2.5 px-4 text-sm font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                Confirm Rejection
+              </button>
+              <button type="button"
+                      @click="showRejectForm = false"
+                      class="px-4 py-2.5 text-sm font-semibold border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function signingApp() {
+  return {
+    // OTP
+    otpDigits: ['', '', '', '', '', ''],
+    get otpCode() { return this.otpDigits.join(''); },
+
+    // Signature
+    sigTab: 'draw',
+    hasSignature: false,
+    isPadActive: false,
+    signatureDataURI: '',
+    typedText: '',
+    selectedSavedId: '',
+    penColor: '#1a0a3c',
+    sigPad: null,
+    agreedToSign: false,
+    signing: false,
+
+    get sigSource() {
+      if (this.sigTab === 'draw') return 'drawn';
+      if (this.sigTab === 'type') return 'typed';
+      return 'drawn';
+    },
+
+    get deviceInfoJSON() {
+      return JSON.stringify({
+        user_agent: navigator.userAgent,
+        screen: window.screen.width + 'x' + window.screen.height,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language,
+        platform: navigator.platform || 'unknown',
+      });
+    },
+
+    get canSign() {
+      if (!this.agreedToSign) return false;
+      if (this.signing) return false;
+      if (this.sigTab === 'draw') return this.hasSignature;
+      if (this.sigTab === 'type') return this.typedText.trim().length >= 2;
+      if (this.sigTab === 'saved') return this.selectedSavedId !== '';
+      return false;
+    },
+
+    init() {
+      this.$nextTick(() => {
+        this.initPad();
+      });
+    },
+
+    initPad() {
+      const canvas = document.getElementById('signature-pad');
+      if (!canvas) return;
+      const container = document.getElementById('sig-pad-container');
+      canvas.width = container ? container.offsetWidth : 500;
+      canvas.height = 200;
+
+      this.sigPad = new SignaturePad(canvas, {
+        minWidth: 1.2,
+        maxWidth: 3.5,
+        throttle: 16,
+        velocityFilterWeight: 0.7,
+        penColor: this.penColor,
+        backgroundColor: 'rgba(255,255,255,0)',
+      });
+
+      this.sigPad.addEventListener('beginStroke', () => {
+        this.isPadActive = true;
+      });
+      this.sigPad.addEventListener('endStroke', () => {
+        this.isPadActive = false;
+        this.hasSignature = !this.sigPad.isEmpty();
+        if (this.hasSignature) {
+          this.signatureDataURI = this.sigPad.toDataURL('image/png');
+        }
+      });
+
+      // Resize handler
+      const resizeObserver = new ResizeObserver(() => {
+        const data = this.sigPad.toData();
+        canvas.width = container ? container.offsetWidth : 500;
+        this.sigPad.clear();
+        if (data && data.length > 0) {
+          this.sigPad.fromData(data);
+          this.hasSignature = !this.sigPad.isEmpty();
+        }
+      });
+      if (container) resizeObserver.observe(container);
+    },
+
+    clearPad() {
+      if (this.sigPad) {
+        this.sigPad.clear();
+        this.hasSignature = false;
+        this.signatureDataURI = '';
+      }
+    },
+
+    resetPad() {
+      this.$nextTick(() => {
+        if (!this.sigPad) this.initPad();
+      });
+    },
+
+    setPenColor(color) {
+      this.penColor = color;
+      if (this.sigPad) this.sigPad.penColor = color;
+    },
+
+    selectSaved(id) {
+      this.selectedSavedId = id === this.selectedSavedId ? '' : id;
+    },
+
+    updateTypedPreview() {
+      // Preview is handled by Alpine x-text binding
+    },
+
+    onOTPInput(event, index) {
+      const val = event.target.value.replace(/\D/g, '');
+      this.$set ? this.$set(this.otpDigits, index, val) : (this.otpDigits[index] = val);
+      if (val && index < 5) {
+        document.getElementById('otp-' + (index + 1))?.focus();
+      }
+      document.getElementById('otp-code-hidden').value = this.otpCode;
+    },
+
+    onOTPBackspace(event, index) {
+      if (!this.otpDigits[index] && index > 0) {
+        this.otpDigits[index - 1] = '';
+        document.getElementById('otp-' + (index - 1))?.focus();
+      }
+    },
+
+    onOTPPaste(event) {
+      const pasted = (event.clipboardData || window.clipboardData)
+        .getData('text')
+        .replace(/\D/g, '')
+        .slice(0, 6);
+      pasted.split('').forEach((char, i) => {
+        this.otpDigits[i] = char;
+      });
+      document.getElementById('otp-' + (Math.min(pasted.length, 5)))?.focus();
+      document.getElementById('otp-code-hidden').value = this.otpCode;
+    },
+
+    submitOTP() {
+      if (this.otpCode.length !== 6) return;
+      document.getElementById('otp-code-hidden').value = this.otpCode;
+      document.getElementById('otp-verify-form').submit();
+    },
+
+    submitSignature() {
+      if (!this.canSign) return;
+      this.signing = true;
+
+      if (this.sigTab === 'draw' && this.sigPad) {
+        this.signatureDataURI = this.sigPad.toDataURL('image/png');
+      }
+
+      this.$nextTick(() => {
+        document.getElementById('sign-form').submit();
+      });
+    },
+  };
+}
+</script>
+{% endblock %}

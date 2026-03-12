@@ -1,0 +1,878 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Upload Document for Signing{% endblock %}
+
+{% block extra_head %}
+<style>
+  .upload-dropzone {
+    border: 2px dashed #d1d5db;
+    border-radius: 16px;
+    background: #fafafa;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .upload-dropzone.drag-over {
+    border-color: #7dc143;
+    background: #f0fdf4;
+  }
+  .upload-dropzone.has-file {
+    border-color: #7dc143;
+    border-style: solid;
+    background: #f0fdf4;
+  }
+  .signer-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .signer-card:hover {
+    border-color: #7dc143;
+    box-shadow: 0 2px 8px rgba(125,193,67,0.10);
+  }
+  .form-input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1a0a3c;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-input:focus {
+    border-color: #7dc143;
+    box-shadow: 0 0 0 3px rgba(125,193,67,0.15);
+  }
+  .form-input.error {
+    border-color: #ef4444;
+  }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 5px;
+  }
+  .required-star { color: #ef4444; }
+  .section-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a0a3c;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-subtitle {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 20px;
+  }
+  .btn-add-signer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f0fdf4;
+    border: 1.5px dashed #7dc143;
+    border-radius: 8px;
+    color: #15803d;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-add-signer:hover { background: #dcfce7; }
+  .btn-remove-signer {
+    color: #ef4444;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .btn-remove-signer:hover { background: #fee2e2; }
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  .toggle-switch input { display: none; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #d1d5db;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle-switch input:checked + .toggle-slider { background: #7dc143; }
+  .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+  .progress-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #7dc143;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .error-msg {
+    color: #ef4444;
+    font-size: 11px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto p-6" style="background:#e8f5d0;"
+     x-data="uploadForm()"
+     x-init="init()">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs text-gray-500 mb-4">
+    <a href="{% url 'esignature:document_list' %}" class="hover:text-gray-700 flex items-center gap-1">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      E-Signatures
+    </a>
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-700 font-medium">Upload Document</span>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold" style="color:#1a0a3c;">Upload Document for Signing</h1>
+      <p class="text-sm mt-1" style="color:#6b7280;">
+        Upload a PDF and configure signers with secure, auditable e-signature workflow
+      </p>
+    </div>
+  </div>
+
+  <!-- Server-side errors -->
+  {% if errors %}
+  <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
+    <div class="flex items-start gap-3">
+      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+      </svg>
+      <div>
+        <p class="text-sm font-bold text-red-700 mb-1">Please correct the following errors:</p>
+        <ul class="list-disc list-inside space-y-1">
+          {% for field, errs in errors.items %}
+            {% for err in errs %}
+            <li class="text-xs text-red-600"><span class="font-semibold capitalize">{{ field|cut:"_" }}:</span> {{ err }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" id="uploadForm" @submit.prevent="submitForm">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+      <!-- ── Left Column (main form) ── -->
+      <div class="xl:col-span-2 space-y-5">
+
+        <!-- SECTION 1: Document File -->
+        <div class="section-card">
+          <p class="section-title">
+            <span class="progress-badge">1</span>
+            Document File
+          </p>
+          <p class="section-subtitle">Upload the PDF document that requires signatures. Maximum file size: 20 MB.</p>
+
+          <!-- Drop Zone -->
+          <div class="upload-dropzone p-8 text-center"
+               :class="{'drag-over': isDragging, 'has-file': selectedFile}"
+               id="dropZone"
+               @dragover.prevent="isDragging = true"
+               @dragleave.prevent="isDragging = false"
+               @drop.prevent="handleDrop($event)"
+               @click="$refs.fileInput.click()">
+
+            <input type="file"
+                   ref="fileInput"
+                   name="original_file"
+                   id="original_file"
+                   accept="application/pdf,.pdf"
+                   class="hidden"
+                   @change="handleFileSelect($event)"
+                   required>
+
+            <!-- No file selected -->
+            <div x-show="!selectedFile">
+              <div class="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center"
+                   style="background:linear-gradient(135deg,#1a0a3c,#2d1b5e);">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+              </div>
+              <p class="text-sm font-semibold text-gray-700 mb-1">
+                Drag &amp; drop your PDF here
+              </p>
+              <p class="text-xs text-gray-400 mb-3">or click to browse</p>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+                    style="background:#7dc143;">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                PDF files only
+              </span>
+            </div>
+
+            <!-- File selected -->
+            <div x-show="selectedFile" @click.stop>
+              <div class="flex items-center gap-3 justify-center">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                     style="background:linear-gradient(135deg,#7dc143,#5a8a3c);">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                </div>
+                <div class="text-left">
+                  <p class="text-sm font-bold text-gray-800" x-text="selectedFile ? selectedFile.name : ''"></p>
+                  <p class="text-xs text-gray-500" x-text="selectedFile ? formatFileSize(selectedFile.size) : ''"></p>
+                </div>
+                <button type="button"
+                        class="ml-2 text-gray-400 hover:text-red-500 transition-colors"
+                        @click.stop="clearFile()">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+              <p class="text-xs text-green-600 font-semibold mt-3">
+                <svg class="w-3.5 h-3.5 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                File ready to upload
+              </p>
+            </div>
+          </div>
+          <p x-show="fileError" class="error-msg mt-2" x-text="fileError"></p>
+        </div>
+
+        <!-- SECTION 2: Document Details -->
+        <div class="section-card">
+          <p class="section-title">
+            <span class="progress-badge">2</span>
+            Document Details
+          </p>
+          <p class="section-subtitle">Provide metadata to identify and categorise this document.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Title -->
+            <div class="md:col-span-2">
+              <label class="form-label" for="title">
+                Document Title <span class="required-star">*</span>
+              </label>
+              <input type="text"
+                     id="title"
+                     name="title"
+                     class="form-input {% if errors.title %}error{% endif %}"
+                     placeholder="e.g. Board Resolution – Capital Expenditure 2025"
+                     value="{{ form_data.title|default:'' }}"
+                     maxlength="255"
+                     required
+                     x-model="title">
+              {% if errors.title %}
+              <p class="error-msg">{{ errors.title.0 }}</p>
+              {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div class="md:col-span-2">
+              <label class="form-label" for="description">Description</label>
+              <textarea id="description"
+                        name="description"
+                        class="form-input"
+                        rows="3"
+                        placeholder="Brief description of the document and its purpose…">{{ form_data.description|default:'' }}</textarea>
+            </div>
+
+            <!-- Access Level -->
+            <div>
+              <label class="form-label" for="access_level">
+                Access Level <span class="required-star">*</span>
+              </label>
+              <select id="access_level" name="access_level" class="form-input" required>
+                {% for value, label in access_choices %}
+                <option value="{{ value }}"
+                        {% if form_data.access_level == value %}selected{% endif %}>
+                  {{ label }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Branch -->
+            {% if branches %}
+            <div>
+              <label class="form-label" for="branch">Branch / Office</label>
+              <select id="branch" name="branch" class="form-input">
+                <option value="">— Select branch (optional) —</option>
+                {% for branch in branches %}
+                <option value="{{ branch.pk }}"
+                        {% if form_data.branch == branch.pk|stringformat:'s' %}selected{% endif %}>
+                  {{ branch.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+
+            <!-- Expiry Date -->
+            <div>
+              <label class="form-label" for="expires_at">Signing Deadline</label>
+              <input type="datetime-local"
+                     id="expires_at"
+                     name="expires_at"
+                     class="form-input"
+                     value="{{ form_data.expires_at|default:'' }}">
+              <p class="text-xs text-gray-400 mt-1">Leave blank for no deadline.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: Signing Settings -->
+        <div class="section-card">
+          <p class="section-title">
+            <span class="progress-badge">3</span>
+            Signing Settings
+          </p>
+          <p class="section-subtitle">Configure how signers interact with this document.</p>
+
+          <div class="space-y-4">
+            <!-- Ordered Signing -->
+            <div class="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
+              <div>
+                <p class="text-sm font-semibold text-gray-800">Ordered Signing</p>
+                <p class="text-xs text-gray-500 mt-0.5">Signers must sign in the specified order (1 → 2 → 3…)</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox"
+                       name="require_ordered_signing"
+                       id="require_ordered_signing"
+                       value="true"
+                       checked
+                       x-model="orderedSigning">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- OTP Verification -->
+            <div class="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
+              <div>
+                <p class="text-sm font-semibold text-gray-800">Require OTP Verification</p>
+                <p class="text-xs text-gray-500 mt-0.5">Send a one-time password to each signer's email before they can sign</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox"
+                       name="require_otp"
+                       id="require_otp"
+                       value="true"
+                       checked
+                       x-model="requireOtp">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: Signers -->
+        <div class="section-card">
+          <p class="section-title">
+            <span class="progress-badge">4</span>
+            Signers
+          </p>
+          <p class="section-subtitle">
+            Add the people who need to sign this document. You can add internal users or external email addresses.
+          </p>
+
+          <!-- Signer Cards -->
+          <div class="space-y-3" id="signerList">
+            <template x-for="(signer, index) in signers" :key="signer.id">
+              <div class="signer-card p-4">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                         style="background:#1a0a3c;"
+                         x-text="index + 1"></div>
+                    <p class="text-sm font-semibold text-gray-700">Signer <span x-text="index + 1"></span></p>
+                    <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                          :class="signer.role === 'signer'
+                            ? 'bg-blue-100 text-blue-700'
+                            : signer.role === 'approver'
+                              ? 'bg-amber-100 text-amber-700'
+                              : signer.role === 'witness'
+                                ? 'bg-purple-100 text-purple-700'
+                                : 'bg-gray-100 text-gray-600'"
+                          x-text="signer.role.charAt(0).toUpperCase() + signer.role.slice(1)">
+                    </span>
+                  </div>
+                  <button type="button"
+                          class="btn-remove-signer"
+                          @click="removeSigner(index)"
+                          x-show="signers.length > 1"
+                          title="Remove signer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                  <!-- Signer type: internal vs external -->
+                  <div class="sm:col-span-2">
+                    <div class="flex rounded-lg overflow-hidden border border-gray-200 text-xs font-semibold">
+                      <button type="button"
+                              class="flex-1 py-2 transition-colors"
+                              :class="signer.type === 'internal'
+                                ? 'bg-gray-800 text-white'
+                                : 'bg-white text-gray-500 hover:bg-gray-50'"
+                              @click="signer.type = 'internal'; signer.external_name = ''; signer.external_email = ''">
+                        Internal User
+                      </button>
+                      <button type="button"
+                              class="flex-1 py-2 transition-colors border-l border-gray-200"
+                              :class="signer.type === 'external'
+                                ? 'bg-gray-800 text-white'
+                                : 'bg-white text-gray-500 hover:bg-gray-50'"
+                              @click="signer.type = 'external'; signer.user_id = ''">
+                        External Email
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Internal user select -->
+                  <div class="sm:col-span-2" x-show="signer.type === 'internal'">
+                    <label class="form-label">
+                      Select User <span class="required-star">*</span>
+                    </label>
+                    <select class="form-input"
+                            :name="'signer_user_' + index"
+                            x-model="signer.user_id">
+                      <option value="">— Select a user —</option>
+                      {% for u in all_users %}
+                      <option value="{{ u.pk }}">{{ u.get_full_name }} ({{ u.email }})</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                  <!-- External signer fields -->
+                  <div x-show="signer.type === 'external'">
+                    <label class="form-label">
+                      Full Name <span class="required-star">*</span>
+                    </label>
+                    <input type="text"
+                           class="form-input"
+                           :name="'signer_name_' + index"
+                           x-model="signer.external_name"
+                           placeholder="e.g. Jane Smith">
+                  </div>
+                  <div x-show="signer.type === 'external'">
+                    <label class="form-label">
+                      Email Address <span class="required-star">*</span>
+                    </label>
+                    <input type="email"
+                           class="form-input"
+                           :name="'signer_email_' + index"
+                           x-model="signer.external_email"
+                           placeholder="jane@example.com">
+                  </div>
+
+                  <!-- Role -->
+                  <div>
+                    <label class="form-label">Role</label>
+                    <select class="form-input"
+                            :name="'signer_role_' + index"
+                            x-model="signer.role">
+                      <option value="signer">Signer</option>
+                      <option value="approver">Approver</option>
+                      <option value="witness">Witness</option>
+                      <option value="cc">CC / Viewer</option>
+                    </select>
+                  </div>
+
+                  <!-- Signing Order -->
+                  <div>
+                    <label class="form-label">
+                      Signing Order
+                      <span class="font-normal text-gray-400">(auto)</span>
+                    </label>
+                    <input type="number"
+                           class="form-input bg-gray-50"
+                           :name="'signer_order_' + index"
+                           :value="index + 1"
+                           min="1"
+                           readonly>
+                  </div>
+
+                  <!-- Required toggle -->
+                  <div class="sm:col-span-2 flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
+                    <p class="text-xs text-gray-600 font-medium">Required to sign (document won't finalise without this signer)</p>
+                    <label class="toggle-switch">
+                      <input type="checkbox"
+                             :name="'signer_required_' + index"
+                             :value="'true'"
+                             x-model="signer.required">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                </div>
+
+                <!-- Hidden order input for serializer -->
+                <input type="hidden" :name="'signer_order_val_' + index" :value="index + 1">
+              </div>
+            </template>
+          </div>
+
+          <!-- Add Signer Button -->
+          <button type="button"
+                  class="btn-add-signer mt-4 w-full justify-center"
+                  @click="addSigner()"
+                  x-show="signers.length < 20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Another Signer
+          </button>
+
+          <!-- Hidden signer count for backend -->
+          <input type="hidden" name="signer_count" :value="signers.length">
+
+          <!-- Serialized signer data for the serializer -->
+          <input type="hidden" name="signers_json" :value="JSON.stringify(signers)">
+        </div>
+
+      </div>
+
+      <!-- ── Right Column (summary + submit) ── -->
+      <div class="space-y-4">
+
+        <!-- Summary Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-6">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">Upload Summary</p>
+
+          <!-- File info -->
+          <div class="flex items-start gap-3 mb-4 pb-4 border-b border-gray-100">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                 :style="selectedFile ? 'background:linear-gradient(135deg,#7dc143,#5a8a3c)' : 'background:#f3f4f6'">
+              <svg class="w-5 h-5"
+                   :class="selectedFile ? 'text-white' : 'text-gray-400'"
+                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold text-gray-700 truncate"
+                 x-text="selectedFile ? selectedFile.name : 'No file selected'"></p>
+              <p class="text-xs text-gray-400"
+                 x-text="selectedFile ? formatFileSize(selectedFile.size) : 'PDF required'"></p>
+            </div>
+          </div>
+
+          <!-- Document title preview -->
+          <div class="mb-4 pb-4 border-b border-gray-100">
+            <p class="text-xs text-gray-400 mb-1">Document Title</p>
+            <p class="text-sm font-semibold text-gray-700 break-words"
+               x-text="title || '(not set)'"></p>
+          </div>
+
+          <!-- Signer count -->
+          <div class="mb-4 pb-4 border-b border-gray-100">
+            <div class="flex items-center justify-between">
+              <p class="text-xs text-gray-400">Signers</p>
+              <span class="text-sm font-bold" style="color:#1a0a3c;" x-text="signers.length"></span>
+            </div>
+            <div class="mt-2 space-y-1">
+              <template x-for="(signer, i) in signers" :key="signer.id">
+                <div class="flex items-center gap-2 text-xs text-gray-600">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
+                        style="background:#7dc143; font-size:9px;"
+                        x-text="i+1"></span>
+                  <span class="truncate"
+                        x-text="signer.type === 'internal'
+                          ? (signer.user_id ? 'Internal User #' + signer.user_id : 'Not selected')
+                          : (signer.external_name || signer.external_email || 'External (not set)')">
+                  </span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Settings summary -->
+          <div class="mb-5 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-500">Ordered Signing</span>
+              <span class="font-semibold" :class="orderedSigning ? 'text-green-600' : 'text-gray-400'"
+                    x-text="orderedSigning ? 'Yes' : 'No'"></span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-500">OTP Required</span>
+              <span class="font-semibold" :class="requireOtp ? 'text-green-600' : 'text-gray-400'"
+                    x-text="requireOtp ? 'Yes' : 'No'"></span>
+            </div>
+          </div>
+
+          <!-- Security note -->
+          <div class="rounded-xl p-3 mb-4" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <div>
+                <p class="text-xs font-semibold text-green-800">Secure &amp; Auditable</p>
+                <p class="text-xs text-green-700 mt-0.5">
+                  SHA-256 hash computed on upload. All actions are logged in an immutable audit trail.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit"
+                  id="submitBtn"
+                  class="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-white text-sm transition-all"
+                  style="background: linear-gradient(135deg,#1a0a3c,#2d1b5e);"
+                  :class="submitting ? 'opacity-75 cursor-not-allowed' : 'hover:opacity-90'"
+                  :disabled="submitting">
+            <template x-if="!submitting">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+            </template>
+            <template x-if="submitting">
+              <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </template>
+            <span x-text="submitting ? 'Uploading…' : 'Upload &amp; Create Document'"></span>
+          </button>
+
+          <a href="{% url 'esignature:document_list' %}"
+             class="w-full mt-2 flex items-center justify-center gap-1.5 py-2 text-sm text-gray-500 hover:text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+            Cancel
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<script>
+function uploadForm() {
+  return {
+    selectedFile: null,
+    isDragging: false,
+    fileError: '',
+    title: '{{ form_data.title|default:''|escapejs }}',
+    orderedSigning: true,
+    requireOtp: true,
+    submitting: false,
+    signers: [],
+    signerIdCounter: 0,
+
+    init() {
+      this.addSigner(); // Start with one signer
+    },
+
+    addSigner() {
+      this.signerIdCounter++;
+      this.signers.push({
+        id: this.signerIdCounter,
+        type: 'internal',
+        user_id: '',
+        external_name: '',
+        external_email: '',
+        role: 'signer',
+        required: true,
+      });
+    },
+
+    removeSigner(index) {
+      if (this.signers.length > 1) {
+        this.signers.splice(index, 1);
+      }
+    },
+
+    handleDrop(event) {
+      this.isDragging = false;
+      const files = event.dataTransfer.files;
+      if (files.length > 0) {
+        this.validateAndSetFile(files[0]);
+      }
+    },
+
+    handleFileSelect(event) {
+      const files = event.target.files;
+      if (files.length > 0) {
+        this.validateAndSetFile(files[0]);
+      }
+    },
+
+    validateAndSetFile(file) {
+      this.fileError = '';
+      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+        this.fileError = 'Only PDF files are accepted.';
+        this.selectedFile = null;
+        return;
+      }
+      const maxSize = 20 * 1024 * 1024; // 20 MB
+      if (file.size > maxSize) {
+        this.fileError = 'File exceeds the maximum size of 20 MB.';
+        this.selectedFile = null;
+        return;
+      }
+      this.selectedFile = file;
+
+      // Auto-fill title from filename if empty
+      if (!this.title) {
+        this.title = file.name.replace(/\.pdf$/i, '').replace(/[-_]/g, ' ');
+      }
+    },
+
+    clearFile() {
+      this.selectedFile = null;
+      this.fileError = '';
+      this.$refs.fileInput.value = '';
+    },
+
+    formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    },
+
+    validateSigners() {
+      for (let i = 0; i < this.signers.length; i++) {
+        const s = this.signers[i];
+        if (s.type === 'internal' && !s.user_id) {
+          return `Signer ${i + 1}: Please select a user.`;
+        }
+        if (s.type === 'external') {
+          if (!s.external_name.trim()) {
+            return `Signer ${i + 1}: Name is required.`;
+          }
+          if (!s.external_email.trim() || !s.external_email.includes('@')) {
+            return `Signer ${i + 1}: Valid email is required.`;
+          }
+        }
+      }
+      return null;
+    },
+
+    submitForm() {
+      // Client-side validation
+      if (!this.selectedFile) {
+        this.fileError = 'Please select a PDF file to upload.';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      const signerError = this.validateSigners();
+      if (signerError) {
+        alert(signerError);
+        return;
+      }
+
+      if (!this.title.trim()) {
+        alert('Please enter a document title.');
+        return;
+      }
+
+      this.submitting = true;
+
+      // Build FormData manually so we can include the file
+      const form = document.getElementById('uploadForm');
+      const fd = new FormData(form);
+
+      // Attach file explicitly (Alpine x-model doesn't bind file inputs)
+      fd.set('original_file', this.selectedFile);
+
+      // Attach signer data as structured fields for the serializer
+      this.signers.forEach((s, i) => {
+        fd.set(`signer_user_${i}`, s.type === 'internal' ? s.user_id : '');
+        fd.set(`signer_name_${i}`, s.external_name);
+        fd.set(`signer_email_${i}`, s.external_email);
+        fd.set(`signer_role_${i}`, s.role);
+        fd.set(`signer_order_${i}`, i + 1);
+        fd.set(`signer_required_${i}`, s.required ? 'true' : 'false');
+      });
+
+      fetch(form.action || window.location.href, {
+        method: 'POST',
+        body: fd,
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+      }).then(response => {
+        if (response.redirected) {
+          window.location.href = response.url;
+        } else {
+          // Server returned errors — reload to show them
+          return response.text().then(html => {
+            document.open();
+            document.write(html);
+            document.close();
+          });
+        }
+      }).catch(() => {
+        this.submitting = false;
+        alert('Upload failed. Please check your connection and try again.');
+      });
+    },
+  };
+}
+</script>
+{% endblock %}

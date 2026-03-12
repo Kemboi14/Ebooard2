@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Action Required: Please Sign Document</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #e8f5d0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(26,10,60,0.10); }
+    .header { background: #1a0a3c; padding: 36px 40px 28px; text-align: center; }
+    .header img { height: 40px; margin-bottom: 16px; }
+    .header h1 { color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.3px; }
+    .header p { color: #7dc143; font-size: 13px; margin: 0; }
+    .accent-bar { background: #7dc143; height: 4px; }
+    .body { padding: 36px 40px; }
+    .greeting { font-size: 16px; color: #1a0a3c; font-weight: 600; margin-bottom: 12px; }
+    .text { font-size: 14px; color: #374151; line-height: 1.7; margin-bottom: 16px; }
+    .doc-card { background: #f3f4f6; border-left: 4px solid #7dc143; border-radius: 6px; padding: 18px 20px; margin: 24px 0; }
+    .doc-card .doc-title { font-size: 16px; font-weight: 700; color: #1a0a3c; margin-bottom: 6px; }
+    .doc-card .doc-meta { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+    .doc-card .doc-meta strong { color: #374151; }
+    .cta-wrapper { text-align: center; margin: 32px 0; }
+    .cta-btn { display: inline-block; background: #7dc143; color: #ffffff; font-size: 15px; font-weight: 700; padding: 14px 36px; border-radius: 8px; text-decoration: none; letter-spacing: 0.2px; }
+    .cta-btn:hover { background: #5a8a3c; }
+    .otp-notice { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 14px 18px; margin: 20px 0; font-size: 13px; color: #92400e; }
+    .otp-notice strong { color: #78350f; }
+    .link-fallback { font-size: 12px; color: #6b7280; word-break: break-all; margin-top: 8px; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
+    .footer { background: #1a0a3c; padding: 24px 40px; text-align: center; }
+    .footer p { font-size: 12px; color: #9ca3af; margin: 4px 0; }
+    .footer a { color: #7dc143; text-decoration: none; }
+    .badge { display: inline-block; background: rgba(125,193,67,0.15); color: #5a8a3c; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(125,193,67,0.3); margin-left: 8px; vertical-align: middle; }
+    .steps { margin: 20px 0; padding: 0; list-style: none; }
+    .steps li { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 13px; color: #374151; }
+    .step-num { width: 24px; height: 24px; background: #7dc143; color: #fff; font-size: 12px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .expiry-notice { background: #fff7ed; border: 1px solid #fdba74; border-radius: 6px; padding: 12px 16px; font-size: 12px; color: #9a3412; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <h1>Electronic Signature Request</h1>
+      <p>Enwealth E-Board — Secure Document Signing Platform</p>
+    </div></p>
+    <div class="accent-bar"></div>
+
+    <!-- Body -->
+    <div class="body">
+      <p class="greeting">Dear {{ signer_name }},</p>
+
+      <p class="text">
+        You have been requested to electronically sign a document on the
+        <strong></strong>Enwealth E-Board</strong> platform. Your signature is required
+        as a <strong>{{ role_display }}</strong>
+        {% if total_signers > 1 %}
+          (Signer {{ signing_order }} of {{ total_signers }})
+        {% endif %}.
+      </p>
+
+      <!-- Document card -->
+      <div class="doc-card">
+        <div class="doc-title">{{ document_title }}</div>
+        <div class="doc-meta"><strong>Reference:</strong> {{ document_reference }}</div>
+        <div class="doc-meta"><strong>Requested by:</strong> {{ uploaded_by_name }} &lt;{{ uploaded_by_email }}&gt;</div>
+        {% if expires_at %}
+        <div class="doc-meta"><strong>Signing deadline:</strong> {{ expires_at|date:"d M Y H:i" }} UTC</div>
+        {% endif %}
+      </div>
+
+      <!-- Steps -->
+      <p class="text" style="margin-bottom:8px;font-weight:600;color:#1a0a3c;">How to sign:</p>
+      <ul class="steps">
+        <li>
+          <span class="step-num">1</span>
+          <span>Click the <strong>Review &amp; Sign</strong> button below to open the secure signing page.</span>
+        </li>
+        {% if require_otp %}
+        <li>
+          <span class="step-num">2</span>
+          <span>Verify your identity with a one-time code sent to <strong>{{ signer_email }}</strong>.</span>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <span>Review the document, draw or upload your signature, then submit.</span>
+        </li>
+        {% else %}
+        <li>
+          <span class="step-num">2</span>
+          <span>Review the document carefully, then draw or upload your signature and submit.</span>
+        </li>
+        {% endif %}
+      </ul>
+
+      <!-- CTA -->
+      <div class="cta-wrapper">
+        <a href="{{ signing_url }}" class="cta-btn">Review &amp; Sign Document</a>
+      </div>
+
+      {% if require_otp %}
+      <div class="otp-notice">
+        <strong>🔐 Identity Verification Required:</strong> Before signing, you will be asked
+        to enter a 6-digit verification code sent to your email address. This ensures the
+        signature is legally traceable to you.
+      </div>
+      {% endif %}
+
+      {% if expires_at %}
+      <div class="expiry-notice">
+        ⏰ This signing request expires on <strong>{{ expires_at|date:"d M Y" }}</strong>.
+        Please sign before this date to avoid delays.
+      </div>
+      {% endif %}
+
+      <hr class="divider">
+
+      <p class="text" style="font-size:13px;">
+        If the button above does not work, copy and paste the following link into your browser:
+      </p>
+      <p class="link-fallback">{{ signing_url }}</p>
+
+      <hr class="divider">
+
+      <p class="text" style="font-size:12px;color:#6b7280;">
+        This is an automated message from {{ platform_name }}. If you believe you have received
+        this message in error, please contact <a href="mailto:{{ uploaded_by_email }}" style="color:#7dc143;">{{ uploaded_by_email }}</a>
+        and do not click the signing link.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p><strong style="color:#7dc143;">{{ platform_name }}</strong></p>
+      <p>Legally traceable electronic signatures for corporate governance</p>
+      <p style="margin-top:10px;">
+        <a href="{{ detail_url }}">View Document Details</a>
+      </p>
+      <p style="margin-top:8px;font-size:11px;color:#6b7280;">
+        This email contains a secure, one-time signing link. Do not forward it.
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,335 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Committees{% endblock %}
+
+{% block page_title %}Committees{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+    <div>
+      <h1 class="text-2xl font-bold" style="color:#2d1b5e;">Committees</h1>
+      <p class="text-gray-500 text-sm mt-1">
+        {% if can_create %}
+          All committees across your branches.
+        {% else %}
+          Committees you have access to.
+        {% endif %}
+      </p>
+    </div>
+    {% if can_create %}
+    <a href="{% url 'agencies:committee_create' %}"
+       class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200 flex-shrink-0"
+       style="background:#7dc143;"
+       onmouseover="this.style.backgroundColor='#5a8a3c'"
+       onmouseout="this.style.backgroundColor='#7dc143'">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      New Committee
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- My Committees strip -->
+  {% if my_committees %}
+  <div class="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+      <svg class="w-4 h-4 flex-shrink-0" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <h2 class="text-sm font-semibold" style="color:#2d1b5e;">My Committee Memberships</h2>
+    </div>
+    <div class="flex flex-wrap gap-3 px-6 py-4">
+      {% for mem in my_committees %}
+      <a href="{% url 'agencies:committee_detail' mem.committee.pk %}"
+         class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border hover:shadow-sm transition-shadow"
+         style="border-color:#d1d5db;">
+        <div class="h-6 w-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+             style="background:#2d7a6e;">
+          {{ mem.committee.code|slice:":2"|upper }}
+        </div>
+        <div>
+          <span class="text-sm font-medium block leading-tight" style="color:#2d1b5e;">{{ mem.committee.name }}</span>
+          <span class="text-xs text-gray-400 capitalize">{{ mem.get_committee_role_display }}</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <form method="get" class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <!-- Text search -->
+        <div class="lg:col-span-2">
+          <label for="q" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+          <input type="text" id="q" name="q" value="{{ search_query }}"
+                 placeholder="Committee name or code…"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400">
+        </div>
+
+        <!-- Type filter -->
+        <div>
+          <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+          <select id="type" name="type"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 bg-white">
+            <option value="">All Types</option>
+            {% for value, label in committee_types %}
+            <option value="{{ value }}" {% if value == selected_type %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Branch filter -->
+        <div>
+          <label for="branch" class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+          <select id="branch" name="branch"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 bg-white">
+            <option value="">All Branches</option>
+            {% for b in branches %}
+            <option value="{{ b.pk }}" {% if b.pk|stringformat:"s" == selected_branch %}selected{% endif %}>
+              {{ b.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button type="submit"
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          Apply Filters
+        </button>
+        {% if search_query or selected_type or selected_branch %}
+        <a href="{% url 'agencies:committee_list' %}"
+           class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+          Clear
+        </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Committees Table -->
+  {% if committees %}
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead style="background:#1a0a3c;">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Committee</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Branch</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Type</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Members</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Chair</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for committee in committees %}
+          <tr class="hover:bg-gray-50 transition-colors">
+
+            <!-- Committee identity -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                     style="background:#2d7a6e;">
+                  {{ committee.code|slice:":3"|upper }}
+                </div>
+                <div>
+                  <a href="{% url 'agencies:committee_detail' committee.pk %}"
+                     class="text-sm font-semibold hover:underline block" style="color:#2d1b5e;">
+                    {{ committee.name }}
+                  </a>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="text-xs text-gray-400 font-mono">{{ committee.code }}</span>
+                    {% if committee.is_confidential %}
+                    <span class="px-1.5 py-0.5 text-xs rounded bg-red-100 text-red-600">Confidential</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Branch -->
+            <td class="px-6 py-4">
+              <a href="{% url 'agencies:branch_detail' committee.branch.pk %}"
+                 class="text-sm hover:underline" style="color:#2d1b5e;">
+                {{ committee.branch.name }}
+              </a>
+              <p class="text-xs text-gray-400 mt-0.5">{{ committee.branch.organization.name }}</p>
+            </td>
+
+            <!-- Type -->
+            <td class="px-6 py-4">
+              <span class="px-2.5 py-1 text-xs rounded-full bg-blue-100 text-blue-700 capitalize">
+                {{ committee.get_committee_type_display }}
+              </span>
+            </td>
+
+            <!-- Members -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-semibold" style="color:#2d1b5e;">{{ committee.member_count }}</span>
+                {% if committee.max_members %}
+                <span class="text-xs text-gray-400">/ {{ committee.max_members }}</span>
+                {% endif %}
+              </div>
+              {% if committee.quorum_required %}
+              <p class="text-xs text-gray-400 mt-0.5">Quorum: {{ committee.quorum_required }}</p>
+              {% endif %}
+            </td>
+
+            <!-- Chair -->
+            <td class="px-6 py-4">
+              {% if committee.chairperson %}
+              <div class="flex items-center gap-2">
+                {% if committee.chairperson.profile_photo %}
+                  <img src="{{ committee.chairperson.profile_photo.url }}"
+                       class="h-6 w-6 rounded-full object-cover flex-shrink-0">
+                {% else %}
+                  <div class="h-6 w-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                       style="background:#7dc143;">
+                    {{ committee.chairperson.first_name|slice:":1" }}{{ committee.chairperson.last_name|slice:":1" }}
+                  </div>
+                {% endif %}
+                <span class="text-sm text-gray-700 truncate max-w-[120px]">
+                  {{ committee.chairperson.get_full_name }}
+                </span>
+              </div>
+              {% else %}
+              <span class="text-sm text-gray-400">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Status -->
+            <td class="px-6 py-4">
+              {% if committee.is_active %}
+              <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">Active</span>
+              {% else %}
+              <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-600 font-medium">Inactive</span>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3 text-sm">
+                <a href="{% url 'agencies:committee_detail' committee.pk %}"
+                   class="font-medium hover:underline" style="color:#7dc143;">
+                  View
+                </a>
+                {% if can_create %}
+                <a href="{% url 'agencies:committee_update' committee.pk %}"
+                   class="font-medium text-gray-500 hover:text-gray-700 hover:underline">
+                  Edit
+                </a>
+                <a href="{% url 'agencies:manage_committee_members' committee.pk %}"
+                   class="font-medium hover:underline" style="color:#2d7a6e;">
+                  Members
+                </a>
+                {% endif %}
+              </div>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="bg-white px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <p class="text-sm text-gray-500">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        &mdash; {{ page_obj.paginator.count }} committee{{ page_obj.paginator.count|pluralize }} total
+      </p>
+      <nav class="flex items-center gap-1">
+        {% if page_obj.has_previous %}
+        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_type %}type={{ selected_type }}&{% endif %}{% if selected_branch %}branch={{ selected_branch }}&{% endif %}page={{ page_obj.previous_page_number }}"
+           class="px-3 py-1 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+          ← Prev
+        </a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+          <span class="px-3 py-1 text-sm rounded-md text-white font-medium" style="background:#7dc143;">{{ num }}</span>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_type %}type={{ selected_type }}&{% endif %}{% if selected_branch %}branch={{ selected_branch }}&{% endif %}page={{ num }}"
+             class="px-3 py-1 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+            {{ num }}
+          </a>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_type %}type={{ selected_type }}&{% endif %}{% if selected_branch %}branch={{ selected_branch }}&{% endif %}page={{ page_obj.next_page_number }}"
+           class="px-3 py-1 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+          Next →
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+
+  </div>
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="bg-white rounded-xl shadow-sm py-20 text-center">
+    <div class="h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4"
+         style="background:#e8f5d0;">
+      <svg class="w-8 h-8" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+    </div>
+    <h3 class="text-lg font-semibold mb-1" style="color:#2d1b5e;">
+      {% if search_query or selected_type or selected_branch %}
+        No committees match your filters
+      {% else %}
+        No committees yet
+      {% endif %}
+    </h3>
+    <p class="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+      {% if search_query or selected_type or selected_branch %}
+        Try adjusting your search criteria or clear the filters.
+      {% elif can_create %}
+        Create the first committee to begin organizing your board structure.
+      {% else %}
+        You don't have access to any committees yet. Contact your branch administrator.
+      {% endif %}
+    </p>
+    {% if can_create and not search_query and not selected_type and not selected_branch %}
+    <a href="{% url 'agencies:committee_create' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+       style="background:#7dc143;"
+       onmouseover="this.style.backgroundColor='#5a8a3c'"
+       onmouseout="this.style.backgroundColor='#7dc143'">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Create First Committee
+    </a>
+    {% elif search_query or selected_type or selected_branch %}
+    <a href="{% url 'agencies:committee_list' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+      Clear Filters
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

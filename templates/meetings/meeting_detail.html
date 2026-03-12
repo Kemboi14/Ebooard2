@@ -1,285 +1,456 @@
-{% extends 'base/base.html' %}
-
-{% block title %}{{ meeting.title }}{% endblock %}
-
-{% block page_title %}{{ meeting.title }}{% endblock %}
-
-{% block content %}
+{% extends 'base/base.html' %} {% load tz_tags %} {% block title %}{{
+meeting.title }}{% endblock %} {% block page_title %}{{ meeting.title }}{%
+endblock %} {% block content %}
 <div class="max-w-7xl mx-auto">
-  <!-- Meeting Header -->
-  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-    <div class="flex justify-between items-start mb-4">
-      <div>
-        <h1 class="text-2xl font-bold" style="color: #2d1b5e;">{{ meeting.title }}</h1>
-        <div class="flex items-center gap-4 mt-2">
-          <span class="px-3 py-1 text-sm rounded-full
-            {% if meeting.meeting_type == 'board' %}bg-blue-100 text-blue-800{% endif %}
-            {% if meeting.meeting_type == 'committee' %}bg-green-100 text-green-800{% endif %}
-            {% if meeting.meeting_type == 'agm' %}bg-purple-100 text-purple-800{% endif %}
-            {% if meeting.meeting_type == 'emergency' %}bg-red-100 text-red-800{% endif %}
-            {% if meeting.meeting_type == 'workshop' %}bg-yellow-100 text-yellow-800{% endif %}">
-            {{ meeting.get_meeting_type_display }}
-          </span>
-          
-          <span class="px-3 py-1 text-sm rounded-full
-            {% if meeting.status == 'scheduled' %}bg-gray-100 text-gray-800{% endif %}
-            {% if meeting.status == 'in_progress' %}bg-blue-100 text-blue-800{% endif %}
-            {% if meeting.status == 'completed' %}bg-green-100 text-green-800{% endif %}
-            {% if meeting.status == 'cancelled' %}bg-red-100 text-red-800{% endif %}
-            {% if meeting.status == 'postponed' %}bg-yellow-100 text-yellow-800{% endif %}">
-            {{ meeting.get_status_display }}
-          </span>
-        </div>
-      </div>
-      
-      {% if can_manage %}
-      <div class="flex space-x-2">
-        <a href="{% url 'meetings:update_meeting' meeting.id %}" 
-           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
-           style="background:#7dc143;"
-           onmouseover="this.style.backgroundColor='#5a8a3c'"
-           onmouseout="this.style.backgroundColor='#7dc143'">
-          Edit Meeting
-        </a>
-        <a href="{% url 'meetings:manage_agenda' meeting.id %}" 
-           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
-           style="background:#2d7a6e;"
-           onmouseover="this.style.backgroundColor='#1a0a3c'"
-           onmouseout="this.style.backgroundColor='#2d7a6e'">
-          Manage Agenda
-        </a>
-        <a href="{% url 'meetings:manage_minutes' meeting.id %}" 
-           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
-           style="background:#2d7a6e;"
-           onmouseover="this.style.backgroundColor='#1a0a3c'"
-           onmouseout="this.style.backgroundColor='#2d7a6e'">
-          Manage Minutes
-        </a>
-        <a href="{% url 'meetings:manage_attendance' meeting.id %}" 
-           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
-           style="background:#2d7a6e;"
-           onmouseover="this.style.backgroundColor='#1a0a3c'"
-           onmouseout="this.style.backgroundColor='#2d7a6e'">
-          Manage Attendance
-        </a>
-      </div>
-      {% endif %}
-    </div>
-    
-    <!-- Meeting Details -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Left Column -->
-      <div class="space-y-4">
-        <div>
-          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Date & Time</h3>
-          <p class="text-gray-900">
-            <strong>Date:</strong> {{ meeting.scheduled_date|date:"F d, Y" }}
-          </p>
-          <p class="text-gray-900">
-            <strong>Time:</strong> {{ meeting.scheduled_date|time:"g:i A" }} - {{ meeting.scheduled_end_time|time:"g:i A" }}
-          </p>
-          {% if meeting.duration_minutes %}
-          <p class="text-gray-900">
-            <strong>Duration:</strong> {{ meeting.duration_minutes }} minutes
-          </p>
-          {% endif %}
-        </div>
-        
-        <div>
-          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Location</h3>
-          <p class="text-gray-900">{{ meeting.location }}</p>
-          
-          {% if meeting.virtual_platform %}
-          <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p class="text-sm font-medium text-blue-800 mb-2">
-              <strong>Virtual Platform:</strong> {{ meeting.get_virtual_platform_display }}
-            </p>
-            {% if meeting.virtual_meeting_url %}
-            <a href="{{ meeting.virtual_meeting_url }}" target="_blank" 
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-4.553M21 12a9 9 0 11-18 0l-5.447 5.447A1 1 0 00-1.414 1.414H9.172A3 3 0 00-3 3v6a3 3 0 003 3h6.586a3 3 0 003-3V6a3 3 0 003-3h6.586a3 3 0 003-3z"/>
-              </svg>
-              Join {{ meeting.get_virtual_platform_display }}
-            </a>
-            {% endif %}
-          </div>
-          {% elif meeting.virtual_meeting_url %}
-          <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <a href="{{ meeting.virtual_meeting_url }}" target="_blank" 
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-4.553M21 12a9 9 0 11-18 0l-5.447 5.447A1 1 0 00-1.414 1.414H9.172A3 3 0 00-3 3v6a3 3 0 003 3h6.586a3 3 0 003-3V6a3 3 0 003-3h6.586a3 3 0 003-3z"/>
-              </svg>
-              Join Virtual Meeting
-            </a>
-          </div>
-          {% endif %}
-        </div>
-        
-        <div>
-          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Description</h3>
-          <p class="text-gray-900 whitespace-pre-wrap">{{ meeting.description|default:"No description provided" }}</p>
-        </div>
-        
-        <div>
-          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Organizer</h3>
-          <p class="text-gray-900">{{ meeting.organizer.get_full_name|default:"Not assigned" }}</p>
-        </div>
-      </div>
-      
-      <!-- Right Column -->
-      <div class="space-y-4">
-        <div>
-          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Attendees</h3>
-          <div class="space-y-2">
-            {% for attendee in meeting.attendees.all %}
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div class="flex items-center">
-                {% if attendee.profile_photo %}
-                  <img src="{{ attendee.profile_photo.url }}" alt="{{ attendee.get_full_name }}" 
-                       class="w-8 h-8 rounded-full object-cover mr-3">
-                {% else %}
-                  <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white mr-3"
-                       style="background:#7dc143;">
-                    {{ attendee.first_name|slice:":1" }}{{ attendee.last_name|slice:":1" }}
-                  </div>
-                {% endif %}
-                <div>
-                  <p class="text-sm font-medium text-gray-900">{{ attendee.get_full_name }}</p>
-                  <p class="text-xs text-gray-500">{{ attendee.get_role_display }}</p>
+    <!-- Meeting Header -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h1 class="text-2xl font-bold" style="color: #2d1b5e">
+                    {{ meeting.title }}
+                </h1>
+                <div class="flex items-center gap-4 mt-2">
+                    <span
+                        class="px-3 py-1 text-sm rounded-full {% if meeting.meeting_type == 'board' %}bg-blue-100 text-blue-800{% endif %} {% if meeting.meeting_type == 'committee' %}bg-green-100 text-green-800{% endif %} {% if meeting.meeting_type == 'agm' %}bg-purple-100 text-purple-800{% endif %} {% if meeting.meeting_type == 'emergency' %}bg-red-100 text-red-800{% endif %} {% if meeting.meeting_type == 'workshop' %}bg-yellow-100 text-yellow-800{% endif %}"
+                    >
+                        {{ meeting.get_meeting_type_display }}
+                    </span>
+
+                    <span
+                        class="px-3 py-1 text-sm rounded-full {% if meeting.status == 'scheduled' %}bg-gray-100 text-gray-800{% endif %} {% if meeting.status == 'in_progress' %}bg-blue-100 text-blue-800{% endif %} {% if meeting.status == 'completed' %}bg-green-100 text-green-800{% endif %} {% if meeting.status == 'cancelled' %}bg-red-100 text-red-800{% endif %} {% if meeting.status == 'postponed' %}bg-yellow-100 text-yellow-800{% endif %}"
+                    >
+                        {{ meeting.get_status_display }}
+                    </span>
                 </div>
-              </div>
-              
-              <div class="flex items-center">
-                {% if is_attending %}
-                  <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Attending</span>
-                {% else %}
-                  <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Not Attending</span>
-                {% endif %}
-                
-                {% if is_required %}
-                  <span class="ml-2 px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Required</span>
-                {% endif %}
-              </div>
             </div>
-            {% empty %}
-            <p class="text-gray-500 text-center">No attendees assigned</p>
-            {% endfor %}
-          </div>
-          
-          {% if meeting.required_attendees.exists %}
-          <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p class="text-sm text-yellow-800">
-              <strong>Required Attendees:</strong> All board members are required to attend board meetings.
-            </p>
-          </div>
-          {% endif %}
-        </div>
-        
-        <div>
-          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Agenda</h3>
-          {% if meeting.agenda %}
-          <div class="space-y-3">
-            {% for item in agenda_items %}
-            <div class="p-4 bg-gray-50 rounded-lg">
-              <div class="flex justify-between items-start mb-2">
-                <h4 class="font-medium text-gray-900">{{ item.order }}. {{ item.title }}</h4>
-                <span class="px-2 py-1 text-xs rounded-full
-                  {% if item.priority == 'high' %}bg-red-100 text-red-800{% endif %}
-                  {% if item.priority == 'medium' %}bg-yellow-100 text-yellow-800{% endif %}
-                  {% if item.priority == 'low' %}bg-green-100 text-green-800{% endif %}">
-                  {{ item.get_priority_display }}
-                </span>
-              </div>
-              
-              <p class="text-gray-700 text-sm">{{ item.description }}</p>
-              
-              {% if item.estimated_duration %}
-              <p class="text-xs text-gray-500">
-                <strong>Estimated Duration:</strong> {{ item.estimated_duration }} minutes
-              </p>
-              {% endif %}
-              
-              {% if item.attachment %}
-              <div class="mt-2">
-                <a href="{{ item.attachment.url }}" target="_blank" 
-                   class="text-blue-600 hover:text-blue-900 flex items-center text-sm">
-                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.172 6.172 1.414 1.414a2 2 0 01-2.828 0l6.586 6.586a2 2 0 002.828 2.828 8.586a2 2 0 002.828-2.828L8.586 6.586a2 2 0 002.828 2.828A2 2 0 002.828 2.828z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0l-3.172 3.172v-4c0-.447.108-.858-.293-1.414L8.586 6.586V7a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v2a2 2 0 002 2z"/>
-                  </svg>
-                  View Attachment
+
+            {% if can_manage %}
+            <div class="flex space-x-2">
+                <a
+                    href="{% url 'meetings:update_meeting' meeting.id %}"
+                    class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                    style="background: #7dc143"
+                    onmouseover="this.style.backgroundColor = '#5a8a3c'"
+                    onmouseout="this.style.backgroundColor = '#7dc143'"
+                >
+                    Edit Meeting
                 </a>
-              </div>
-              {% endif %}
-            </div>
-            {% endfor %}
-          </div>
-          {% else %}
-          <p class="text-gray-500 text-center">No agenda items added yet</p>
-          {% endif %}
-        </div>
-        
-        <div>
-          <h3 class="text-lg font-semibold mb-2" style="color: #2d1b5e;">Meeting Minutes</h3>
-          {% if minutes %}
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <div class="mb-4">
-              <h4 class="font-medium text-gray-900 mb-2">Minutes Content</h4>
-              <div class="prose prose-sm text-gray-700">{{ minutes.content|linebreaks }}</div>
-            </div>
-            
-            {% if minutes.action_items %}
-            <div class="mb-4">
-              <h4 class="font-medium text-gray-900 mb-2">Action Items</h4>
-              <div class="prose prose-sm text-gray-700">{{ minutes.action_items|linebreaks }}</div>
-            </div>
-            {% endif %}
-            
-            <div class="flex justify-between items-center text-sm text-gray-500">
-              <div>
-                {% if minutes.drafted_by %}
-                <p>Drafted by: {{ minutes.drafted_by.get_full_name }}</p>
-                {% endif %}
-                {% if minutes.reviewed_by %}
-                <p>Reviewed by: {{ minutes.reviewed_by.get_full_name }}</p>
-                {% endif %}
-                {% if minutes.approved_by %}
-                <p>Approved by: {{ minutes.approved_by.get_full_name }}</p>
-                {% endif %}
-              </div>
-              
-              <div class="text-right">
-                <span class="px-2 py-1 text-xs rounded-full
-                  {% if minutes.status == 'draft' %}bg-gray-100 text-gray-800{% endif %}
-                  {% if minutes.status == 'submitted' %}bg-yellow-100 text-yellow-800{% endif %}
-                  {% if minutes.status == 'approved' %}bg-green-100 text-green-800{% endif %}
-                  {% if minutes.status == 'published' %}bg-blue-100 text-blue-800{% endif %}">
-                  {{ minutes.get_status_display }}
-                </span>
-              </div>
-            </div>
-            
-            {% if minutes.attachment %}
-            <div class="mt-4">
-              <a href="{{ minutes.attachment.url }}" target="_blank" 
-                 class="text-blue-600 hover:text-blue-900 flex items-center text-sm">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.172 6.172 1.414 1.414a2 2 0 01-2.828 0l6.586 6.586a2 2 0 002.828 2.828 8.586a2 2 0 002.828-2.828L8.586 6.586a2 2 0 002.828 2.828A2 2 0 002.828 2.828z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0l-3.172 3.172v-4c0-.447.108-.858-.293-1.414L8.586 6.586V7a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v2a2 2 0 002 2z"/>
-                </svg>
-                Download Minutes
-              </a>
+                <a
+                    href="{% url 'meetings:manage_agenda' meeting.id %}"
+                    class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                    style="background: #2d7a6e"
+                    onmouseover="this.style.backgroundColor = '#1a0a3c'"
+                    onmouseout="this.style.backgroundColor = '#2d7a6e'"
+                >
+                    Manage Agenda
+                </a>
+                <a
+                    href="{% url 'meetings:manage_minutes' meeting.id %}"
+                    class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                    style="background: #2d7a6e"
+                    onmouseover="this.style.backgroundColor = '#1a0a3c'"
+                    onmouseout="this.style.backgroundColor = '#2d7a6e'"
+                >
+                    Manage Minutes
+                </a>
+                <a
+                    href="{% url 'meetings:manage_attendance' meeting.id %}"
+                    class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                    style="background: #2d7a6e"
+                    onmouseover="this.style.backgroundColor = '#1a0a3c'"
+                    onmouseout="this.style.backgroundColor = '#2d7a6e'"
+                >
+                    Manage Attendance
+                </a>
             </div>
             {% endif %}
-          </div>
-          {% else %}
-          <p class="text-gray-500 text-center">No minutes recorded yet</p>
-          {% endif %}
         </div>
-      </div>
+
+        <!-- Meeting Details -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left Column -->
+            <div class="space-y-4">
+                <div>
+                    <h3
+                        class="text-lg font-semibold mb-2"
+                        style="color: #2d1b5e"
+                    >
+                        Date & Time
+                    </h3>
+
+                    {% timezone_notice
+                    meeting.branch.timezone_name|default:"Africa/Nairobi" %}
+
+                    <p class="text-gray-900">
+                        <strong>Date:</strong>
+                        {{ meeting.scheduled_date|localtime:request.user|date:"F
+                        d, Y" }}
+                    </p>
+                    <p class="text-gray-900">
+                        <strong>Time:</strong>
+                        {% meeting_time_range meeting.scheduled_date
+                        meeting.scheduled_end_time date_fmt="" time_fmt="%I:%M
+                        %p" %}
+                    </p>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                        All times shown in
+                        <span class="font-semibold"
+                            >{% user_timezone_label %}</span
+                        >
+                    </p>
+                    {% if meeting.duration_minutes %}
+                    <p class="text-gray-900 mt-1">
+                        <strong>Duration:</strong> {{ meeting.duration_display
+                        }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <h3
+                        class="text-lg font-semibold mb-2"
+                        style="color: #2d1b5e"
+                    >
+                        Location
+                    </h3>
+                    <p class="text-gray-900">{{ meeting.location }}</p>
+
+                    {% if meeting.virtual_platform %}
+                    <div
+                        class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+                    >
+                        <p class="text-sm font-medium text-blue-800 mb-2">
+                            <strong>Virtual Platform:</strong> {{
+                            meeting.get_virtual_platform_display }}
+                        </p>
+                        {% if meeting.virtual_meeting_url %}
+                        <a
+                            href="{{ meeting.virtual_meeting_url }}"
+                            target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 10l4.553-4.553M21 12a9 9 0 11-18 0l-5.447 5.447A1 1 0 00-1.414 1.414H9.172A3 3 0 00-3 3v6a3 3 0 003 3h6.586a3 3 0 003-3V6a3 3 0 003-3h6.586a3 3 0 003-3z"
+                                />
+                            </svg>
+                            Join {{ meeting.get_virtual_platform_display }}
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% elif meeting.virtual_meeting_url %}
+                    <div
+                        class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+                    >
+                        <a
+                            href="{{ meeting.virtual_meeting_url }}"
+                            target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 10l4.553-4.553M21 12a9 9 0 11-18 0l-5.447 5.447A1 1 0 00-1.414 1.414H9.172A3 3 0 00-3 3v6a3 3 0 003 3h6.586a3 3 0 003-3V6a3 3 0 003-3h6.586a3 3 0 003-3z"
+                                />
+                            </svg>
+                            Join Virtual Meeting
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <h3
+                        class="text-lg font-semibold mb-2"
+                        style="color: #2d1b5e"
+                    >
+                        Description
+                    </h3>
+                    <p class="text-gray-900 whitespace-pre-wrap">
+                        {{ meeting.description|default:"No description provided"
+                        }}
+                    </p>
+                </div>
+
+                <div>
+                    <h3
+                        class="text-lg font-semibold mb-2"
+                        style="color: #2d1b5e"
+                    >
+                        Organizer
+                    </h3>
+                    <p class="text-gray-900">
+                        {{ meeting.organizer.get_full_name|default:"Not
+                        assigned" }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-4">
+                <div>
+                    <h3
+                        class="text-lg font-semibold mb-2"
+                        style="color: #2d1b5e"
+                    >
+                        Attendees
+                    </h3>
+                    <div class="space-y-2">
+                        {% for attendee in meeting.attendees.all %}
+                        <div
+                            class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        >
+                            <div class="flex items-center">
+                                {% if attendee.profile_photo %}
+                                <img
+                                    src="{{ attendee.profile_photo.url }}"
+                                    alt="{{ attendee.get_full_name }}"
+                                    class="w-8 h-8 rounded-full object-cover mr-3"
+                                />
+                                {% else %}
+                                <div
+                                    class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white mr-3"
+                                    style="background: #7dc143"
+                                >
+                                    {{ attendee.first_name|slice:":1" }}{{
+                                    attendee.last_name|slice:":1" }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <p
+                                        class="text-sm font-medium text-gray-900"
+                                    >
+                                        {{ attendee.get_full_name }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        {{ attendee.get_role_display }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center">
+                                {% if is_attending %}
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800"
+                                    >Attending</span
+                                >
+                                {% else %}
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800"
+                                    >Not Attending</span
+                                >
+                                {% endif %} {% if is_required %}
+                                <span
+                                    class="ml-2 px-2 py-1 text-xs rounded-full bg-red-100 text-red-800"
+                                    >Required</span
+                                >
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-gray-500 text-center">
+                            No attendees assigned
+                        </p>
+                        {% endfor %}
+                    </div>
+
+                    {% if meeting.required_attendees.exists %}
+                    <div
+                        class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
+                    >
+                        <p class="text-sm text-yellow-800">
+                            <strong>Required Attendees:</strong> All board
+                            members are required to attend board meetings.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <h3
+                        class="text-lg font-semibold mb-2"
+                        style="color: #2d1b5e"
+                    >
+                        Agenda
+                    </h3>
+                    {% if meeting.agenda %}
+                    <div class="space-y-3">
+                        {% for item in agenda_items %}
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-gray-900">
+                                    {{ item.order }}. {{ item.title }}
+                                </h4>
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full {% if item.priority == 'high' %}bg-red-100 text-red-800{% endif %} {% if item.priority == 'medium' %}bg-yellow-100 text-yellow-800{% endif %} {% if item.priority == 'low' %}bg-green-100 text-green-800{% endif %}"
+                                >
+                                    {{ item.get_priority_display }}
+                                </span>
+                            </div>
+
+                            <p class="text-gray-700 text-sm">
+                                {{ item.description }}
+                            </p>
+
+                            {% if item.estimated_duration %}
+                            <p class="text-xs text-gray-500">
+                                <strong>Estimated Duration:</strong> {{
+                                item.estimated_duration }} minutes
+                            </p>
+                            {% endif %} {% if item.attachment %}
+                            <div class="mt-2">
+                                <a
+                                    href="{{ item.attachment.url }}"
+                                    target="_blank"
+                                    class="text-blue-600 hover:text-blue-900 flex items-center text-sm"
+                                >
+                                    <svg
+                                        class="w-4 h-4 mr-2"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M15.172 7l-6.172 6.172 1.414 1.414a2 2 0 01-2.828 0l6.586 6.586a2 2 0 002.828 2.828 8.586a2 2 0 002.828-2.828L8.586 6.586a2 2 0 002.828 2.828A2 2 0 002.828 2.828z"
+                                        />
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0l-3.172 3.172v-4c0-.447.108-.858-.293-1.414L8.586 6.586V7a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v2a2 2 0 002 2z"
+                                        />
+                                    </svg>
+                                    View Attachment
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center">
+                        No agenda items added yet
+                    </p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <h3
+                        class="text-lg font-semibold mb-2"
+                        style="color: #2d1b5e"
+                    >
+                        Meeting Minutes
+                    </h3>
+                    {% if minutes %}
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="mb-4">
+                            <h4 class="font-medium text-gray-900 mb-2">
+                                Minutes Content
+                            </h4>
+                            <div class="prose prose-sm text-gray-700">
+                                {{ minutes.content|linebreaks }}
+                            </div>
+                        </div>
+
+                        {% if minutes.action_items %}
+                        <div class="mb-4">
+                            <h4 class="font-medium text-gray-900 mb-2">
+                                Action Items
+                            </h4>
+                            <div class="prose prose-sm text-gray-700">
+                                {{ minutes.action_items|linebreaks }}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div
+                            class="flex justify-between items-center text-sm text-gray-500"
+                        >
+                            <div>
+                                {% if minutes.drafted_by %}
+                                <p>
+                                    Drafted by: {{
+                                    minutes.drafted_by.get_full_name }}
+                                </p>
+                                {% endif %} {% if minutes.reviewed_by %}
+                                <p>
+                                    Reviewed by: {{
+                                    minutes.reviewed_by.get_full_name }}
+                                </p>
+                                {% endif %} {% if minutes.approved_by %}
+                                <p>
+                                    Approved by: {{
+                                    minutes.approved_by.get_full_name }}
+                                </p>
+                                {% endif %}
+                            </div>
+
+                            <div class="text-right">
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full {% if minutes.status == 'draft' %}bg-gray-100 text-gray-800{% endif %} {% if minutes.status == 'submitted' %}bg-yellow-100 text-yellow-800{% endif %} {% if minutes.status == 'approved' %}bg-green-100 text-green-800{% endif %} {% if minutes.status == 'published' %}bg-blue-100 text-blue-800{% endif %}"
+                                >
+                                    {{ minutes.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {% if minutes.attachment %}
+                        <div class="mt-4">
+                            <a
+                                href="{{ minutes.attachment.url }}"
+                                target="_blank"
+                                class="text-blue-600 hover:text-blue-900 flex items-center text-sm"
+                            >
+                                <svg
+                                    class="w-4 h-4 mr-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15.172 7l-6.172 6.172 1.414 1.414a2 2 0 01-2.828 0l6.586 6.586a2 2 0 002.828 2.828 8.586a2 2 0 002.828-2.828L8.586 6.586a2 2 0 002.828 2.828A2 2 0 002.828 2.828z"
+                                    />
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0l-3.172 3.172v-4c0-.447.108-.858-.293-1.414L8.586 6.586V7a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v2a2 2 0 002 2z"
+                                    />
+                                </svg>
+                                Download Minutes
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center">
+                        No minutes recorded yet
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}

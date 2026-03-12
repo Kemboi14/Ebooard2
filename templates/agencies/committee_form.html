@@ -1,0 +1,297 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
+    <a href="{% url 'agencies:agency_dashboard' %}" class="hover:underline" style="color:#7dc143;">Agency Overview</a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'agencies:committee_list' %}" class="hover:underline" style="color:#7dc143;">Committees</a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-700">{{ title }}</span>
+  </nav>
+
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+
+    <!-- Card header -->
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center gap-3"
+         style="background:linear-gradient(135deg,#1a0a3c 0%,#2d1b5e 100%);">
+      <div class="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0"
+           style="background:rgba(125,193,67,0.2);">
+        <svg class="w-5 h-5" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-white font-semibold text-lg">{{ title }}</h1>
+        <p class="text-purple-300 text-xs mt-0.5">
+          {% if is_update %}Update this committee's details.{% else %}Fill in the details to create a new committee.{% endif %}
+        </p>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="px-6 py-6 space-y-8">
+      {% csrf_token %}
+
+      <!-- Non-field errors -->
+      {% if form.non_field_errors %}
+      <div class="p-4 rounded-lg bg-red-50 border border-red-200">
+        {% for error in form.non_field_errors %}
+        <p class="text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- ── Section: Identity ─────────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Identity
+        </legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Name -->
+          <div class="md:col-span-2">
+            <label for="{{ form.name.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Committee Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.name.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Code -->
+          <div>
+            <label for="{{ form.code.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Committee Code <span class="text-red-500">*</span>
+            </label>
+            {{ form.code }}
+            {% if form.code.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.code.errors|join:", " }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Short unique identifier, e.g. AUDIT, RISK, REMCO.</p>
+          </div>
+
+          <!-- Committee Type -->
+          <div>
+            <label for="{{ form.committee_type.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Committee Type <span class="text-red-500">*</span>
+            </label>
+            {{ form.committee_type }}
+            {% if form.committee_type.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.committee_type.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Branch -->
+          <div>
+            <label for="{{ form.branch.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Branch <span class="text-red-500">*</span>
+            </label>
+            {{ form.branch }}
+            {% if form.branch.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.branch.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Parent Committee -->
+          <div>
+            <label for="{{ form.parent_committee.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Parent Committee
+            </label>
+            {{ form.parent_committee }}
+            {% if form.parent_committee.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.parent_committee.errors|join:", " }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Leave blank if this is a top-level committee.</p>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Section: Leadership ────────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Leadership
+        </legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Chairperson -->
+          <div>
+            <label for="{{ form.chairperson.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Chairperson
+            </label>
+            {{ form.chairperson }}
+            {% if form.chairperson.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.chairperson.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Secretary -->
+          <div>
+            <label for="{{ form.secretary.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Secretary
+            </label>
+            {{ form.secretary }}
+            {% if form.secretary.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.secretary.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Section: Governance ───────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Governance &amp; Size
+        </legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Quorum Required -->
+          <div>
+            <label for="{{ form.quorum_required.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Quorum Required
+            </label>
+            {{ form.quorum_required }}
+            {% if form.quorum_required.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.quorum_required.errors|join:", " }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Minimum members needed for a valid session. Leave blank if not applicable.</p>
+          </div>
+
+          <!-- Max Members -->
+          <div>
+            <label for="{{ form.max_members.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Maximum Members
+            </label>
+            {{ form.max_members }}
+            {% if form.max_members.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.max_members.errors|join:", " }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Set to 0 or leave blank for no limit.</p>
+          </div>
+
+          <!-- Terms of Reference -->
+          <div class="md:col-span-2">
+            <label for="{{ form.terms_of_reference.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Terms of Reference
+            </label>
+            {{ form.terms_of_reference }}
+            {% if form.terms_of_reference.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.terms_of_reference.errors|join:", " }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Describe the mandate, responsibilities, and scope of this committee.</p>
+          </div>
+
+          <!-- Description -->
+          <div class="md:col-span-2">
+            <label for="{{ form.description.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.description.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Section: Settings ─────────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Settings
+        </legend>
+        <div class="space-y-4">
+
+          <!-- Confidential toggle -->
+          <div class="flex items-start gap-3">
+            <div class="mt-0.5">
+              {{ form.is_confidential }}
+            </div>
+            <div>
+              <label for="{{ form.is_confidential.id_for_label }}"
+                     class="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                Confidential Committee
+              </label>
+              <p class="text-xs text-gray-400 mt-0.5">
+                When enabled, only committee members can view this committee and its details.
+                Other branch members will not see it in listings.
+              </p>
+            </div>
+          </div>
+          {% if form.is_confidential.errors %}
+          <p class="text-xs text-red-600">{{ form.is_confidential.errors|join:", " }}</p>
+          {% endif %}
+
+          <!-- Active toggle -->
+          <div class="flex items-start gap-3">
+            <div class="mt-0.5">
+              {{ form.is_active }}
+            </div>
+            <div>
+              <label for="{{ form.is_active.id_for_label }}"
+                     class="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                Committee is active
+              </label>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Inactive committees remain on record but are hidden from normal users.
+              </p>
+            </div>
+          </div>
+          {% if form.is_active.errors %}
+          <p class="text-xs text-red-600">{{ form.is_active.errors|join:", " }}</p>
+          {% endif %}
+
+        </div>
+      </fieldset>
+
+      <!-- ── Form Actions ──────────────────────────────────────────── -->
+      <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+        <a href="{% if is_update %}{% url 'agencies:committee_detail' form.instance.pk %}{% else %}{% url 'agencies:committee_list' %}{% endif %}"
+           class="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+          Cancel
+        </a>
+        <button type="submit"
+                class="inline-flex items-center gap-2 px-6 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {% if is_update %}Save Changes{% else %}Create Committee{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,325 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ organization.name }}{% endblock %}
+
+{% block page_title %}{{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <a href="{% url 'agencies:agency_dashboard' %}" class="hover:underline" style="color:#7dc143;">Agency Overview</a>
+    <span>/</span>
+    <a href="{% url 'agencies:organization_list' %}" class="hover:underline" style="color:#7dc143;">Organizations</a>
+    <span>/</span>
+    <span class="text-gray-700 font-medium">{{ organization.name }}</span>
+  </nav>
+
+  <!-- Organization Header -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div class="flex items-center gap-4">
+        {% if organization.logo %}
+          <img src="{{ organization.logo.url }}" alt="{{ organization.name }}"
+               class="h-16 w-16 rounded-xl object-cover flex-shrink-0 border border-gray-200">
+        {% else %}
+          <div class="h-16 w-16 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+               style="background:#1a0a3c;">
+            {{ organization.name|slice:":2"|upper }}
+          </div>
+        {% endif %}
+        <div>
+          <h1 class="text-2xl font-bold" style="color:#2d1b5e;">{{ organization.name }}</h1>
+          {% if organization.legal_name and organization.legal_name != organization.name %}
+          <p class="text-sm text-gray-500 mt-0.5">{{ organization.legal_name }}</p>
+          {% endif %}
+          <div class="flex flex-wrap items-center gap-2 mt-2">
+            {% if organization.is_active %}
+              <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Active</span>
+            {% else %}
+              <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">Inactive</span>
+            {% endif %}
+            {% if organization.industry %}
+            <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+              {{ organization.industry }}
+            </span>
+            {% endif %}
+            {% if organization.head_office_country %}
+            <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+              {{ organization.head_office_country }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <a href="{% url 'agencies:organization_update' organization.pk %}"
+           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+           style="background:#7dc143;"
+           onmouseover="this.style.backgroundColor='#5a8a3c'"
+           onmouseout="this.style.backgroundColor='#7dc143'">
+          Edit Organization
+        </a>
+        <a href="{% url 'agencies:branch_create' %}"
+           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+           style="background:#1a0a3c;"
+           onmouseover="this.style.backgroundColor='#2d1b5e'"
+           onmouseout="this.style.backgroundColor='#1a0a3c'">
+          Add Branch
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm p-5 text-center">
+      <div class="text-2xl font-bold" style="color:#1a0a3c;">{{ top_branches.count }}</div>
+      <div class="text-xs text-gray-500 mt-1">Top-level Branches</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5 text-center">
+      <div class="text-2xl font-bold" style="color:#1a0a3c;">{{ all_branches.count }}</div>
+      <div class="text-xs text-gray-500 mt-1">Total Branches</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5 text-center">
+      <div class="text-2xl font-bold" style="color:#1a0a3c;">{{ total_committees }}</div>
+      <div class="text-xs text-gray-500 mt-1">Committees</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5 text-center">
+      <div class="text-2xl font-bold" style="color:#e85d04;">{{ recent_invitations.count }}</div>
+      <div class="text-xs text-gray-500 mt-1">Recent Invitations</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left: Branch tree -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Top-level branches -->
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 class="text-base font-semibold" style="color:#2d1b5e;">Branch Structure</h2>
+          <span class="text-xs text-gray-400">{{ all_branches.count }} total branch{{ all_branches.count|pluralize:"es" }}</span>
+        </div>
+        <div class="divide-y divide-gray-100">
+          {% for branch in top_branches %}
+          <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                     style="background:#1a0a3c;">
+                  {{ branch.code|slice:":3"|upper }}
+                </div>
+                <div>
+                  <a href="{% url 'agencies:branch_detail' branch.pk %}"
+                     class="text-sm font-semibold hover:underline" style="color:#2d1b5e;">
+                    {{ branch.name }}
+                  </a>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    {% if branch.country %}
+                    <span class="text-xs text-gray-400">{{ branch.country }}</span>
+                    {% endif %}
+                    {% if branch.branch_type %}
+                    <span class="text-xs text-gray-400 capitalize">· {{ branch.branch_type }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-700">
+                  {{ branch.member_count }} member{{ branch.member_count|pluralize }}
+                </span>
+                <span class="px-2 py-1 text-xs rounded-full bg-teal-100 text-teal-700">
+                  {{ branch.committee_count }} committee{{ branch.committee_count|pluralize }}
+                </span>
+                {% if branch.is_active %}
+                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Active</span>
+                {% else %}
+                <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-600">Inactive</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="px-6 py-10 text-center text-gray-400 text-sm">
+            No branches created yet.
+            <a href="{% url 'agencies:branch_create' %}" class="block mt-2 font-medium hover:underline" style="color:#7dc143;">
+              Create the first branch →
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- All branches flat list -->
+      {% if all_branches.count > top_branches.count %}
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h2 class="text-base font-semibold" style="color:#2d1b5e;">All Branches</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-100">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+              {% for branch in all_branches %}
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-3">
+                  <a href="{% url 'agencies:branch_detail' branch.pk %}"
+                     class="text-sm font-medium hover:underline" style="color:#2d1b5e;">
+                    {{ branch.name }}
+                  </a>
+                </td>
+                <td class="px-6 py-3 text-sm text-gray-500 font-mono">{{ branch.code }}</td>
+                <td class="px-6 py-3 text-sm text-gray-600">{{ branch.country|default:"—" }}</td>
+                <td class="px-6 py-3">
+                  <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 capitalize">
+                    {{ branch.branch_type|default:"—" }}
+                  </span>
+                </td>
+                <td class="px-6 py-3 text-sm text-gray-500">
+                  {% if branch.parent_branch %}
+                  <a href="{% url 'agencies:branch_detail' branch.parent_branch.pk %}"
+                     class="hover:underline" style="color:#7dc143;">
+                    {{ branch.parent_branch.name }}
+                  </a>
+                  {% else %}
+                  <span class="text-gray-400">—</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-3">
+                  {% if branch.is_active %}
+                  <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Active</span>
+                  {% else %}
+                  <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-600">Inactive</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right: Info + invitations -->
+    <div class="space-y-6">
+
+      <!-- Organization details card -->
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h2 class="text-base font-semibold" style="color:#2d1b5e;">Details</h2>
+        </div>
+        <dl class="px-6 py-4 space-y-4">
+          {% if organization.registration_number %}
+          <div>
+            <dt class="text-xs font-medium text-gray-400 uppercase tracking-wider">Reg. Number</dt>
+            <dd class="text-sm text-gray-700 mt-0.5">{{ organization.registration_number }}</dd>
+          </div>
+          {% endif %}
+
+          {% if organization.tax_id %}
+          <div>
+            <dt class="text-xs font-medium text-gray-400 uppercase tracking-wider">Tax ID</dt>
+            <dd class="text-sm text-gray-700 mt-0.5">{{ organization.tax_id }}</dd>
+          </div>
+          {% endif %}
+
+          {% if organization.head_office_address %}
+          <div>
+            <dt class="text-xs font-medium text-gray-400 uppercase tracking-wider">Head Office</dt>
+            <dd class="text-sm text-gray-700 mt-0.5 whitespace-pre-line">{{ organization.head_office_address }}</dd>
+          </div>
+          {% endif %}
+
+          {% if organization.website %}
+          <div>
+            <dt class="text-xs font-medium text-gray-400 uppercase tracking-wider">Website</dt>
+            <dd class="mt-0.5">
+              <a href="{{ organization.website }}" target="_blank" rel="noopener noreferrer"
+                 class="text-sm hover:underline truncate block" style="color:#7dc143;">
+                {{ organization.website }}
+              </a>
+            </dd>
+          </div>
+          {% endif %}
+
+          {% if organization.primary_contact_email %}
+          <div>
+            <dt class="text-xs font-medium text-gray-400 uppercase tracking-wider">Primary Email</dt>
+            <dd class="mt-0.5">
+              <a href="mailto:{{ organization.primary_contact_email }}"
+                 class="text-sm hover:underline" style="color:#7dc143;">
+                {{ organization.primary_contact_email }}
+              </a>
+            </dd>
+          </div>
+          {% endif %}
+
+          {% if organization.primary_contact_phone %}
+          <div>
+            <dt class="text-xs font-medium text-gray-400 uppercase tracking-wider">Phone</dt>
+            <dd class="text-sm text-gray-700 mt-0.5">{{ organization.primary_contact_phone }}</dd>
+          </div>
+          {% endif %}
+
+          {% if organization.description %}
+          <div>
+            <dt class="text-xs font-medium text-gray-400 uppercase tracking-wider">Description</dt>
+            <dd class="text-sm text-gray-700 mt-0.5">{{ organization.description }}</dd>
+          </div>
+          {% endif %}
+
+          <div>
+            <dt class="text-xs font-medium text-gray-400 uppercase tracking-wider">Created</dt>
+            <dd class="text-sm text-gray-700 mt-0.5">{{ organization.created_at|date:"F d, Y" }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Recent invitations -->
+      {% if recent_invitations %}
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h2 class="text-base font-semibold" style="color:#2d1b5e;">Recent Invitations</h2>
+        </div>
+        <div class="divide-y divide-gray-100">
+          {% for inv in recent_invitations %}
+          <div class="px-6 py-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-700 font-medium truncate max-w-[160px]">{{ inv.invited_email }}</p>
+                <p class="text-xs text-gray-400">{{ inv.branch.name }}</p>
+              </div>
+              <span class="px-2 py-1 text-xs rounded-full flex-shrink-0
+                {% if inv.status == 'pending' %}bg-yellow-100 text-yellow-700
+                {% elif inv.status == 'accepted' %}bg-green-100 text-green-700
+                {% elif inv.status == 'revoked' %}bg-red-100 text-red-600
+                {% else %}bg-gray-100 text-gray-500{% endif %}">
+                {{ inv.get_status_display }}
+              </span>
+            </div>
+            <p class="text-xs text-gray-400 mt-0.5">{{ inv.created_at|date:"M d, Y" }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

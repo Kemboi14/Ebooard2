@@ -11,7 +11,7 @@
       <h1 class="text-3xl font-bold text-gray-900" style="color: #2d1b5e;">Evaluation Cycles</h1>
       <p class="text-gray-600 mt-2">Manage evaluation cycles and scheduling</p>
     </div>
-    {% if user.role in ['company_secretary', 'compliance_officer', 'it_administrator'] %}
+    {% if user.role == "company_secretary" or user.role == "compliance_officer" or user.role == "it_administrator" %}
     <a href="{% url 'evaluation:cycle_create' %}" 
        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +74,7 @@
              class="text-blue-600 hover:text-blue-800 text-sm font-medium">
             View Details
           </a>
-          {% if user.role in ['company_secretary', 'compliance_officer', 'it_administrator'] %}
+          {% if user.role == "company_secretary" or user.role == "compliance_officer" or user.role == "it_administrator" %}
           <a href="{% url 'evaluation:cycle_edit' cycle.pk %}" 
              class="text-gray-600 hover:text-gray-800 text-sm font-medium">
             Edit
@@ -144,7 +144,7 @@
                 <a href="{% url 'evaluation:cycle_detail' cycle.pk %}" class="text-blue-600 hover:text-blue-900 mr-3">
                   View
                 </a>
-                {% if user.role in ['company_secretary', 'compliance_officer', 'it_administrator'] %}
+                {% if user.role == "company_secretary" or user.role == "compliance_officer" or user.role == "it_administrator" %}
                 <a href="{% url 'evaluation:cycle_edit' cycle.pk %}" class="text-gray-600 hover:text-gray-900">
                   Edit
                 </a>

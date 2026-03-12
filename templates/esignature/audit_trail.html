@@ -1,0 +1,1167 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block extra_head %}
+<style>
+    .action-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+    .action-upload {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    .action-view {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+    .action-download {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .action-sign {
+        background: #dcfce7;
+        color: #15803d;
+    }
+    .action-reject {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .action-invite {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+    .action-remind {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .action-revoke {
+        background: #fce7f3;
+        color: #9d174d;
+    }
+    .action-cancel {
+        background: #fce7f3;
+        color: #9d174d;
+    }
+    .action-expire {
+        background: #f1f5f9;
+        color: #475569;
+    }
+    .action-otp_request {
+        background: #f5f3ff;
+        color: #6d28d9;
+    }
+    .action-otp_verify {
+        background: #f0fdf4;
+        color: #166534;
+    }
+    .action-tamper_detected {
+        background: #fef2f2;
+        color: #7f1d1d;
+    }
+
+    .log-row {
+        border-left: 3px solid transparent;
+        transition:
+            border-color 0.15s,
+            background 0.1s;
+    }
+    .log-row:hover {
+        background: #f9fafb;
+    }
+    .log-row.action-sign-row {
+        border-left-color: #4ade80;
+    }
+    .log-row.action-reject-row {
+        border-left-color: #f87171;
+    }
+    .log-row.action-upload-row {
+        border-left-color: #60a5fa;
+    }
+    .log-row.action-download-row {
+        border-left-color: #fbbf24;
+    }
+    .log-row.action-view-row {
+        border-left-color: #a78bfa;
+    }
+    .log-row.action-invite-row {
+        border-left-color: #38bdf8;
+    }
+    .log-row.action-tamper-row {
+        border-left-color: #ef4444;
+        background: #fef2f2;
+    }
+
+    .action-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .filter-input {
+        padding: 7px 12px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #1a0a3c;
+        background: #fff;
+        outline: none;
+        transition:
+            border-color 0.15s,
+            box-shadow 0.15s;
+    }
+    .filter-input:focus {
+        border-color: #7dc143;
+        box-shadow: 0 0 0 3px rgba(125, 193, 67, 0.15);
+    }
+
+    .hash-mono {
+        font-family: "Courier New", monospace;
+        font-size: 10px;
+        letter-spacing: 0.03em;
+        color: #6b7280;
+        word-break: break-all;
+    }
+    .hash-mono.truncated {
+        max-width: 160px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        vertical-align: bottom;
+    }
+
+    .page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        color: #374151;
+        cursor: pointer;
+        transition:
+            border-color 0.15s,
+            background 0.15s;
+        text-decoration: none;
+    }
+    .page-btn:hover {
+        border-color: #7dc143;
+        color: #15803d;
+        background: #f0fdf4;
+    }
+    .page-btn.active {
+        background: #1a0a3c;
+        color: #fff;
+        border-color: #1a0a3c;
+    }
+    .page-btn:disabled,
+    .page-btn.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .status-transition {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: #6b7280;
+    }
+    .status-pill {
+        padding: 1px 7px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+    .status-pill.after {
+        background: #dcfce7;
+        color: #15803d;
+    }
+    .status-pill.after-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .status-pill.after-signed {
+        background: #dcfce7;
+        color: #15803d;
+    }
+    .status-pill.after-expired {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        .log-row {
+            page-break-inside: avoid;
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="flex-1 overflow-y-auto p-6" style="background: #e8f5d0">
+    <!-- ── Breadcrumb ── -->
+    <nav class="flex items-center gap-2 text-xs text-gray-500 mb-4">
+        <a
+            href="{% url 'esignature:document_list' %}"
+            class="hover:text-gray-700 flex items-center gap-1"
+        >
+            <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+            </svg>
+            E-Signatures
+        </a>
+        <svg
+            class="w-3 h-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+            />
+        </svg>
+        <a
+            href="{% url 'esignature:document_detail' document.pk %}"
+            class="hover:text-gray-700 truncate max-w-xs"
+        >
+            {{ document.title }}
+        </a>
+        <svg
+            class="w-3 h-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+            />
+        </svg>
+        <span class="text-gray-700 font-medium">Audit Trail</span>
+    </nav>
+
+    <!-- ── Page Header ── -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
+        <div
+            class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
+        >
+            <div class="flex items-start gap-4">
+                <div
+                    class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style="
+                        background: linear-gradient(135deg, #1a0a3c, #2d1b5e);
+                    "
+                >
+                    <svg
+                        class="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold" style="color: #1a0a3c">
+                        Immutable Audit Trail
+                    </h1>
+                    <p class="text-sm text-gray-500 mt-0.5">
+                        {{ document.title }}
+                    </p>
+                    <div class="flex flex-wrap items-center gap-3 mt-2">
+                        <span
+                            class="text-xs font-mono font-semibold"
+                            style="color: #7dc143"
+                        >
+                            {{ document.reference_number }}
+                        </span>
+                        <span class="text-xs text-gray-400">&bull;</span>
+                        <span class="text-xs text-gray-500">
+                            {{ audit_page.paginator.count }} log entr{{
+                            audit_page.paginator.count|pluralize:"y,ies" }}
+                        </span>
+                        <span class="text-xs text-gray-400">&bull;</span>
+                        <span
+                            class="inline-flex items-center gap-1 text-xs font-semibold {% if document.status == 'fully_signed' %}text-green-600 {% elif document.status == 'in_progress' %}text-blue-600 {% elif document.status == 'rejected' %}text-red-600 {% else %}text-gray-500{% endif %}"
+                        >
+                            {{ document.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap items-center gap-2 no-print">
+                <button
+                    onclick="window.print()"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors"
+                >
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                        />
+                    </svg>
+                    Print
+                </button>
+                <a
+                    href="{% url 'esignature:document_detail' document.pk %}"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                    style="background: #1a0a3c"
+                >
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                        />
+                    </svg>
+                    Back to Document
+                </a>
+            </div>
+        </div>
+
+        <!-- Immutability Notice -->
+        <div class="mt-4 pt-4 border-t border-gray-100 flex items-start gap-3">
+            <svg
+                class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+            >
+                <path
+                    fill-rule="evenodd"
+                    d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0117.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                />
+            </svg>
+            <p class="text-xs text-gray-500 leading-relaxed">
+                <strong class="text-gray-700">Immutable record</strong> — These
+                audit log entries are append-only and cannot be modified or
+                deleted. Each entry captures the actor, timestamp, IP address,
+                action, and a SHA-256 document hash snapshot, providing a
+                legally traceable chain of custody for this document.
+            </p>
+        </div>
+    </div>
+
+    <!-- ── Filter Bar ── -->
+    <div
+        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-5 no-print"
+    >
+        <form method="get" class="flex flex-wrap items-center gap-3">
+            <!-- Action filter -->
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-semibold text-gray-500"
+                    >Action</label
+                >
+                <select name="action" class="filter-input pr-8">
+                    <option value="">All Actions</option>
+                    <option
+                        value="upload"
+                        {% if request.GET.action == "upload" %}selected{% endif %}
+                    >
+                        Upload
+                    </option>
+                    <option
+                        value="view"
+                        {% if request.GET.action == "view" %}selected{% endif %}
+                    >
+                        View
+                    </option>
+                    <option
+                        value="download"
+                        {% if request.GET.action == "download" %}selected{% endif %}
+                    >
+                        Download
+                    </option>
+                    <option
+                        value="sign"
+                        {% if request.GET.action == "sign" %}selected{% endif %}
+                    >
+                        Sign
+                    </option>
+                    <option
+                        value="reject"
+                        {% if request.GET.action == "reject" %}selected{% endif %}
+                    >
+                        Reject
+                    </option>
+                    <option
+                        value="invite"
+                        {% if request.GET.action == "invite" %}selected{% endif %}
+                    >
+                        Invite
+                    </option>
+                    <option
+                        value="remind"
+                        {% if request.GET.action == "remind" %}selected{% endif %}
+                    >
+                        Remind
+                    </option>
+                    <option
+                        value="revoke"
+                        {% if request.GET.action == "revoke" %}selected{% endif %}
+                    >
+                        Revoke
+                    </option>
+                    <option
+                        value="otp_request"
+                        {% if request.GET.action == "otp_request" %}selected{% endif %}
+                    >
+                        OTP Request
+                    </option>
+                    <option
+                        value="otp_verify"
+                        {% if request.GET.action == "otp_verify" %}selected{% endif %}
+                    >
+                        OTP Verify
+                    </option>
+                    <option
+                        value="tamper_detected"
+                        {% if request.GET.action == "tamper_detected" %}selected{% endif %}
+                    >
+                        Tamper Detected
+                    </option>
+                </select>
+            </div>
+
+            <!-- Date from -->
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-semibold text-gray-500">From</label>
+                <input
+                    type="date"
+                    name="date_from"
+                    class="filter-input"
+                    value="{{ request.GET.date_from|default:'' }}"
+                />
+            </div>
+
+            <!-- Date to -->
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-semibold text-gray-500">To</label>
+                <input
+                    type="date"
+                    name="date_to"
+                    class="filter-input"
+                    value="{{ request.GET.date_to|default:'' }}"
+                />
+            </div>
+
+            <button
+                type="submit"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                style="background: #7dc143"
+            >
+                <svg
+                    class="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                    />
+                </svg>
+                Filter
+            </button>
+
+            {% if request.GET.action or request.GET.date_from or request.GET.date_to %}
+            <a
+                href="{% url 'esignature:audit_trail' document.pk %}"
+                class="text-xs font-semibold text-gray-400 hover:text-gray-600"
+            >
+                Clear filters
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- ── Audit Log Table ── -->
+    <div
+        class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-5"
+    >
+        {% if audit_page.object_list %}
+
+        <!-- Table header -->
+        <div
+            class="hidden md:grid grid-cols-12 gap-2 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider"
+        >
+            <div class="col-span-1">#</div>
+            <div class="col-span-2">Timestamp</div>
+            <div class="col-span-2">Action</div>
+            <div class="col-span-2">Actor</div>
+            <div class="col-span-2">IP Address</div>
+            <div class="col-span-3">Detail</div>
+        </div>
+
+        <!-- Log rows -->
+        <div class="divide-y divide-gray-50">
+            {% for log in audit_page.object_list %} {% with row_num=forloop.counter entry_class=log.action %}
+            <div
+                class="log-row px-5 py-4 {% if log.action == 'sign' %}action-sign-row {% elif log.action == 'reject' %}action-reject-row {% elif log.action == 'upload' %}action-upload-row {% elif log.action == 'download' %}action-download-row {% elif log.action == 'view' %}action-view-row {% elif log.action == 'invite' %}action-invite-row {% elif log.action == 'tamper_detected' %}action-tamper-row {% endif %}"
+            >
+                <!-- Mobile layout -->
+                <div class="md:hidden">
+                    <div class="flex items-start justify-between gap-3 mb-2">
+                        <div class="flex items-center gap-2">
+                            <!-- Action icon -->
+                            <div
+                                class="action-icon {% if log.action == 'sign' %}bg-green-100 {% elif log.action == 'reject' %}bg-red-100 {% elif log.action == 'upload' %}bg-blue-100 {% elif log.action == 'download' %}bg-yellow-100 {% elif log.action == 'view' %}bg-purple-100 {% elif log.action == 'invite' %}bg-sky-100 {% elif log.action == 'tamper_detected' %}bg-red-200 {% elif log.action in 'otp_request,otp_verify' %}bg-violet-100 {% else %}bg-gray-100{% endif %}"
+                            >
+                                {% if log.action == 'sign' %}
+                                <svg
+                                    class="w-4 h-4 text-green-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                    />
+                                </svg>
+                                {% elif log.action == 'reject' %}
+                                <svg
+                                    class="w-4 h-4 text-red-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                                    />
+                                </svg>
+                                {% elif log.action == 'upload' %}
+                                <svg
+                                    class="w-4 h-4 text-blue-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                                    />
+                                </svg>
+                                {% elif log.action == 'download' %}
+                                <svg
+                                    class="w-4 h-4 text-yellow-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                    />
+                                </svg>
+                                {% elif log.action == 'view' %}
+                                <svg
+                                    class="w-4 h-4 text-purple-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
+                                </svg>
+                                {% elif log.action == 'invite' %}
+                                <svg
+                                    class="w-4 h-4 text-sky-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                    />
+                                </svg>
+                                {% elif log.action == 'tamper_detected' %}
+                                <svg
+                                    class="w-4 h-4 text-red-700"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                                {% else %}
+                                <svg
+                                    class="w-4 h-4 text-gray-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <span class="action-badge action-{{ log.action }}">
+                                {{ log.get_action_display }}
+                            </span>
+                        </div>
+                        <time class="text-xs text-gray-400 flex-shrink-0"
+                            >{{ log.timestamp|date:"M j, H:i" }}</time
+                        >
+                    </div>
+
+                    {% if log.detail %}
+                    <p class="text-xs text-gray-600 mb-1.5 leading-relaxed">
+                        {{ log.detail }}
+                    </p>
+                    {% endif %}
+
+                    <div
+                        class="flex flex-wrap items-center gap-3 text-xs text-gray-400"
+                    >
+                        <span>
+                            {% if log.actor %}
+                            <span class="font-medium text-gray-600"
+                                >{{ log.actor.get_full_name }}</span
+                            >
+                            {% else %} {{ log.actor_email|default:"System" }} {% endif %}
+                        </span>
+                        {% if log.ip_address %}
+                        <span class="font-mono">{{ log.ip_address }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Desktop layout (grid) -->
+                <div class="hidden md:grid grid-cols-12 gap-2 items-start">
+                    <!-- Row number -->
+                    <div
+                        class="col-span-1 text-xs text-gray-300 font-mono pt-0.5"
+                    >
+                        {% with page_start=audit_page.start_index %} {{
+                        forloop.counter0|add:page_start }} {% endwith %}
+                    </div>
+
+                    <!-- Timestamp -->
+                    <div class="col-span-2">
+                        <time class="text-xs font-semibold text-gray-700 block">
+                            {{ log.timestamp|date:"M j, Y" }}
+                        </time>
+                        <time class="text-xs text-gray-400 font-mono">
+                            {{ log.timestamp|date:"H:i:s" }}
+                        </time>
+                    </div>
+
+                    <!-- Action -->
+                    <div class="col-span-2">
+                        <span class="action-badge action-{{ log.action }}">
+                            {{ log.get_action_display }}
+                        </span>
+                        {% if log.document_status_before and log.document_status_after and log.document_status_before != log.document_status_after %}
+                        <div class="status-transition mt-1.5">
+                            <span class="status-pill"
+                                >{{ log.document_status_before }}</span
+                            >
+                            <svg
+                                class="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                />
+                            </svg>
+                            <span
+                                class="status-pill {% if log.document_status_after == 'fully_signed' %}after{% elif log.document_status_after == 'rejected' %}after-rejected{% elif log.document_status_after == 'expired' %}after-expired{% endif %}"
+                            >
+                                {{ log.document_status_after }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Actor -->
+                    <div class="col-span-2">
+                        {% if log.actor %}
+                        <p class="text-xs font-semibold text-gray-800 truncate">
+                            {{ log.actor.get_full_name }}
+                        </p>
+                        <p class="text-xs text-gray-400 truncate">
+                            {{ log.actor_email }}
+                        </p>
+                        {% else %}
+                        <p class="text-xs text-gray-500">
+                            {{ log.actor_email|default:"System" }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- IP -->
+                    <div class="col-span-2">
+                        {% if log.ip_address %}
+                        <p class="text-xs font-mono text-gray-600">
+                            {{ log.ip_address }}
+                        </p>
+                        {% else %}
+                        <p class="text-xs text-gray-300">—</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Detail -->
+                    <div class="col-span-3">
+                        {% if log.detail %}
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            {{ log.detail }}
+                        </p>
+                        {% endif %}
+
+                        <!-- Signer assignment link -->
+                        {% if log.related_assignment %}
+                        <p class="text-xs text-gray-400 mt-1">
+                            Signer:
+                            <span class="font-medium text-gray-600"
+                                >{{ log.related_assignment.display_name }}</span
+                            >
+                            (#{{ log.related_assignment.signing_order }})
+                        </p>
+                        {% endif %}
+
+                        <!-- Hash snapshot -->
+                        {% if log.document_hash_snapshot %}
+                        <div class="mt-1.5 flex items-center gap-1.5">
+                            <svg
+                                class="w-3 h-3 text-gray-300 flex-shrink-0"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0117.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            <span
+                                class="hash-mono truncated"
+                                title="{{ log.document_hash_snapshot }}"
+                            >
+                                {{ log.document_hash_snapshot }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endwith %} {% endfor %}
+        </div>
+
+        <!-- ── Pagination ── -->
+        {% if audit_page.has_other_pages %}
+        <div
+            class="flex items-center justify-between px-5 py-4 border-t border-gray-100 no-print"
+        >
+            <p class="text-xs text-gray-400">
+                Showing entries {{ audit_page.start_index }}–{{
+                audit_page.end_index }} of {{ audit_page.paginator.count }}
+            </p>
+
+            <div class="flex items-center gap-1.5">
+                <!-- Previous -->
+                {% if audit_page.has_previous %}
+                <a
+                    href="?page={{ audit_page.previous_page_number }}{% if request.GET.action %}&action={{ request.GET.action }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}"
+                    class="page-btn"
+                    title="Previous page"
+                >
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                        />
+                    </svg>
+                </a>
+                {% else %}
+                <span class="page-btn disabled">
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                        />
+                    </svg>
+                </span>
+                {% endif %}
+
+                <!-- Page numbers -->
+                {% for i in audit_page.paginator.page_range %} {% if i == audit_page.number %}
+                <span class="page-btn active">{{ i }}</span>
+                {% elif i >= audit_page.number|add:"-2" and i <= audit_page.number|add:"2" %}
+                <a
+                    href="?page={{ i }}{% if request.GET.action %}&action={{ request.GET.action }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}"
+                    class="page-btn"
+                    >{{ i }}</a
+                >
+                {% elif i == 1 or i == audit_page.paginator.num_pages %}
+                <a
+                    href="?page={{ i }}{% if request.GET.action %}&action={{ request.GET.action }}{% endif %}"
+                    class="page-btn"
+                    >{{ i }}</a
+                >
+                {% elif i == audit_page.number|add:"-3" or i == audit_page.number|add:"3" %}
+                <span
+                    class="page-btn disabled text-gray-300"
+                    style="border: none"
+                    >…</span
+                >
+                {% endif %}
+                {% endfor %}
+
+                <!-- Next -->
+                {% if audit_page.has_next %}
+                <a
+                    href="?page={{ audit_page.next_page_number }}{% if request.GET.action %}&action={{ request.GET.action }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}"
+                    class="page-btn"
+                    title="Next page"
+                >
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                        />
+                    </svg>
+                </a>
+                {% else %}
+                <span class="page-btn disabled">
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                        />
+                    </svg>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <!-- Empty state -->
+        <div class="py-16 text-center">
+            <div
+                class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4"
+            >
+                <svg
+                    class="w-7 h-7 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                </svg>
+            </div>
+            <h3 class="text-sm font-semibold text-gray-500 mb-1">
+                No audit entries found
+            </h3>
+            <p class="text-xs text-gray-400 max-w-xs mx-auto">
+                {% if request.GET.action or request.GET.date_from or request.GET.date_to %} No entries match your current filters.
+                Try adjusting or clearing them. {% else %} No audit log entries
+                have been recorded for this document yet. {% endif %}
+            </p>
+            {% if request.GET.action or request.GET.date_from or request.GET.date_to %}
+            <a
+                href="{% url 'esignature:audit_trail' document.pk %}"
+                class="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold hover:underline"
+                style="color: #7dc143"
+            >
+                Clear all filters
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── Legend ── -->
+    <div
+        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5 no-print"
+    >
+        <p
+            class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3"
+        >
+            Action Legend
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #60a5fa"></span>
+                <span class="text-xs text-gray-600"
+                    >Upload — Document uploaded</span
+                >
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #a78bfa"></span>
+                <span class="text-xs text-gray-600"
+                    >View — Document accessed</span
+                >
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #fbbf24"></span>
+                <span class="text-xs text-gray-600"
+                    >Download — File downloaded</span
+                >
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #4ade80"></span>
+                <span class="text-xs text-gray-600"
+                    >Sign — Signature recorded</span
+                >
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #f87171"></span>
+                <span class="text-xs text-gray-600"
+                    >Reject — Signature declined</span
+                >
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #38bdf8"></span>
+                <span class="text-xs text-gray-600"
+                    >Invite — Signer invited</span
+                >
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #c084fc"></span>
+                <span class="text-xs text-gray-600"
+                    >OTP — Verification events</span
+                >
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #ef4444"></span>
+                <span class="text-xs text-gray-600 font-semibold"
+                    >Tamper — Hash mismatch detected</span
+                >
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Document Integrity Summary ── -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
+        <p
+            class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4"
+        >
+            Document Integrity Record
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+                <p class="text-xs text-gray-400 font-medium mb-1.5">
+                    Original File Hash (SHA-256)
+                </p>
+                {% if document.original_hash %}
+                <div
+                    class="hash-mono bg-gray-50 p-2.5 rounded-lg border border-gray-100 text-xs leading-relaxed"
+                >
+                    {{ document.original_hash }}
+                </div>
+                {% else %}
+                <p class="text-xs text-gray-300 italic">Not available</p>
+                {% endif %}
+            </div>
+
+            {% if document.signed_hash %}
+            <div>
+                <p class="text-xs text-gray-400 font-medium mb-1.5">
+                    Signed File Hash (SHA-256)
+                </p>
+                <div
+                    class="hash-mono bg-gray-50 p-2.5 rounded-lg border border-gray-100 text-xs leading-relaxed"
+                >
+                    {{ document.signed_hash }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div
+            class="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 gap-4"
+        >
+            <div>
+                <p class="text-xs text-gray-400 font-medium mb-1">Reference</p>
+                <p
+                    class="text-xs font-mono font-semibold"
+                    style="color: #7dc143"
+                >
+                    {{ document.reference_number }}
+                </p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 font-medium mb-1">Version</p>
+                <p class="text-xs font-semibold text-gray-700">
+                    v{{ document.version }}
+                </p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 font-medium mb-1">
+                    Uploaded By
+                </p>
+                <p class="text-xs font-semibold text-gray-700">
+                    {{ document.uploaded_by.get_full_name }}
+                </p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 font-medium mb-1">
+                    Total Log Entries
+                </p>
+                <p class="text-xs font-bold" style="color: #1a0a3c">
+                    {{ audit_page.paginator.count }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back link -->
+    <div class="mb-6">
+        <a
+            href="{% url 'esignature:document_detail' document.pk %}"
+            class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-700"
+        >
+            <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                />
+            </svg>
+            Back to Document
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,475 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Signing Link Invalid{% endblock %}
+
+{% block extra_head %}
+<style>
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulseRing {
+    0%   { transform: scale(1);    opacity: 0.6; }
+    50%  { transform: scale(1.15); opacity: 0.2; }
+    100% { transform: scale(1);    opacity: 0.6; }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-8px); }
+    40%      { transform: translateX( 8px); }
+    60%      { transform: translateX(-5px); }
+    80%      { transform: translateX( 5px); }
+  }
+
+  .fade-up {
+    opacity: 0;
+    animation: fadeSlideUp 0.55s ease-out forwards;
+  }
+  .delay-1 { animation-delay: 0.10s; }
+  .delay-2 { animation-delay: 0.25s; }
+  .delay-3 { animation-delay: 0.40s; }
+  .delay-4 { animation-delay: 0.55s; }
+  .delay-5 { animation-delay: 0.70s; }
+
+  .icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-ring {
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.12);
+    animation: pulseRing 2.4s ease-in-out infinite;
+  }
+  .icon-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fee2e2, #fca5a5);
+    animation: shake 0.55s ease-out 0.2s;
+  }
+
+  .reason-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+  }
+  .reason-expired  { background: #fef3c7; color: #92400e; }
+  .reason-revoked  { background: #fce7f3; color: #9d174d; }
+  .reason-signed   { background: #dcfce7; color: #15803d; }
+  .reason-rejected { background: #fee2e2; color: #991b1b; }
+  .reason-invalid  { background: #f1f5f9; color: #475569; }
+
+  .help-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .help-card:hover {
+    border-color: #7dc143;
+    box-shadow: 0 2px 10px rgba(125,193,67,0.10);
+  }
+  .help-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .cta-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 26px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #1a0a3c, #2d1b5e);
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .cta-primary:hover { opacity: 0.87; transform: translateY(-1px); }
+
+  .cta-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .cta-secondary:hover { border-color: #7dc143; color: #15803d; }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
+    margin: 20px 0;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .timeline-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto p-6" style="background:#e8f5d0;">
+  <div class="max-w-xl mx-auto">
+
+    <!-- ── Hero Card ── -->
+    <div class="fade-up delay-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-5 text-center">
+
+      <!-- Animated icon -->
+      <div class="flex justify-center mb-6">
+        <div class="icon-wrapper">
+          <div class="icon-ring"></div>
+          <div class="icon-circle">
+            {% if reason == 'expired' %}
+            <!-- Clock / expired -->
+            <svg class="w-9 h-9 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {% elif reason == 'already_signed' %}
+            <!-- Already signed – checkmark -->
+            <svg class="w-9 h-9 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {% elif reason == 'rejected' %}
+            <!-- Rejected – X circle -->
+            <svg class="w-9 h-9 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {% elif reason == 'revoked' %}
+            <!-- Revoked – ban/slash -->
+            <svg class="w-9 h-9 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+            </svg>
+            {% elif reason == 'document_cancelled' or reason == 'document_expired' %}
+            <!-- Document issue -->
+            <svg class="w-9 h-9 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            {% else %}
+            <!-- Generic invalid – shield off -->
+            <svg class="w-9 h-9 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"/>
+            </svg>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Reason badge -->
+      <div class="flex justify-center mb-4">
+        {% if reason == 'expired' %}
+        <span class="reason-badge reason-expired">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+          </svg>
+          Link Expired
+        </span>
+        {% elif reason == 'already_signed' %}
+        <span class="reason-badge reason-signed">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Already Signed
+        </span>
+        {% elif reason == 'rejected' %}
+        <span class="reason-badge reason-rejected">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          Signature Rejected
+        </span>
+        {% elif reason == 'revoked' %}
+        <span class="reason-badge reason-revoked">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+          </svg>
+          Invitation Revoked
+        </span>
+        {% elif reason == 'document_cancelled' %}
+        <span class="reason-badge reason-revoked">
+          Document Cancelled
+        </span>
+        {% elif reason == 'document_expired' %}
+        <span class="reason-badge reason-expired">
+          Document Expired
+        </span>
+        {% else %}
+        <span class="reason-badge reason-invalid">
+          Invalid Link
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Heading -->
+      <h1 class="text-xl font-extrabold mb-2" style="color:#1a0a3c;">
+        {% if reason == 'expired' %}
+          This Signing Link Has Expired
+        {% elif reason == 'already_signed' %}
+          You Have Already Signed
+        {% elif reason == 'rejected' %}
+          Signature Was Rejected
+        {% elif reason == 'revoked' %}
+          Your Invitation Has Been Revoked
+        {% elif reason == 'document_cancelled' %}
+          Document Has Been Cancelled
+        {% elif reason == 'document_expired' %}
+          Document Signing Period Has Ended
+        {% else %}
+          Signing Link Not Valid
+        {% endif %}
+      </h1>
+
+      <!-- Sub-message -->
+      <p class="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+        {% if reason == 'expired' %}
+          The signing link you followed is no longer active. Signing links are time-limited for security.
+          Please contact the document owner to request a new invitation.
+        {% elif reason == 'already_signed' %}
+          Our records show that you have already submitted a signature for this document.
+          No further action is required from you.
+        {% elif reason == 'rejected' %}
+          This signing request was previously rejected. The document owner has been notified.
+          Contact them if you would like to revisit this decision.
+        {% elif reason == 'revoked' %}
+          The document owner has removed your signing invitation.
+          Please reach out to them directly if you believe this is an error.
+        {% elif reason == 'document_cancelled' %}
+          The document associated with this link has been cancelled by its owner and is no longer
+          accepting signatures.
+        {% elif reason == 'document_expired' %}
+          The signing deadline for this document has passed. Please contact the document owner
+          for further instructions.
+        {% else %}
+          The link you followed is invalid or has already been used. Please check that you copied
+          the full URL from your email, or contact the document owner for a new link.
+        {% endif %}
+      </p>
+
+      <!-- Document info (if available) -->
+      {% if document %}
+      <div class="mt-5 inline-flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+             style="background:linear-gradient(135deg,#1a0a3c,#2d1b5e);">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <div class="text-left">
+          <p class="text-sm font-bold text-gray-800">{{ document.title }}</p>
+          <p class="text-xs font-mono" style="color:#7dc143;">{{ document.reference_number }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="divider mt-6"></div>
+
+      <!-- CTA Buttons -->
+      <div class="flex flex-wrap justify-center gap-3">
+        {% if user.is_authenticated %}
+        <a href="{% url 'esignature:document_list' %}" class="cta-primary">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+          </svg>
+          Go to E-Signatures
+        </a>
+        {% if document and user.is_authenticated %}
+        <a href="{% url 'esignature:document_detail' document.pk %}" class="cta-secondary">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          View Document
+        </a>
+        {% endif %}
+        {% else %}
+        <p class="text-sm text-gray-500 w-full">
+          You may safely close this window. If you need assistance, please contact the person who
+          sent you the signing invitation.
+        </p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- ── Help Section ── -->
+    <div class="fade-up delay-3 space-y-3 mb-5">
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 px-1">Common Questions</p>
+
+      <!-- Expired link help -->
+      {% if reason == 'expired' %}
+      <div class="help-card">
+        <div class="help-icon" style="background:#fef3c7;">
+          <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div></div>
+          <p class="text-sm font-semibold text-gray-800">Why do links expire?</p>
+          <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+            Signing links are time-limited to protect document security. If your link has expired,
+            ask the document owner (or manager) to resend your invitation from the document detail page.
+          </p>
+        </div>
+      </div>
+
+      {% elif reason == 'already_signed' %}
+      <div class="help-card">
+        <div class="help-icon" style="background:#dcfce7;">
+          <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-800">Your signature has been recorded</p>
+          <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+            Your electronic signature is permanently stored with a timestamp, IP address, and device
+            metadata in the immutable audit log. No further action is needed from you.
+          </p>
+        </div>
+      </div>
+
+      {% else %}
+      <div class="help-card">
+        <div class="help-icon" style="background:#ede9fe;">
+          <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-800">Need help?</p>
+          <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+            Contact the person who sent you the signing invitation and ask them to resend or
+            issue a new signing link via the document management portal.
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Security note (always shown) -->
+      <div class="help-card">
+        <div class="help-icon" style="background:#f0fdf4;">
+          <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
+                  d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-800">Security by design</p>
+          <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+            Each signing link is unique, single-use, and tied to one specific signer and document.
+            This prevents unauthorised access and replay attacks.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── What You Can Do ── -->
+    <div class="fade-up delay-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
+      <p class="text-sm font-bold mb-4" style="color:#1a0a3c;">What you can do now</p>
+
+      <div class="space-y-3">
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#7dc143;"></div>
+          <div>
+            <p class="text-sm font-semibold text-gray-700">Contact the document owner</p>
+            <p class="text-xs text-gray-400 mt-0.5">
+              Ask them to send you a fresh signing invitation from the document portal.
+            </p>
+          </div>
+        </div>
+
+        {% if user.is_authenticated %}
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#7dc143;"></div>
+          <div>
+            <p class="text-sm font-semibold text-gray-700">Check your pending signatures</p>
+            <p class="text-xs text-gray-400 mt-0.5">
+              Visit
+              <a href="{% url 'esignature:my_signatures' %}"
+                 class="font-semibold hover:underline" style="color:#7dc143;">My E-Signatures</a>
+              to see all documents awaiting your action.
+            </p>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#7dc143;"></div>
+          <div>
+            <p class="text-sm font-semibold text-gray-700">Check your email</p>
+            <p class="text-xs text-gray-400 mt-0.5">
+              A reminder email may have been sent with a refreshed signing link. Check your inbox
+              and spam folder.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer note -->
+    <div class="fade-up delay-5 text-center py-4">
+      <p class="text-xs text-gray-400">
+        Enwealth E-Board &bull; Electronic Signature System &bull;
+        All signing activity is logged in an immutable audit trail.
+      </p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

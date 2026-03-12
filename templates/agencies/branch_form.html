@@ -1,0 +1,339 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
+    <a href="{% url 'agencies:agency_dashboard' %}" class="hover:underline" style="color:#7dc143;">Agency Overview</a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'agencies:branch_list' %}" class="hover:underline" style="color:#7dc143;">Branches</a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-700">{{ title }}</span>
+  </nav>
+
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+
+    <!-- Card header -->
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center gap-3"
+         style="background:linear-gradient(135deg,#1a0a3c 0%,#2d1b5e 100%);">
+      <div class="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0"
+           style="background:rgba(125,193,67,0.2);">
+        <svg class="w-5 h-5" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-white font-semibold text-lg">{{ title }}</h1>
+        <p class="text-purple-300 text-xs mt-0.5">
+          {% if is_update %}Update the branch details below.{% else %}Fill in the details to create a new branch.{% endif %}
+        </p>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form method="post" enctype="multipart/form-data" class="px-6 py-6 space-y-8">
+      {% csrf_token %}
+
+      <!-- Non-field errors -->
+      {% if form.non_field_errors %}
+      <div class="p-4 rounded-lg bg-red-50 border border-red-200">
+        {% for error in form.non_field_errors %}
+        <p class="text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- ── Section: Identity ─────────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Identity
+        </legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Name -->
+          <div class="md:col-span-2">
+            <label for="{{ form.name.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Branch Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.name.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Code -->
+          <div>
+            <label for="{{ form.code.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Branch Code <span class="text-red-500">*</span>
+            </label>
+            {{ form.code }}
+            {% if form.code.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.code.errors|join:", " }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Short unique identifier, e.g. HQ, KE-01, ZA-CPT.</p>
+          </div>
+
+          <!-- Branch Type -->
+          <div>
+            <label for="{{ form.branch_type.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Branch Type
+            </label>
+            {{ form.branch_type }}
+            {% if form.branch_type.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.branch_type.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Organization -->
+          <div>
+            <label for="{{ form.organization.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Organization <span class="text-red-500">*</span>
+            </label>
+            {{ form.organization }}
+            {% if form.organization.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.organization.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Parent Branch -->
+          <div>
+            <label for="{{ form.parent_branch.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Parent Branch
+            </label>
+            {{ form.parent_branch }}
+            {% if form.parent_branch.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.parent_branch.errors|join:", " }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Leave blank if this is a top-level branch.</p>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Section: Location ─────────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Location
+        </legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Country -->
+          <div>
+            <label for="{{ form.country.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Country
+            </label>
+            {{ form.country }}
+            {% if form.country.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.country.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Timezone -->
+          <div>
+            <label for="{{ form.timezone.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Timezone
+            </label>
+            {{ form.timezone }}
+            {% if form.timezone.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.timezone.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Address -->
+          <div class="md:col-span-2">
+            <label for="{{ form.address.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Address
+            </label>
+            {{ form.address }}
+            {% if form.address.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.address.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Section: Contact ──────────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Contact
+        </legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Contact Email -->
+          <div>
+            <label for="{{ form.contact_email.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Contact Email
+            </label>
+            {{ form.contact_email }}
+            {% if form.contact_email.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.contact_email.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Contact Phone -->
+          <div>
+            <label for="{{ form.contact_phone.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Contact Phone
+            </label>
+            {{ form.contact_phone }}
+            {% if form.contact_phone.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.contact_phone.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Section: Governance ───────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Governance &amp; Capacity
+        </legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Established Date -->
+          <div>
+            <label for="{{ form.established_date.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Established Date
+            </label>
+            {{ form.established_date }}
+            {% if form.established_date.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.established_date.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Max Users -->
+          <div>
+            <label for="{{ form.max_users.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Maximum Users
+            </label>
+            {{ form.max_users }}
+            {% if form.max_users.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.max_users.errors|join:", " }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Set to 0 or leave blank for no limit.</p>
+          </div>
+
+          <!-- Has Own Board -->
+          <div class="flex items-start gap-3 md:col-span-2">
+            <div class="flex items-center gap-3 mt-0.5">
+              {{ form.has_own_board }}
+            </div>
+            <div>
+              <label for="{{ form.has_own_board.id_for_label }}"
+                     class="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                This branch has its own board of directors
+              </label>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Enable if this branch operates with an independent board structure.
+              </p>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="md:col-span-2">
+            <label for="{{ form.description.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.description.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Section: Branding ─────────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Branding
+        </legend>
+        <div>
+          <label for="{{ form.logo.id_for_label }}"
+                 class="block text-sm font-medium text-gray-700 mb-1">
+            Branch Logo
+          </label>
+          {% if is_update and form.instance.logo %}
+          <div class="mb-3 flex items-center gap-3">
+            <img src="{{ form.instance.logo.url }}" alt="Current logo"
+                 class="h-14 w-14 rounded-lg object-contain border border-gray-200 p-1">
+            <span class="text-xs text-gray-400">Current logo — upload a new file to replace it.</span>
+          </div>
+          {% endif %}
+          {{ form.logo }}
+          {% if form.logo.errors %}
+          <p class="mt-1 text-xs text-red-600">{{ form.logo.errors|join:", " }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-400">Accepted: PNG, JPG, SVG. Recommended: 256×256 px.</p>
+        </div>
+      </fieldset>
+
+      <!-- ── Section: Status ───────────────────────────────────────── -->
+      <fieldset>
+        <legend class="text-sm font-semibold uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 w-full"
+                style="color:#2d1b5e;">
+          Status
+        </legend>
+        <div class="flex items-center gap-3">
+          {{ form.is_active }}
+          <label for="{{ form.is_active.id_for_label }}" class="text-sm text-gray-700 select-none cursor-pointer">
+            Branch is active
+          </label>
+        </div>
+        {% if form.is_active.errors %}
+        <p class="mt-1 text-xs text-red-600">{{ form.is_active.errors|join:", " }}</p>
+        {% endif %}
+      </fieldset>
+
+      <!-- ── Form Actions ──────────────────────────────────────────── -->
+      <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+        <a href="{% if is_update %}{% url 'agencies:branch_detail' form.instance.pk %}{% else %}{% url 'agencies:branch_list' %}{% endif %}"
+           class="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+          Cancel
+        </a>
+        <button type="submit"
+                class="inline-flex items-center gap-2 px-6 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {% if is_update %}Save Changes{% else %}Create Branch{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

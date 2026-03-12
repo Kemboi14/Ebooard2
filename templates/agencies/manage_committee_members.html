@@ -1,0 +1,287 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Manage Members — {{ committee.name }}{% endblock %}
+
+{% block page_title %}Manage Members — {{ committee.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
+    <a href="{% url 'agencies:agency_dashboard' %}" class="hover:underline" style="color:#7dc143;">Agency Overview</a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'agencies:committee_list' %}" class="hover:underline" style="color:#7dc143;">Committees</a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'agencies:committee_detail' committee.pk %}" class="hover:underline" style="color:#7dc143;">
+      {{ committee.name }}
+    </a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-700 font-medium">Manage Members</span>
+  </nav>
+
+  <!-- Page header -->
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold" style="color:#2d1b5e;">Manage Members</h1>
+      <p class="text-gray-500 text-sm mt-1">
+        Add or deactivate members of <strong>{{ committee.name }}</strong>
+        ({{ committee.branch.name }}).
+      </p>
+    </div>
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium"
+            style="background:#e8f5d0;color:#5a8a3c;">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        {{ active_count }} active
+        {% if committee.max_members %}/ {{ committee.max_members }} max{% endif %}
+      </span>
+      <a href="{% url 'agencies:committee_detail' committee.pk %}"
+         class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+        ← Back to Committee
+      </a>
+    </div>
+  </div>
+
+  <!-- Capacity warning -->
+  {% if committee.max_members and active_count >= committee.max_members %}
+  <div class="mb-6 p-4 rounded-xl border-l-4 flex items-start gap-3"
+       style="background:#fff8f0;border-color:#f59e0b;">
+    <svg class="w-5 h-5 mt-0.5 flex-shrink-0" style="color:#d97706;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <p class="text-sm" style="color:#92400e;">
+      This committee has reached its maximum of <strong>{{ committee.max_members }}</strong> members.
+      Deactivate an existing member before adding a new one.
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+    <!-- ── Left: Add member form ──────────────────────────────────── -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden sticky top-6">
+        <div class="px-6 py-4 border-b border-gray-100"
+             style="background:linear-gradient(135deg,#1a0a3c 0%,#2d1b5e 100%);">
+          <h2 class="text-white font-semibold">Add Member</h2>
+          <p class="text-purple-300 text-xs mt-0.5">Assign a user to this committee.</p>
+        </div>
+        <form method="post" class="px-6 py-5 space-y-5">
+          {% csrf_token %}
+
+          <!-- Non-field errors -->
+          {% if form.non_field_errors %}
+          <div class="p-3 rounded-lg bg-red-50 border border-red-200">
+            {% for error in form.non_field_errors %}
+            <p class="text-xs text-red-700">{{ error }}</p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- User -->
+          <div>
+            <label for="{{ form.user.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              User <span class="text-red-500">*</span>
+            </label>
+            {{ form.user }}
+            {% if form.user.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.user.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Committee Role -->
+          <div>
+            <label for="{{ form.committee_role.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Role <span class="text-red-500">*</span>
+            </label>
+            {{ form.committee_role }}
+            {% if form.committee_role.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.committee_role.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Term Start -->
+          <div>
+            <label for="{{ form.term_start.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Term Start
+            </label>
+            {{ form.term_start }}
+            {% if form.term_start.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.term_start.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Term End -->
+          <div>
+            <label for="{{ form.term_end.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Term End
+            </label>
+            {{ form.term_end }}
+            {% if form.term_end.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.term_end.errors|join:", " }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Leave blank for indefinite term.</p>
+          </div>
+
+          <!-- Notes -->
+          {% if form.notes %}
+          <div>
+            <label for="{{ form.notes.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Notes
+            </label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.notes.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <button type="submit"
+                  class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                  style="background:#7dc143;"
+                  onmouseover="this.style.backgroundColor='#5a8a3c'"
+                  onmouseout="this.style.backgroundColor='#7dc143'"
+                  {% if committee.max_members and active_count >= committee.max_members %}disabled
+                  style="background:#9ca3af;cursor:not-allowed;"{% endif %}>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            Add to Committee
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Right: Members list ────────────────────────────────────── -->
+    <div class="lg:col-span-3">
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 class="text-base font-semibold" style="color:#2d1b5e;">
+            All Members
+            <span class="ml-1 text-sm font-normal text-gray-400">({{ memberships.count }})</span>
+          </h2>
+        </div>
+
+        <div class="divide-y divide-gray-100">
+          {% for membership in memberships %}
+          <div class="flex items-center gap-4 px-6 py-4
+                      {% if not membership.is_active %}opacity-60 bg-gray-50{% else %}hover:bg-gray-50{% endif %}
+                      transition-colors">
+
+            <!-- Avatar -->
+            {% if membership.user.profile_photo %}
+              <img src="{{ membership.user.profile_photo.url }}"
+                   class="h-10 w-10 rounded-full object-cover flex-shrink-0
+                          {% if not membership.is_active %}grayscale{% endif %}">
+            {% else %}
+              <div class="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                   style="background:{% if membership.is_active %}#7dc143{% else %}#9ca3af{% endif %};">
+                {{ membership.user.first_name|slice:":1" }}{{ membership.user.last_name|slice:":1" }}
+              </div>
+            {% endif %}
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-gray-900 truncate">
+                {{ membership.user.get_full_name }}
+              </p>
+              <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                <span class="text-xs capitalize
+                             {% if membership.is_active %}text-teal-700{% else %}text-gray-400{% endif %}">
+                  {{ membership.get_committee_role_display }}
+                </span>
+                {% if membership.term_start %}
+                <span class="text-xs text-gray-400">
+                  {{ membership.term_start|date:"M Y" }}
+                  {% if membership.term_end %}– {{ membership.term_end|date:"M Y" }}{% endif %}
+                </span>
+                {% endif %}
+              </div>
+              <p class="text-xs text-gray-400 truncate">{{ membership.user.email }}</p>
+            </div>
+
+            <!-- Status badge + toggle -->
+            <div class="flex flex-col items-end gap-2 flex-shrink-0">
+              {% if membership.is_active %}
+              <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700 font-medium">Active</span>
+              {% else %}
+              <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500 font-medium">Inactive</span>
+              {% endif %}
+
+              <form method="post"
+                    action="{% url 'agencies:toggle_committee_membership' committee.pk membership.pk %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="text-xs font-medium px-2.5 py-1 rounded border transition-colors
+                               {% if membership.is_active %}
+                               border-red-200 text-red-500 hover:bg-red-50
+                               {% else %}
+                               border-green-200 text-green-600 hover:bg-green-50
+                               {% endif %}">
+                  {% if membership.is_active %}Deactivate{% else %}Reactivate{% endif %}
+                </button>
+              </form>
+            </div>
+
+          </div>
+          {% empty %}
+          <div class="px-6 py-16 text-center">
+            <div class="h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-4"
+                 style="background:#e8f5d0;">
+              <svg class="w-7 h-7" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+            <p class="text-sm font-medium text-gray-500 mb-1">No members yet</p>
+            <p class="text-xs text-gray-400">Use the form on the left to add the first member.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Quorum info -->
+      {% if committee.quorum_required %}
+      <div class="mt-4 p-4 rounded-xl border flex items-center gap-3"
+           style="background:#f0fdf4;border-color:#86efac;">
+        <svg class="w-5 h-5 flex-shrink-0" style="color:#16a34a;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-sm text-green-800">
+          This committee requires a quorum of
+          <strong>{{ committee.quorum_required }}</strong> member{{ committee.quorum_required|pluralize }}.
+          Currently <strong>{{ active_count }}</strong> active member{{ active_count|pluralize }}.
+          {% if active_count >= committee.quorum_required %}
+            Quorum <span class="font-semibold">can be achieved</span>.
+          {% else %}
+            <span class="font-semibold text-yellow-700">
+              {{ committee.quorum_required|add:"-"|add:active_count }} more needed for quorum.
+            </span>
+          {% endif %}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

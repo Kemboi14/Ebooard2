@@ -1,0 +1,41 @@
+Enwealth E-Board — Signature Rejected
+======================================
+
+Dear {{ uploaded_by_name|default:"Document Owner" }},
+
+We are writing to inform you that a signer has rejected the document
+below and it requires your attention.
+
+DOCUMENT DETAILS
+----------------
+Title      : {{ document_title }}
+Reference  : {{ document_reference }}
+Rejected   : {{ rejected_at|date:"d M Y H:i" }} UTC
+
+REJECTION DETAILS
+-----------------
+Rejected by : {{ rejector_name }} <{{ rejector_email }}>
+Reason      : {{ rejection_reason|default:"No reason provided." }}
+
+WHAT HAPPENS NEXT
+-----------------
+The document status has been updated to "Rejected". You may:
+
+  1. Review the rejection reason above.
+  2. Address the concerns raised by the signer.
+  3. Upload a revised version of the document if necessary.
+  4. Re-invite signers once the issues have been resolved.
+
+DOCUMENT DETAIL PAGE
+--------------------
+{{ detail_url }}
+
+Visit the link above to review the document, manage signers, cancel the
+document, or upload a revised version.
+
+If you believe the rejection was made in error, you may contact the signer
+directly at {{ rejector_email }} to discuss the matter.
+
+--
+{{ platform_name }}
+Legally traceable electronic signatures for corporate governance

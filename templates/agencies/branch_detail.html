@@ -1,0 +1,814 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ branch.name }}{% endblock %}
+{% block page_title %}{{ branch.name }}{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
+        <a
+            href="{% url 'agencies:agency_dashboard' %}"
+            class="hover:underline"
+            style="color: #7dc143"
+            >Agency Overview</a
+        >
+        <svg
+            class="w-4 h-4 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+            />
+        </svg>
+        <a
+            href="{% url 'agencies:branch_list' %}"
+            class="hover:underline"
+            style="color: #7dc143"
+            >Branches</a
+        >
+        {% for ancestor in ancestor_branches %}
+        <svg
+            class="w-4 h-4 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+            />
+        </svg>
+        <a
+            href="{% url 'agencies:branch_detail' ancestor.pk %}"
+            class="hover:underline"
+            style="color: #7dc143"
+        >
+            {{ ancestor.name }}
+        </a>
+        {% endfor %}
+        <svg
+            class="w-4 h-4 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+            />
+        </svg>
+        <span class="text-gray-700 font-medium">{{ branch.name }}</span>
+    </nav>
+
+    <!-- Branch Header Card -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div
+            class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
+        >
+            <!-- Left: Identity -->
+            <div class="flex items-start gap-4">
+                {% if branch.logo %}
+                <img
+                    src="{{ branch.logo.url }}"
+                    alt="{{ branch.name }}"
+                    class="h-16 w-16 rounded-xl object-cover flex-shrink-0 border border-gray-200"
+                />
+                {% else %}
+                <div
+                    class="h-16 w-16 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+                    style="background: #1a0a3c"
+                >
+                    {{ branch.code|slice:":3"|upper }}
+                </div>
+                {% endif %}
+                <div>
+                    <h1
+                        class="text-2xl font-bold leading-tight"
+                        style="color: #2d1b5e"
+                    >
+                        {{ branch.name }}
+                    </h1>
+                    <p class="text-sm text-gray-500 mt-0.5 font-mono">
+                        {{ branch.code }}
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2 mt-2">
+                        {% if branch.is_active %}
+                        <span
+                            class="px-2.5 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700"
+                            >Active</span
+                        >
+                        {% else %}
+                        <span
+                            class="px-2.5 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700"
+                            >Inactive</span
+                        >
+                        {% endif %} {% if branch.branch_type %}
+                        <span
+                            class="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 capitalize"
+                        >
+                            {{ branch.get_branch_type_display }}
+                        </span>
+                        {% endif %} {% if branch.country %}
+                        <span
+                            class="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600"
+                        >
+                            {{ branch.country }}
+                        </span>
+                        {% endif %} {% if branch.has_own_board %}
+                        <span
+                            class="px-2.5 py-1 text-xs font-medium rounded-full"
+                            style="background: #e8f5d0; color: #5a8a3c"
+                        >
+                            Own Board
+                        </span>
+                        {% endif %}
+                    </div>
+                    <!-- Parent org / branch path -->
+                    <p class="text-xs text-gray-400 mt-2">
+                        {{ branch.organization.name }} {% if branch.parent_branch %} ·
+                        <a
+                            href="{% url 'agencies:branch_detail' branch.parent_branch.pk %}"
+                            class="hover:underline"
+                            style="color: #7dc143"
+                        >
+                            {{ branch.parent_branch.name }}
+                        </a>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right: Actions -->
+            {% if can_manage %}
+            <div class="flex flex-wrap items-center gap-2 flex-shrink-0">
+                <a
+                    href="{% url 'agencies:branch_update' branch.pk %}"
+                    class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                    style="background: #7dc143"
+                    onmouseover="this.style.backgroundColor = '#5a8a3c'"
+                    onmouseout="this.style.backgroundColor = '#7dc143'"
+                >
+                    Edit Branch
+                </a>
+                <a
+                    href="{% url 'agencies:manage_branch_members' branch.pk %}"
+                    class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                    style="background: #2d7a6e"
+                    onmouseover="this.style.backgroundColor = '#1a5e54'"
+                    onmouseout="this.style.backgroundColor = '#2d7a6e'"
+                >
+                    Manage Members
+                </a>
+                <a
+                    href="{% url 'agencies:committee_create' %}"
+                    class="px-4 py-2 rounded-lg text-sm font-medium border transition-colors duration-200"
+                    style="border-color: #1a0a3c; color: #1a0a3c"
+                    onmouseover="
+                        this.style.backgroundColor = '#1a0a3c';
+                        this.style.color = '#fff';
+                    "
+                    onmouseout="
+                        this.style.backgroundColor = 'transparent';
+                        this.style.color = '#1a0a3c';
+                    "
+                >
+                    Add Committee
+                </a>
+                {% if can_invite %}
+                <a
+                    href="{% url 'agencies:send_invitation' branch.pk %}"
+                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                    Invite User
+                </a>
+                {% endif %} {% if can_deactivate %}
+                <form
+                    method="post"
+                    action="{% url 'agencies:toggle_branch_active' branch.pk %}"
+                    onsubmit="
+                        return confirm(
+                            '{% if branch.is_active %}Deactivate this branch? Members will lose access until it is reactivated.{% else %}Reactivate this branch?{% endif %}',
+                        );
+                    "
+                >
+                    {% csrf_token %} {% if branch.is_active %}
+                    <button
+                        type="submit"
+                        class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                        style="background: #c0392b"
+                        onmouseover="this.style.backgroundColor = '#922b21'"
+                        onmouseout="this.style.backgroundColor = '#c0392b'"
+                    >
+                        Deactivate Branch
+                    </button>
+                    {% else %}
+                    <button
+                        type="submit"
+                        class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                        style="background: #7dc143"
+                        onmouseover="this.style.backgroundColor = '#5a8a3c'"
+                        onmouseout="this.style.backgroundColor = '#7dc143'"
+                    >
+                        Reactivate Branch
+                    </button>
+                    {% endif %}
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- User's own membership badge -->
+        {% if user_membership %}
+        <div class="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
+            <div
+                class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                style="background: #7dc143"
+            >
+                {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Your membership</p>
+                <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-sm font-medium" style="color: #2d1b5e">
+                        {{ user_membership.get_branch_role_display }}
+                    </span>
+                    {% if user_membership.is_primary %}
+                    <span
+                        class="px-2 py-0.5 text-xs rounded-full text-white"
+                        style="background: #7dc143"
+                    >
+                        Primary Branch
+                    </span>
+                    {% endif %} {% if user_membership.access_level %}
+                    <span
+                        class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500 capitalize"
+                    >
+                        {{ user_membership.access_level }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+            <div class="text-2xl font-bold" style="color: #2d1b5e">
+                {{ members.count }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">Members</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+            <div class="text-2xl font-bold" style="color: #2d1b5e">
+                {{ committees.count }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">Committees</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+            <div class="text-2xl font-bold" style="color: #2d1b5e">
+                {{ sub_branches.count }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">Sub-Branches</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+            <div class="text-2xl font-bold" style="color: #2d1b5e">
+                {{ pending_invitations.count }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">Pending Invites</div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Committees -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div
+                    class="px-6 py-4 border-b border-gray-100 flex items-center justify-between"
+                >
+                    <h2 class="text-base font-semibold" style="color: #2d1b5e">
+                        Committees
+                    </h2>
+                    {% if can_manage %}
+                    <a
+                        href="{% url 'agencies:committee_create' %}"
+                        class="flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
+                        style="color: #7dc143"
+                        onmouseover="this.style.backgroundColor = '#f0f9e8'"
+                        onmouseout="this.style.backgroundColor = 'transparent'"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 4v16m8-8H4"
+                            />
+                        </svg>
+                        Add
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for committee in committees %}
+                    <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <a
+                                        href="{% url 'agencies:committee_detail' committee.pk %}"
+                                        class="text-sm font-medium hover:underline"
+                                        style="color: #2d1b5e"
+                                    >
+                                        {{ committee.name }}
+                                    </a>
+                                    <div
+                                        class="flex items-center gap-1 flex-wrap"
+                                    >
+                                        <span
+                                            class="text-xs text-gray-400 capitalize"
+                                            >{{ committee.get_committee_type_display }}</span
+                                        >
+                                        {% if committee.is_confidential %}
+                                        <span
+                                            class="px-1.5 py-0.5 text-xs rounded bg-red-100 text-red-600"
+                                            >Confidential</span
+                                        >
+                                        {% endif %} {% if committee.quorum_required %}
+                                        <span
+                                            class="px-1.5 py-0.5 text-xs rounded bg-yellow-100 text-yellow-700"
+                                        >
+                                            Quorum req.
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if committee.description %}
+                                <p
+                                    class="text-xs text-gray-400 mt-0.5 truncate"
+                                >
+                                    {{ committee.description|truncatechars:80 }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-700"
+                                >
+                                    {{ committee.member_count }} member{{ committee.member_count|pluralize }}
+                                </span>
+                                {% if can_manage %}
+                                <a
+                                    href="{% url 'agencies:committee_update' committee.pk %}"
+                                    class="text-xs text-gray-400 hover:text-gray-600"
+                                >
+                                    Edit
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-8 text-center text-gray-400 text-sm">
+                        No committees yet. {% if can_manage %}
+                        <a
+                            href="{% url 'agencies:committee_create' %}"
+                            class="underline ml-1"
+                            style="color: #7dc143"
+                            >Create one</a
+                        >
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Sub-Branches -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h2 class="text-base font-semibold" style="color: #2d1b5e">
+                        Sub-Branches
+                    </h2>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for sub in sub_branches %}
+                    <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <a
+                                        href="{% url 'agencies:branch_detail' sub.pk %}"
+                                        class="text-sm font-medium hover:underline"
+                                        style="color: #2d1b5e"
+                                    >
+                                        {{ sub.name }}
+                                    </a>
+                                    <span
+                                        class="text-xs font-mono text-gray-400"
+                                        >{{ sub.code }}</span
+                                    >
+                                </div>
+                                <p class="text-xs text-gray-400">
+                                    {{ sub.country|default:"" }}{% if sub.branch_type %} · {{ sub.get_branch_type_display }}{% endif %}
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-700"
+                                >
+                                    {{ sub.member_count }} member{{ sub.member_count|pluralize }}
+                                </span>
+                                {% if sub.is_active %}
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700"
+                                    >Active</span
+                                >
+                                {% else %}
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700"
+                                    >Inactive</span
+                                >
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-8 text-center text-gray-400 text-sm">
+                        No sub-branches.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Your Committees -->
+            {% if user_committees %}
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h2 class="text-base font-semibold" style="color: #2d1b5e">
+                        Your Committees
+                    </h2>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for cm in user_committees %}
+                    <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <a
+                                    href="{% url 'agencies:committee_detail' cm.committee.pk %}"
+                                    class="text-sm font-medium hover:underline"
+                                    style="color: #2d1b5e"
+                                >
+                                    {{ cm.committee.name }}
+                                </a>
+                                <p class="text-xs text-gray-400 mt-0.5">
+                                    {{ cm.get_committee_role_display }}
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
+                                >
+                                    {{ cm.committee.get_committee_type_display }}
+                                </span>
+                                {% if cm.has_voting_rights %}
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700"
+                                >
+                                    Voting
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column -->
+        <div class="space-y-6">
+            <!-- Branch Details -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h2 class="text-base font-semibold" style="color: #2d1b5e">
+                        Branch Details
+                    </h2>
+                </div>
+                <dl class="px-6 py-4 space-y-3">
+                    <div class="flex justify-between">
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider"
+                        >
+                            Organisation
+                        </dt>
+                        <dd
+                            class="text-sm text-gray-700 font-medium text-right"
+                        >
+                            {{ branch.organization.name }}
+                        </dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider"
+                        >
+                            Status
+                        </dt>
+                        <dd
+                            class="text-sm text-gray-700 font-medium capitalize text-right"
+                        >
+                            {{ branch.get_status_display }}
+                        </dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider"
+                        >
+                            Type
+                        </dt>
+                        <dd
+                            class="text-sm text-gray-700 font-medium capitalize text-right"
+                        >
+                            {{ branch.get_branch_type_display }}
+                        </dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider"
+                        >
+                            Country
+                        </dt>
+                        <dd
+                            class="text-sm text-gray-700 font-medium text-right"
+                        >
+                            {{ branch.country }}{% if branch.city %}, {{ branch.city }}{% endif %}
+                        </dd>
+                    </div>
+                    {% if branch.timezone_name %}
+                    <div class="flex justify-between">
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider"
+                        >
+                            Timezone
+                        </dt>
+                        <dd
+                            class="text-sm text-gray-700 font-medium text-right"
+                        >
+                            {{ branch.timezone_name }}
+                        </dd>
+                    </div>
+                    {% endif %} {% if branch.max_users %}
+                    <div class="flex justify-between">
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider"
+                        >
+                            Capacity
+                        </dt>
+                        <dd
+                            class="text-sm text-gray-700 font-medium text-right"
+                        >
+                            {{ members.count }} / {{ branch.max_users }}
+                        </dd>
+                    </div>
+                    {% endif %} {% if branch.established_date %}
+                    <div class="flex justify-between">
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider"
+                        >
+                            Established
+                        </dt>
+                        <dd
+                            class="text-sm text-gray-700 font-medium text-right"
+                        >
+                            {{ branch.established_date|date:"M d, Y" }}
+                        </dd>
+                    </div>
+                    {% endif %} {% if branch.address %}
+                    <div>
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider mb-1"
+                        >
+                            Address
+                        </dt>
+                        <dd class="text-sm text-gray-700">
+                            {{ branch.address }}
+                        </dd>
+                    </div>
+                    {% endif %} {% if branch.email %}
+                    <div>
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider mb-1"
+                        >
+                            Email
+                        </dt>
+                        <dd class="text-sm">
+                            <a
+                                href="mailto:{{ branch.email }}"
+                                class="hover:underline"
+                                style="color: #7dc143"
+                            >
+                                {{ branch.email }}
+                            </a>
+                        </dd>
+                    </div>
+                    {% endif %} {% if branch.phone %}
+                    <div class="flex justify-between">
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider"
+                        >
+                            Phone
+                        </dt>
+                        <dd
+                            class="text-sm text-gray-700 font-medium text-right"
+                        >
+                            {{ branch.phone }}
+                        </dd>
+                    </div>
+                    {% endif %} {% if branch.website %}
+                    <div>
+                        <dt
+                            class="text-xs text-gray-400 uppercase tracking-wider mb-1"
+                        >
+                            Website
+                        </dt>
+                        <dd class="text-sm">
+                            <a
+                                href="{{ branch.website }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="hover:underline"
+                                style="color: #7dc143"
+                            >
+                                {{ branch.website }}
+                            </a>
+                        </dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+
+            <!-- Role Breakdown -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h2 class="text-base font-semibold" style="color: #2d1b5e">
+                        Role Breakdown
+                    </h2>
+                </div>
+                <div class="px-6 py-4 space-y-2">
+                    {% for rc in role_counts %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600 capitalize">
+                            {{ rc.branch_role|default:"Unknown" }}
+                        </span>
+                        <span
+                            class="px-2 py-0.5 text-xs rounded-full font-medium"
+                            style="background: #e8f5d0; color: #5a8a3c"
+                        >
+                            {{ rc.count }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="text-sm text-gray-400">No members yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Members -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div
+                    class="px-6 py-4 border-b border-gray-100 flex items-center justify-between"
+                >
+                    <h2 class="text-base font-semibold" style="color: #2d1b5e">
+                        Members
+                    </h2>
+                    {% if can_manage %}
+                    <a
+                        href="{% url 'agencies:manage_branch_members' branch.pk %}"
+                        class="text-xs font-medium hover:underline"
+                        style="color: #7dc143"
+                    >
+                        Manage
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for membership in members|slice:":20" %}
+                    <div class="px-6 py-3 flex items-center gap-3">
+                        {% if membership.user.profile_picture %}
+                        <img
+                            src="{{ membership.user.profile_picture.url }}"
+                            alt="{{ membership.user.get_full_name }}"
+                            class="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                        />
+                        {% else %}
+                        <div
+                            class="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                            style="background: #7dc143"
+                        >
+                            {{ membership.user.first_name|slice:":1" }}{{ membership.user.last_name|slice:":1" }}
+                        </div>
+                        {% endif %}
+                        <div class="flex-1 min-w-0">
+                            <p
+                                class="text-sm font-medium text-gray-800 truncate"
+                            >
+                                {{ membership.user.get_full_name }}
+                            </p>
+                            <p class="text-xs text-gray-400 truncate">
+                                {{ membership.get_branch_role_display }}
+                            </p>
+                        </div>
+                        {% if membership.is_primary %}
+                        <span
+                            class="px-2 py-0.5 text-xs rounded-full text-white flex-shrink-0"
+                            style="background: #7dc143"
+                            >Primary</span
+                        >
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-8 text-center text-gray-400 text-sm">
+                        No members yet.
+                    </div>
+                    {% endfor %} {% if members.count > 20 %}
+                    <div class="px-6 py-3 text-center">
+                        <a
+                            href="{% url 'agencies:manage_branch_members' branch.pk %}"
+                            class="text-sm hover:underline"
+                            style="color: #7dc143"
+                        >
+                            View all {{ members.count }} members
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Pending Invitations -->
+            {% if can_manage and pending_invitations %}
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div
+                    class="px-6 py-4 border-b border-gray-100 flex items-center justify-between"
+                >
+                    <h2 class="text-base font-semibold" style="color: #2d1b5e">
+                        Pending Invitations
+                    </h2>
+                    <a
+                        href="{% url 'agencies:invitation_list' branch.pk %}"
+                        class="text-xs font-medium hover:underline"
+                        style="color: #7dc143"
+                    >
+                        View all
+                    </a>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for inv in pending_invitations %}
+                    <div
+                        class="px-6 py-3 flex items-center justify-between gap-3"
+                    >
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-gray-700 truncate">
+                                {{ inv.invited_email }}
+                            </p>
+                            <p class="text-xs text-gray-400">
+                                {{ inv.intended_role }} · {{ inv.created_at|date:"M d, Y" }}
+                            </p>
+                        </div>
+                        <form
+                            method="post"
+                            action="{% url 'agencies:revoke_invitation' inv.pk %}"
+                        >
+                            {% csrf_token %}
+                            <button
+                                type="submit"
+                                class="text-xs text-red-500 hover:text-red-700 hover:underline"
+                            >
+                                Revoke
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

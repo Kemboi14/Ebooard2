@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reminder: Your Signature is Required</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #e8f5d0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(26,10,60,0.10); }
+    .header { background: #1a0a3c; padding: 32px 40px 24px; text-align: center; }
+    .header h1 { color: #ffffff; font-size: 20px; font-weight: 700; margin: 0 0 6px; }
+    .header p { color: #7dc143; font-size: 13px; margin: 0; }
+    .accent-bar { background: #f59e0b; height: 4px; }
+    .body { padding: 36px 40px; }
+    .greeting { font-size: 15px; color: #1a0a3c; font-weight: 600; margin-bottom: 14px; }
+    .text { font-size: 14px; color: #374151; line-height: 1.7; margin-bottom: 16px; }
+    .reminder-badge { display: inline-block; background: #fff7ed; border: 1px solid #fdba74; color: #9a3412; font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px; margin-bottom: 20px; }
+    .doc-card { background: #f9fafb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 18px 20px; margin: 20px 0; }
+    .doc-card .doc-title { font-size: 16px; font-weight: 700; color: #1a0a3c; margin-bottom: 6px; }
+    .doc-card .doc-meta { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+    .doc-card .doc-meta strong { color: #374151; }
+    .cta-wrapper { text-align: center; margin: 28px 0; }
+    .cta-btn { display: inline-block; background: #7dc143; color: #ffffff; font-size: 15px; font-weight: 700; padding: 14px 36px; border-radius: 8px; text-decoration: none; letter-spacing: 0.2px; }
+    .deadline-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px 18px; margin: 16px 0; font-size: 13px; color: #991b1b; }
+    .deadline-box strong { color: #7f1d1d; }
+    .link-fallback { font-size: 12px; color: #6b7280; word-break: break-all; margin-top: 8px; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+    .footer { background: #1a0a3c; padding: 22px 40px; text-align: center; }
+    .footer p { font-size: 12px; color: #9ca3af; margin: 4px 0; }
+    .footer strong { color: #7dc143; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <h1>⏰ Signature Reminder</h1>
+      <p>Enwealth E-Board — Your action is still required</p>
+    </div>
+    <div class="accent-bar"></div>
+
+    <!-- Body -->
+    <div class="body">
+      <p class="greeting">Dear {{ signer_name }},</p>
+
+      <div class="reminder-badge">Reminder #{{ reminder_count }}</div>
+
+      <p class="text">
+        This is a friendly reminder that your electronic signature is still pending
+        on the document below.
+        {% if days_since_invite %}
+          You were first invited <strong>{{ days_since_invite }} day{{ days_since_invite|pluralize }}</strong> ago.
+        {% endif %}
+      </p>
+
+      <!-- Document card -->
+      <div class="doc-card">
+        <div class="doc-title">{{ document_title }}</div>
+        <div class="doc-meta"><strong>Reference:</strong> {{ document_reference }}</div>
+        {% if expires_at %}
+        <div class="doc-meta"><strong>Signing deadline:</strong> {{ expires_at|date:"d M Y H:i" }} UTC</div>
+        {% endif %}
+      </div>
+
+      {% if expires_at %}
+      <div class="deadline-box">
+        ⚠ <strong>Deadline approaching:</strong> This document must be signed by
+        <strong>{{ expires_at|date:"d M Y" }}</strong>. Please sign as soon as possible
+        to avoid delays.
+      </div>
+      {% endif %}
+
+      <!-- CTA -->
+      <div class="cta-wrapper">
+        <a href="{{ signing_url }}" class="cta-btn">Sign Document Now</a>
+      </div>
+
+      <hr class="divider">
+
+      <p class="text" style="font-size:13px;">
+        If the button above does not work, copy and paste the link below into your browser:
+      </p>
+      <p class="link-fallback">{{ signing_url }}</p>
+
+      <hr class="divider">
+
+      <p class="text" style="font-size:12px;color:#6b7280;">
+        If you have already signed this document, please disregard this reminder.
+        If you have questions, contact the document owner directly.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p><strong>{{ platform_name }}</strong></p>
+      <p>Legally traceable electronic signatures for corporate governance</p>
+      <p style="margin-top:8px;font-size:11px;color:#6b7280;">
+        This is an automated reminder. The signing link is unique to you — do not forward it.
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>

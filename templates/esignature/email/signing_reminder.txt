@@ -1,0 +1,39 @@
+Enwealth E-Board — Signature Reminder
+======================================
+
+Dear {{ signer_name }},
+
+This is a friendly reminder that your electronic signature is still required
+on the document below.{% if days_since_invite %} You were first notified
+{{ days_since_invite }} day{{ days_since_invite|pluralize }} ago.{% endif %}
+
+DOCUMENT DETAILS
+----------------
+Title     : {{ document_title }}
+Reference : {{ document_reference }}{% if expires_at %}
+Deadline  : {{ expires_at|date:"d M Y H:i" }} UTC{% endif %}
+
+This is reminder #{{ reminder_count }}.
+
+SIGNING LINK
+------------
+{{ signing_url }}
+
+Click the link above to review and sign the document. The link is unique
+to you — please do not forward it to others.
+
+{% if expires_at %}
+IMPORTANT — DEADLINE APPROACHING
+---------------------------------
+This document has a signing deadline of {{ expires_at|date:"d M Y" }}.
+Please sign as soon as possible to avoid delays.
+
+{% endif %}
+If you have already signed this document, please disregard this reminder.
+
+If you have questions or believe you received this in error, please reply
+to this email or contact the document owner directly.
+
+--
+{{ platform_name }}
+Legally traceable electronic signatures for corporate governance

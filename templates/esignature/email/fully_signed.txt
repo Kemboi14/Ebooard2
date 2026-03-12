@@ -1,0 +1,41 @@
+Enwealth E-Board — Document Fully Signed
+=========================================
+
+Dear {{ recipient_name }},
+
+Great news! The document below has been fully signed by all required signers
+and is now ready for download.
+
+DOCUMENT DETAILS
+----------------
+Title      : {{ document_title }}
+Reference  : {{ document_reference }}
+Finalised  : {{ finalised_at|date:"d M Y H:i" }} UTC
+
+SIGNERS
+-------
+{% for signer in signers %}{{ forloop.counter }}. {{ signer.name }} <{{ signer.email }}>
+   Role     : {{ signer.role }}
+   Signed   : {% if signer.signed_at %}{{ signer.signed_at|date:"d M Y H:i" }} UTC{% else %}—{% endif %}
+{% endfor %}
+
+DOWNLOAD
+--------
+The signed document (with embedded signatures and signing manifest) is
+available for download at:
+
+{{ detail_url }}
+
+The signed file includes:
+  - All embedded signature stamps with signer details
+  - A signing manifest page listing all signers, timestamps, and IP addresses
+  - SHA-256 integrity hashes for tamper detection
+
+INTEGRITY VERIFICATION
+----------------------
+You can independently verify the authenticity of this document at any time
+by checking its SHA-256 hash on the document detail page.
+
+--
+{{ platform_name }}
+Legally traceable electronic signatures for corporate governance

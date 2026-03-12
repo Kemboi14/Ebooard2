@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signature Rejected</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #e8f5d0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(26,10,60,0.10); }
+    .header { background: #1a0a3c; padding: 36px 40px 28px; text-align: center; }
+    .header h1 { color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.3px; }
+    .header p { color: #7dc143; font-size: 13px; margin: 0; }
+    .accent-bar { background: #ef4444; height: 4px; }
+    .body { padding: 36px 40px; }
+    .greeting { font-size: 16px; color: #1a0a3c; font-weight: 600; margin-bottom: 12px; }
+    .text { font-size: 14px; color: #374151; line-height: 1.7; margin-bottom: 16px; }
+    .alert-banner { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px 24px; text-align: center; margin: 24px 0; }
+    .alert-banner .icon { font-size: 36px; margin-bottom: 8px; }
+    .alert-banner .label { font-size: 17px; font-weight: 700; color: #991b1b; margin-bottom: 4px; }
+    .alert-banner .sub { font-size: 13px; color: #b91c1c; }
+    .doc-card { background: #f3f4f6; border-left: 4px solid #ef4444; border-radius: 6px; padding: 18px 20px; margin: 20px 0; }
+    .doc-card .doc-title { font-size: 16px; font-weight: 700; color: #1a0a3c; margin-bottom: 6px; }
+    .doc-card .doc-meta { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+    .doc-card .doc-meta strong { color: #374151; }
+    .rejection-box { background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 18px 22px; margin: 20px 0; }
+    .rejection-box .rej-header { font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .rejection-box .rej-name { font-size: 14px; font-weight: 600; color: #7c2d12; margin-bottom: 4px; }
+    .rejection-box .rej-email { font-size: 12px; color: #9a3412; margin-bottom: 10px; }
+    .rejection-box .rej-reason-label { font-size: 12px; font-weight: 700; color: #9a3412; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .rejection-box .rej-reason { font-size: 14px; color: #7c2d12; line-height: 1.6; background: #fff; border: 1px solid #fed7aa; border-radius: 4px; padding: 12px 14px; }
+    .steps-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 18px 22px; margin: 20px 0; }
+    .steps-box h4 { font-size: 13px; font-weight: 700; color: #0c4a6e; margin: 0 0 12px; }
+    .steps { margin: 0; padding: 0; list-style: none; }
+    .steps li { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 13px; color: #374151; }
+    .step-num { width: 22px; height: 22px; background: #0ea5e9; color: #fff; font-size: 11px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .cta-wrapper { text-align: center; margin: 28px 0; }
+    .cta-btn { display: inline-block; background: #7dc143; color: #ffffff; font-size: 15px; font-weight: 700; padding: 14px 36px; border-radius: 8px; text-decoration: none; letter-spacing: 0.2px; }
+    .cta-btn:hover { background: #5a8a3c; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
+    .footer { background: #1a0a3c; padding: 24px 40px; text-align: center; }
+    .footer p { font-size: 12px; color: #9ca3af; margin: 4px 0; }
+    .footer strong { color: #7dc143; }
+    .footer a { color: #7dc143; text-decoration: none; }
+    .meta-row { display: flex; gap: 6px; margin-bottom: 4px; font-size: 13px; }
+    .meta-label { color: #9ca3af; min-width: 90px; font-weight: 600; }
+    .meta-value { color: #374151; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <h1>Signature Rejected</h1>
+      <p>Enwealth E-Board — Electronic Signature Platform</p>
+    </div>
+    <div class="accent-bar"></div>
+
+    <!-- Body -->
+    <div class="body">
+      <p class="greeting">Dear {{ uploaded_by_name|default:"Document Owner" }},</p>
+
+      <!-- Alert banner -->
+      <div class="alert-banner">
+        <div class="icon">❌</div>
+        <div class="label">A signer has rejected this document</div>
+        <div class="sub">Rejected on {{ rejected_at|date:"d M Y \a\t H:i" }} UTC</div>
+      </div>
+
+      <p class="text">
+        We are writing to inform you that <strong>{{ rejector_name }}</strong> has
+        rejected their signature on the document below. The document status has been
+        updated to <strong>Rejected</strong> and no further signatures can be collected
+        until the issue is resolved.
+      </p>
+
+      <!-- Document card -->
+      <div class="doc-card">
+        <div class="doc-title">{{ document_title }}</div>
+        <div class="doc-meta"><strong>Reference:</strong> {{ document_reference }}</div>
+        <div class="doc-meta"><strong>Rejected at:</strong> {{ rejected_at|date:"d M Y H:i" }} UTC</div>
+      </div>
+
+      <!-- Rejection details -->
+      <div class="rejection-box">
+        <div class="rej-header">
+          ⚠ Rejection Details
+        </div>
+        <div class="rej-name">{{ rejector_name }}</div>
+        <div class="rej-email">{{ rejector_email }}</div>
+        <div class="rej-reason-label">Reason given:</div>
+        <div class="rej-reason">
+          {% if rejection_reason %}
+            {{ rejection_reason }}
+          {% else %}
+            <em style="color:#9ca3af;">No reason was provided.</em>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Next steps -->
+      <div class="steps-box">
+        <h4>What you can do next:</h4>
+        <ul class="steps">
+          <li>
+            <span class="step-num">1</span>
+            <span>Review the rejection reason above and assess whether the document needs to be revised.</span>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <span>
+              If appropriate, contact <strong>{{ rejector_name }}</strong> directly at
+              <a href="mailto:{{ rejector_email }}" style="color:#0ea5e9;">{{ rejector_email }}</a>
+              to discuss their concerns.
+            </span>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <span>Upload a revised version of the document if required.</span>
+          </li>
+          <li>
+            <span class="step-num">4</span>
+            <span>Reopen the document and re-invite signers once the issues are resolved.</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-wrapper">
+        <a href="{{ detail_url }}" class="cta-btn">View Document &amp; Manage</a>
+      </div>
+
+      <hr class="divider">
+
+      <p class="text" style="font-size:12px;color:#6b7280;">
+        If the button above does not work, visit:<br>
+        <a href="{{ detail_url }}" style="color:#7dc143;word-break:break-all;">{{ detail_url }}</a>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p><strong>{{ platform_name }}</strong></p>
+      <p>Legally traceable electronic signatures for corporate governance</p>
+      <p style="margin-top:10px;">
+        <a href="{{ detail_url }}">View Document Details</a>
+      </p>
+      <p style="margin-top:8px;font-size:11px;color:#6b7280;">
+        This is an automated notification from the {{ platform_name }} platform.
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>

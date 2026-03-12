@@ -1,0 +1,370 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Manage Members — {{ branch.name }}{% endblock %}
+
+{% block page_title %}Manage Members — {{ branch.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
+    <a href="{% url 'agencies:agency_dashboard' %}" class="hover:underline" style="color:#7dc143;">Agency Overview</a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'agencies:branch_list' %}" class="hover:underline" style="color:#7dc143;">Branches</a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'agencies:branch_detail' branch.pk %}" class="hover:underline" style="color:#7dc143;">
+      {{ branch.name }}
+    </a>
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-700 font-medium">Manage Members</span>
+  </nav>
+
+  <!-- Page header -->
+  <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold" style="color:#2d1b5e;">Manage Members</h1>
+      <p class="text-gray-500 text-sm mt-1">
+        <span class="font-medium" style="color:#2d1b5e;">{{ branch.name }}</span>
+        &mdash;
+        {{ active_count }} active member{{ active_count|pluralize }}
+        {% if branch.max_users %}
+          / {{ branch.max_users }} max
+        {% endif %}
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="{% url 'agencies:send_invitation' branch.pk %}"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+         style="background:#2d7a6e;"
+         onmouseover="this.style.backgroundColor='#1a5e54'"
+         onmouseout="this.style.backgroundColor='#2d7a6e'">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        Invite by Email
+      </a>
+      <a href="{% url 'agencies:invitation_list' branch.pk %}"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+        View Invitations
+      </a>
+    </div>
+  </div>
+
+  <!-- Capacity bar -->
+  {% if branch.max_users %}
+  <div class="bg-white rounded-xl shadow-sm p-5 mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-medium text-gray-700">Member Capacity</span>
+      <span class="text-sm font-semibold" style="color:#1a0a3c;">
+        {{ active_count }} / {{ branch.max_users }}
+      </span>
+    </div>
+    <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+      <div class="h-2.5 rounded-full transition-all duration-500"
+           style="width: {% widthratio active_count branch.max_users 100 %}%;
+                  max-width: 100%;
+                  background: {% if active_count >= branch.max_users %}#ef4444{% elif active_count|add:'0' >= branch.max_users|add:'-3' %}#f59e0b{% else %}#7dc143{% endif %};">
+      </div>
+    </div>
+    {% if active_count >= branch.max_users %}
+    <p class="mt-2 text-xs text-red-600 font-medium">
+      Branch has reached its maximum capacity. Remove or deactivate a member before adding new ones.
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+    <!-- LEFT: Add member form -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden sticky top-6">
+
+        <div class="px-6 py-4 border-b border-gray-100"
+             style="background:linear-gradient(135deg,#1a0a3c 0%,#2d1b5e 100%);">
+          <h2 class="text-white font-semibold text-base flex items-center gap-2">
+            <svg class="w-4 h-4" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            Add Member
+          </h2>
+          <p class="text-purple-300 text-xs mt-0.5">Assign an existing user to this branch.</p>
+        </div>
+
+        <form method="post" class="px-6 py-5 space-y-4">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="p-3 rounded-lg bg-red-50 border border-red-200">
+            {% for error in form.non_field_errors %}
+            <p class="text-sm text-red-700">{{ error }}</p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- User -->
+          <div>
+            <label for="{{ form.user.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              User <span class="text-red-500">*</span>
+            </label>
+            {{ form.user }}
+            {% if form.user.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.user.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Branch Role -->
+          <div>
+            <label for="{{ form.branch_role.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Branch Role <span class="text-red-500">*</span>
+            </label>
+            {{ form.branch_role }}
+            {% if form.branch_role.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.branch_role.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Access Level -->
+          {% if form.access_level %}
+          <div>
+            <label for="{{ form.access_level.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Access Level
+            </label>
+            {{ form.access_level }}
+            {% if form.access_level.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.access_level.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <!-- Term Dates -->
+          {% if form.term_start %}
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="{{ form.term_start.id_for_label }}"
+                     class="block text-sm font-medium text-gray-700 mb-1">
+                Term Start
+              </label>
+              {{ form.term_start }}
+              {% if form.term_start.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.term_start.errors|join:", " }}</p>
+              {% endif %}
+            </div>
+            <div>
+              <label for="{{ form.term_end.id_for_label }}"
+                     class="block text-sm font-medium text-gray-700 mb-1">
+                Term End
+              </label>
+              {{ form.term_end }}
+              {% if form.term_end.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.term_end.errors|join:", " }}</p>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Is Primary -->
+          {% if form.is_primary %}
+          <div class="flex items-center gap-2">
+            {{ form.is_primary }}
+            <label for="{{ form.is_primary.id_for_label }}"
+                   class="text-sm text-gray-700 cursor-pointer select-none">
+              Set as user's primary branch
+            </label>
+          </div>
+          {% endif %}
+
+          <!-- Notes -->
+          {% if form.notes %}
+          <div>
+            <label for="{{ form.notes.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Notes
+            </label>
+            {{ form.notes }}
+          </div>
+          {% endif %}
+
+          <button type="submit"
+                  class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                  style="background:#7dc143;"
+                  onmouseover="this.style.backgroundColor='#5a8a3c'"
+                  onmouseout="this.style.backgroundColor='#7dc143'"
+                  {% if branch.max_users and active_count >= branch.max_users %}disabled style="background:#9ca3af;cursor:not-allowed;"{% endif %}>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            Add to Branch
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- RIGHT: Members table -->
+    <div class="lg:col-span-3">
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 class="text-base font-semibold" style="color:#2d1b5e;">
+            Current Members
+            <span class="ml-1 text-sm font-normal text-gray-400">({{ memberships.count }})</span>
+          </h2>
+          <!-- Live search -->
+          <div class="relative">
+            <input type="text"
+                   id="memberSearch"
+                   placeholder="Filter members…"
+                   class="pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 w-44"
+                   oninput="filterMembers(this.value)">
+            <svg class="absolute left-2.5 top-2 w-4 h-4 text-gray-400 pointer-events-none"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+        </div>
+
+        <div id="membersTable">
+          {% if memberships %}
+          <div class="divide-y divide-gray-100">
+            {% for membership in memberships %}
+            <div class="member-row flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors"
+                 data-name="{{ membership.user.get_full_name|lower }}"
+                 data-email="{{ membership.user.email|lower }}"
+                 data-role="{{ membership.branch_role|lower }}">
+
+              <!-- Avatar -->
+              {% if membership.user.profile_photo %}
+                <img src="{{ membership.user.profile_photo.url }}"
+                     class="h-10 w-10 rounded-full object-cover flex-shrink-0 {% if not membership.is_active %}grayscale opacity-50{% endif %}">
+              {% else %}
+                <div class="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0
+                            {% if not membership.is_active %}opacity-50{% endif %}"
+                     style="background:{% if membership.is_active %}#7dc143{% else %}#9ca3af{% endif %};">
+                  {{ membership.user.first_name|slice:":1" }}{{ membership.user.last_name|slice:":1" }}
+                </div>
+              {% endif %}
+
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate {% if not membership.is_active %}text-gray-400{% else %}text-gray-900{% endif %}">
+                  {{ membership.user.get_full_name }}
+                </p>
+                <p class="text-xs text-gray-400 truncate">{{ membership.user.email }}</p>
+                <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 capitalize">
+                    {{ membership.get_branch_role_display }}
+                  </span>
+                  {% if membership.is_primary %}
+                  <span class="px-2 py-0.5 text-xs rounded-full font-medium" style="background:#e8f5d0;color:#5a8a3c;">
+                    Primary
+                  </span>
+                  {% endif %}
+                  {% if membership.access_level %}
+                  <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500 capitalize">
+                    {{ membership.access_level }}
+                  </span>
+                  {% endif %}
+                </div>
+                {% if membership.term_start or membership.term_end %}
+                <p class="text-xs text-gray-400 mt-0.5">
+                  Term:
+                  {% if membership.term_start %}{{ membership.term_start|date:"M d, Y" }}{% endif %}
+                  {% if membership.term_end %}– {{ membership.term_end|date:"M d, Y" }}{% endif %}
+                </p>
+                {% endif %}
+              </div>
+
+              <!-- Status badge -->
+              <div class="flex-shrink-0">
+                {% if membership.is_active %}
+                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">Active</span>
+                {% else %}
+                <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-600 font-medium">Inactive</span>
+                {% endif %}
+              </div>
+
+              <!-- Actions -->
+              <div class="flex-shrink-0">
+                <form method="post"
+                      action="{% url 'agencies:toggle_branch_membership' membership.pk %}"
+                      class="inline">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors duration-200
+                                 {% if membership.is_active %}
+                                   border-red-300 text-red-600 hover:bg-red-50
+                                 {% else %}
+                                   border-green-300 text-green-600 hover:bg-green-50
+                                 {% endif %}"
+                          onclick="return confirm('{% if membership.is_active %}Deactivate{% else %}Activate{% endif %} {{ membership.user.get_full_name }}\'s membership?')">
+                    {% if membership.is_active %}Deactivate{% else %}Activate{% endif %}
+                  </button>
+                </form>
+              </div>
+
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- No-results placeholder (hidden by default, shown by JS) -->
+          <div id="noMembersFound" class="hidden px-6 py-10 text-center text-gray-400 text-sm">
+            No members match your search.
+          </div>
+
+          {% else %}
+          <div class="px-6 py-16 text-center">
+            <div class="h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-4"
+                 style="background:#e8f5d0;">
+              <svg class="w-7 h-7" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+            <h3 class="text-base font-semibold mb-1" style="color:#2d1b5e;">No members yet</h3>
+            <p class="text-gray-400 text-sm">Add the first member using the form on the left.</p>
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function filterMembers(query) {
+  const q = query.toLowerCase().trim();
+  const rows = document.querySelectorAll('.member-row');
+  let visible = 0;
+
+  rows.forEach(function(row) {
+    const name  = row.dataset.name  || '';
+    const email = row.dataset.email || '';
+    const role  = row.dataset.role  || '';
+    const match = !q || name.includes(q) || email.includes(q) || role.includes(q);
+    row.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+
+  const noResults = document.getElementById('noMembersFound');
+  if (noResults) {
+    noResults.classList.toggle('hidden', visible > 0 || rows.length === 0);
+  }
+}
+</script>
+{% endblock %}

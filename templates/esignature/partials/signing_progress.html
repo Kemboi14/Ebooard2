@@ -1,0 +1,240 @@
+{% load static %}
+{# ─── partials/signing_progress.html ────────────────────────────────────────
+   Rendered inline on the document detail page AND polled via HTMX every 15 s.
+   Context variables required:
+     document  — SignableDocument instance
+#}
+
+<div class="space-y-3">
+
+  {# ── Completion Bar ── #}
+  <div class="flex items-center justify-between mb-1">
+    <p class="text-xs font-semibold text-gray-500">
+      Signing Progress
+    </p>
+    <span class="text-xs font-bold"
+          style="color:
+            {% if document.status == 'fully_signed' %}#15803d
+            {% elif document.status == 'rejected' %}#991b1b
+            {% elif document.status == 'expired' or document.status == 'cancelled' %}#64748b
+            {% else %}#1a0a3c{% endif %};">
+      {{ document.signed_count }} / {{ document.total_signers }}
+      signer{{ document.total_signers|pluralize }} &bull;
+      {{ document.completion_percentage|floatformat:0 }}%
+    </span>
+  </div>
+
+  {# Progress track #}
+  <div style="height:8px; background:#e5e7eb; border-radius:999px; overflow:hidden;">
+    <div style="
+      height:100%;
+      border-radius:999px;
+      width:{{ document.completion_percentage|floatformat:0 }}%;
+      transition: width 0.5s ease;
+      background:
+        {% if document.status == 'fully_signed' %}linear-gradient(90deg,#4ade80,#16a34a)
+        {% elif document.status == 'rejected' %}linear-gradient(90deg,#f87171,#dc2626)
+        {% elif document.status == 'expired' or document.status == 'cancelled' %}#94a3b8
+        {% else %}linear-gradient(90deg,#7dc143,#5a8a3c){% endif %};
+    "></div>
+  </div>
+
+  {# ── Signer step indicators ── #}
+  {% with signers=document.signers.all %}
+  {% if signers %}
+  <div class="flex items-center gap-1.5 flex-wrap mt-1">
+    {% for s in signers %}
+    <div class="flex items-center gap-1">
+
+      {# Step circle #}
+      <div style="
+        width:28px; height:28px;
+        border-radius:50%;
+        display:flex; align-items:center; justify-content:center;
+        font-size:11px; font-weight:700;
+        flex-shrink:0;
+        {% if s.status == 'signed' %}
+          background:linear-gradient(135deg,#4ade80,#16a34a); color:#fff;
+        {% elif s.status == 'rejected' %}
+          background:linear-gradient(135deg,#f87171,#dc2626); color:#fff;
+        {% elif s.status == 'expired' %}
+          background:#94a3b8; color:#fff;
+        {% elif s.status in 'viewed,otp_verified' %}
+          background:#60a5fa; color:#fff;
+        {% elif s.status == 'notified' %}
+          background:#fde68a; color:#92400e;
+        {% else %}
+          background:#f3f4f6; color:#9ca3af; border:2px solid #e5e7eb;
+        {% endif %}
+        " title="{{ s.display_name }} — {{ s.get_status_display }}">
+
+        {% if s.status == 'signed' %}
+        <svg style="width:14px;height:14px;" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clip-rule="evenodd"/>
+        </svg>
+        {% elif s.status == 'rejected' %}
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+        {% else %}
+        {{ s.signing_order }}
+        {% endif %}
+      </div>
+
+      {# Connector line between steps (not after last) #}
+      {% if not forloop.last %}
+      <div style="
+        height:2px; width:18px; border-radius:1px; flex-shrink:0;
+        background:
+          {% if s.status == 'signed' %}#4ade80
+          {% else %}#e5e7eb{% endif %};
+      "></div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ── Signer names row (tooltip-style) ── #}
+  <div class="flex flex-wrap gap-2 mt-2">
+    {% for s in signers %}
+    <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium
+      {% if s.status == 'signed' %}bg-green-50 text-green-700
+      {% elif s.status == 'rejected' %}bg-red-50 text-red-700
+      {% elif s.status == 'expired' %}bg-gray-100 text-gray-400
+      {% elif s.status in 'viewed,otp_verified' %}bg-blue-50 text-blue-700
+      {% elif s.status == 'notified' %}bg-amber-50 text-amber-700
+      {% else %}bg-gray-50 text-gray-500{% endif %}">
+
+      {# Mini status dot #}
+      <span style="
+        width:7px; height:7px; border-radius:50%; flex-shrink:0;
+        background:
+          {% if s.status == 'signed' %}#4ade80
+          {% elif s.status == 'rejected' %}#f87171
+          {% elif s.status == 'expired' %}#94a3b8
+          {% elif s.status in 'viewed,otp_verified' %}#60a5fa
+          {% elif s.status == 'notified' %}#fbbf24
+          {% else %}#d1d5db{% endif %};
+      "></span>
+
+      <span class="max-w-[120px] truncate" title="{{ s.display_name }}">
+        {{ s.display_name }}
+      </span>
+
+      <span class="opacity-60 ml-0.5">
+        {% if s.status == 'signed' and s.signed_at %}
+          {{ s.signed_at|date:"M j" }}
+        {% else %}
+          #{{ s.signing_order }}
+        {% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  {# ── Status message ── #}
+  <div class="flex items-center gap-2 mt-2">
+    {% if document.status == 'fully_signed' %}
+    <div class="flex items-center gap-1.5 text-xs font-semibold text-green-700
+                bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg">
+      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"/>
+      </svg>
+      All required signers have signed &bull; Finalised {{ document.finalised_at|date:"M j, Y" }}
+    </div>
+
+    {% elif document.status == 'rejected' %}
+    <div class="flex items-center gap-1.5 text-xs font-semibold text-red-700
+                bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg">
+      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+      </svg>
+      Signature rejected — document cannot be finalised
+    </div>
+
+    {% elif document.status == 'expired' %}
+    <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-600
+                bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
+      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Signing deadline has passed
+    </div>
+
+    {% elif document.status == 'cancelled' %}
+    <div class="flex items-center gap-1.5 text-xs font-semibold text-pink-700
+                bg-pink-50 border border-pink-200 px-3 py-1.5 rounded-lg">
+      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+      Document cancelled
+    </div>
+
+    {% elif document.status == 'draft' %}
+    <div class="flex items-center gap-1.5 text-xs font-medium text-gray-500
+                bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg">
+      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+      Draft — publish to begin signing
+    </div>
+
+    {% else %}
+    {# In progress / pending — show next signer hint #}
+    {% with nxt=document.next_signer %}
+    {% if nxt %}
+    <div class="flex items-center gap-1.5 text-xs font-medium text-amber-700
+                bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Awaiting <strong class="ml-0.5">{{ nxt.display_name }}</strong>
+      &nbsp;(signer #{{ nxt.signing_order }})
+      {% if nxt.notified_at %}
+        &bull; notified {{ nxt.notified_at|date:"M j" }}
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="flex items-center gap-1.5 text-xs font-medium text-blue-700
+                bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
+      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+      Signing in progress
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% endif %}
+
+    {# Expiry warning (only if not already terminal) #}
+    {% if document.expires_at and document.status not in 'fully_signed,rejected,expired,cancelled' %}
+    <div class="flex items-center gap-1 text-xs font-medium ml-auto
+      {% if document.is_expired %}text-red-600{% else %}text-gray-400{% endif %}">
+      <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      {% if document.is_expired %}
+      Expired {{ document.expires_at|date:"M j, Y" }}
+      {% else %}
+      Deadline {{ document.expires_at|date:"M j, Y" }}
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>

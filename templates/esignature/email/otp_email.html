@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Signing Verification Code</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #e8f5d0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    .wrapper { max-width: 560px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(26,10,60,0.10); }
+    .header { background: #1a0a3c; padding: 32px 40px 24px; text-align: center; }
+    .header h1 { color: #ffffff; font-size: 20px; font-weight: 700; margin: 0 0 6px; }
+    .header p { color: #7dc143; font-size: 13px; margin: 0; }
+    .accent-bar { background: #7dc143; height: 4px; }
+    .body { padding: 36px 40px; }
+    .greeting { font-size: 15px; color: #1a0a3c; font-weight: 600; margin-bottom: 14px; }
+    .text { font-size: 14px; color: #374151; line-height: 1.7; margin-bottom: 16px; }
+    .otp-box { text-align: center; margin: 32px 0; }
+    .otp-code { display: inline-block; background: #1a0a3c; color: #7dc143; font-size: 42px; font-weight: 800; letter-spacing: 12px; padding: 20px 36px; border-radius: 12px; font-family: 'Courier New', Courier, monospace; border: 3px solid #7dc143; }
+    .otp-label { font-size: 12px; color: #6b7280; margin-top: 10px; }
+    .timer-badge { display: inline-block; background: #fff7ed; border: 1px solid #fdba74; color: #9a3412; font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 20px; margin: 8px 0 24px; }
+    .doc-card { background: #f9fafb; border-left: 4px solid #7dc143; border-radius: 6px; padding: 16px 18px; margin: 20px 0; }
+    .doc-card .doc-title { font-size: 14px; font-weight: 700; color: #1a0a3c; margin-bottom: 4px; }
+    .doc-card .doc-ref { font-size: 12px; color: #6b7280; }
+    .security-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 14px 18px; margin: 20px 0; }
+    .security-box p { font-size: 13px; color: #991b1b; margin: 4px 0; }
+    .security-box strong { color: #7f1d1d; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+    .footer { background: #1a0a3c; padding: 22px 40px; text-align: center; }
+    .footer p { font-size: 12px; color: #9ca3af; margin: 4px 0; }
+    .footer strong { color: #7dc143; }
+    .steps { margin: 16px 0; padding: 0; list-style: none; }
+    .steps li { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 13px; color: #374151; }
+    .step-num { width: 22px; height: 22px; background: #7dc143; color: #fff; font-size: 11px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <h1>🔐 Signing Verification Code</h1>
+      <p>Enwealth E-Board — Identity Verification</p>
+    </div>
+    <div class="accent-bar"></div>
+
+    <!-- Body -->
+    <div class="body">
+      <p class="greeting">Dear {{ signer_name }},</p>
+
+      <p class="text">
+        You requested a verification code to sign a document on the
+        <strong>Enwealth E-Board</strong> platform. Enter</strong> the code below
+        on the signing page to verify your identity and proceed.
+      </p>
+
+      <!-- OTP Code -->
+      <div class="otp-box">
+        <div class="otp-code">{{ otp_code }}</div>
+        <div class="otp-label">Your one-time verification code</div>
+        <div class="timer-badge">⏱ Valid for {{ expires_in_minutes }} minutes</div>
+      </div>
+
+      <!-- Document -->
+      <div class="doc-card">
+        <div class="doc-title">{{ document_title }}</div>
+        <div class="doc-ref">Reference: {{ document_reference }}</div>
+      </div>
+
+      <!-- Steps -->
+      <p class="text" style="font-weight:600;color:#1a0a3c;margin-bottom:8px;">How to use this code:</p>
+      <ul class="steps">
+        <li></li>
+          <span class="step-num">1</span>
+          <span>Return to the signing page open in your browser.</span>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <span>Enter the 6-digit code <strong>{{ otp_code }}</strong> in the verification field.</span>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <span>Once verified, you will be able to review and sign the document.</span>
+        </li>
+      </ul>
+
+      <hr class="divider">
+
+      <!-- Security notice -->
+      <div class="security-box">
+        <p><strong>🛡 Security Notice</strong></p>
+        <p>• Do <strong>NOT</strong> share this code with anyone.</p>
+        <p>• {{ platform_name }} staff will <strong>never</strong> ask you for this code.</p>
+        <p>• If you did not request this code, please ignore this email.</p>
+        <p>• This code expires automatically in {{ expires_in_minutes }} minutes.</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p><strong>{{ platform_name }}</strong></p>
+      <p>Legally traceable electronic signatures for corporate governance</p>
+      <p style="margin-top:10px;font-size:11px;color:#6b7280;">
+        This is an automated security email. Please do not reply.
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>

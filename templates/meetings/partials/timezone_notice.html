@@ -1,0 +1,22 @@
+{% if differs %}
+<div class="flex items-start gap-3 px-4 py-3 rounded-lg text-sm mb-4"
+     style="background: #fffbeb; border: 1px solid #fcd34d;">
+    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" style="color: #d97706;"
+         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+        <p class="font-medium" style="color: #92400e;">
+            Times shown in your local timezone
+        </p>
+        <p class="mt-0.5" style="color: #b45309;">
+            Your timezone:
+            <span class="font-mono font-semibold">{{ user_tz_name }} ({{ user_tz_offset }})</span>
+            &nbsp;·&nbsp;
+            Meeting branch timezone:
+            <span class="font-mono font-semibold">{{ branch_tz_name }} ({{ branch_tz_offset }})</span>
+        </p>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Fully Signed</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #e8f5d0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(26,10,60,0.10); }
+    .header { background: #1a0a3c; padding: 36px 40px 28px; text-align: center; }
+    .header h1 { color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.3px; }
+    .header p { color: #7dc143; font-size: 13px; margin: 0; }
+    .accent-bar { background: #10b981; height: 4px; }
+    .body { padding: 36px 40px; }
+    .greeting { font-size: 16px; color: #1a0a3c; font-weight: 600; margin-bottom: 12px; }
+    .text { font-size: 14px; color: #374151; line-height: 1.7; margin-bottom: 16px; }
+    .success-banner { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 20px 24px; text-align: center; margin: 24px 0; }
+    .success-banner .icon { font-size: 40px; margin-bottom: 8px; }
+    .success-banner .label { font-size: 18px; font-weight: 700; color: #065f46; margin-bottom: 4px; }
+    .success-banner .sub { font-size: 13px; color: #047857; }
+    .doc-card { background: #f3f4f6; border-left: 4px solid #10b981; border-radius: 6px; padding: 18px 20px; margin: 20px 0; }
+    .doc-card .doc-title { font-size: 16px; font-weight: 700; color: #1a0a3c; margin-bottom: 6px; }
+    .doc-card .doc-meta { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+    .doc-card .doc-meta strong { color: #374151; }
+    .signers-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
+    .signers-table thead tr { background: #1a0a3c; }
+    .signers-table thead th { color: #ffffff; font-weight: 600; padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .signers-table tbody tr:nth-child(even) { background: #f9fafb; }
+    .signers-table tbody tr:nth-child(odd) { background: #ffffff; }
+    .signers-table tbody td { padding: 10px 12px; color: #374151; border-bottom: 1px solid #e5e7eb; }
+    .signers-table tbody td .name { font-weight: 600; color: #1a0a3c; }
+    .signers-table tbody td .email { color: #6b7280; font-size: 12px; }
+    .signed-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+    .cta-wrapper { text-align: center; margin: 32px 0; }
+    .cta-btn { display: inline-block; background: #7dc143; color: #ffffff; font-size: 15px; font-weight: 700; padding: 14px 36px; border-radius: 8px; text-decoration: none; letter-spacing: 0.2px; }
+    .integrity-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 16px 18px; margin: 20px 0; }
+    .integrity-box h4 { font-size: 13px; font-weight: 700; color: #14532d; margin: 0 0 8px; }
+    .integrity-box ul { margin: 0; padding-left: 18px; font-size: 12px; color: #166534; line-height: 1.8; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
+    .footer { background: #1a0a3c; padding: 24px 40px; text-align: center; }
+    .footer p { font-size: 12px; color: #9ca3af; margin: 4px 0; }
+    .footer strong { color: #7dc143; }
+    .footer a { color: #7dc143; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <h1>Document Fully Signed</h1>
+      <p>Enwealth E-Board — Electronic Signature Platform</p>
+    </div>
+    <div class="accent-bar"></div>
+
+    <!-- Body -->
+    <div class="body">
+      <p class="greeting">Dear {{ recipient_name }},</p>
+
+      <!-- Success banner -->
+      <div class="success-banner">
+        <div class="icon">✅</div>
+        <div class="label">All signatures collected</div>
+        <div class="sub">Finalised on {{ finalised_at|date:"d M Y \a\t H:i" }} UTC</div>
+      </div>
+
+      <p class="text">
+        The document below has been <strong>fully signed</strong> by all required signers
+        and is now ready for download. The signed copy includes embedded signature stamps,
+        a signing manifest, and SHA-256 integrity hashes.
+      </p>
+
+      <!-- Document card -->
+      <div class="doc-card">
+        <div class="doc-title">{{ document_title }}</div>
+        <div class="doc-meta"><strong>Reference:</strong> {{ document_reference }}</div>
+        <div class="doc-meta"><strong>Finalised:</strong> {{ finalised_at|date:"d M Y H:i" }} UTC</div>
+        <div class="doc-meta"><strong>Total Signers:</strong> {{ signers|length }}</div>
+      </div>
+
+      <!-- Signers table -->
+      {% if signers %}
+      <p class="text" style="font-weight:600;color:#1a0a3c;margin-bottom:8px;">Signature Record:</p>
+      <table class="signers-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Signer</th>
+            <th>Role</th>
+            <th>Signed At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for signer in signers %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+              <div class="name">{{ signer.name }}</div>
+              <div class="email">{{ signer.email }}</div>
+            </td>
+            <td>{{ signer.role }}</td>
+            <td>
+              {% if signer.signed_at %}
+              <span class="signed-badge">✓ {{ signer.signed_at|date:"d M Y H:i" }}</span>
+              {% else %}
+              <span style="color:#9ca3af;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+
+      <!-- Integrity notice -->
+      <div class="integrity-box">
+        <h4></h4>🔒 Document Integrity &amp; Legal Validity</h4>
+        <ul>
+          <li>All signatures are embedded directly into the signed PDF.</li>
+          <li>A signing manifest page lists all signers, timestamps, and IP addresses.</li>
+          <li>SHA-256 hashes allow independent tamper detection at any time.</li>
+          <li>Each signature was captured with OTP verification, IP logging, and timestamping.</li>
+        </ul>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-wrapper">
+        <a href="{{ detail_url }}" class="cta-btn">Download Signed Document</a>
+      </div>
+
+      <hr class="divider">
+
+      <p class="text" style="font-size:12px;color:#6b7280;">
+        If the button above does not work, visit:
+        <br><a href="{{ detail_url }}" style="color:#7dc143;word-break:break-all;">{{ detail_url }}</a>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p><strong>{{ platform_name }}</strong></p>
+      <p>Legally traceable electronic signatures for corporate governance</p>
+      <p style="margin-top:10px;">
+        <a href="{{ detail_url }}">View Document</a>
+      </p>
+      <p style="margin-top:8px;font-size:11px;color:#6b7280;">
+        This is an automated notification. Please retain this email for your records.
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>

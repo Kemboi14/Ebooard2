@@ -1,0 +1,149 @@
+{% extends 'base/base.html' %}
+{% block title %}Send Quick Notification{% endblock %}
+{% block page_title %}Send Quick Notification{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <a href="{% url 'notifications:notification_list' %}" class="hover:underline" style="color: #7dc143;">Notifications</a>
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        <span class="text-gray-700 font-medium">Send Quick Notification</span>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="px-4 py-3 rounded-lg text-sm font-medium
+            {% if message.tags == 'success' %}bg-green-100 text-green-800
+            {% elif message.tags == 'error' %}bg-red-100 text-red-800
+            {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800
+            {% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Card -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background: #1a0a3c;">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-base font-semibold" style="color: #2d1b5e;">Send Quick Notification</h2>
+                <p class="text-xs text-gray-500 mt-0.5">Send a notification directly to a board member</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form method="post" class="px-6 py-6 space-y-5">
+            {% csrf_token %}
+
+            <!-- Recipient -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Recipient <span class="text-red-500">*</span>
+                </label>
+                {{ form.recipient }}
+                {% if form.recipient.errors %}
+                <p class="mt-1 text-xs text-red-600">{{ form.recipient.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Title -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Title <span class="text-red-500">*</span>
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <p class="mt-1 text-xs text-red-600">{{ form.title.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Message -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Message <span class="text-red-500">*</span>
+                </label>
+                {{ form.message }}
+                {% if form.message.errors %}
+                <p class="mt-1 text-xs text-red-600">{{ form.message.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Type + Priority in 2 columns -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Notification Type <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.notification_type }}
+                    {% if form.notification_type.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.notification_type.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Priority <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.priority }}
+                    {% if form.priority.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.priority.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action URL -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Action URL
+                    <span class="text-xs text-gray-400 font-normal ml-1">(optional)</span>
+                </label>
+                {{ form.action_url }}
+                {% if form.action_url.errors %}
+                <p class="mt-1 text-xs text-red-600">{{ form.action_url.errors|join:", " }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-400">A link the recipient can follow from the notification</p>
+            </div>
+
+            <!-- Non-field errors -->
+            {% if form.non_field_errors %}
+            <div class="px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+                <a
+                    href="{% url 'notifications:notification_list' %}"
+                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                    Cancel
+                </a>
+                <button
+                    type="submit"
+                    class="px-5 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+                    style="background: #7dc143;"
+                    onmouseover="this.style.backgroundColor='#5a8a3c'"
+                    onmouseout="this.style.backgroundColor='#7dc143'"
+                >
+                    Send Notification
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

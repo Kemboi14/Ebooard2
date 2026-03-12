@@ -1,219 +1,641 @@
 {% load static %}
 
+<!-- =========================================================
+     BRANCH CONTEXT SWITCHER (shown when user has multiple branches)
+     ========================================================= -->
+{% if is_multi_branch or is_global_admin %}
+<div class="mb-3" x-data="{ switcherOpen: false }">
+    <button
+        @click="switcherOpen = !switcherOpen"
+        class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wide transition-colors"
+        style="color: #7dc143; background: rgba(125, 193, 67, 0.1)"
+        x-show="sidebarOpen"
+    >
+        <svg
+            class="w-4 h-4 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 9l4-4 4 4m0 6l-4 4-4-4"
+            />
+        </svg>
+        <span class="truncate flex-1 text-left">
+            {% if active_branch %}{{ active_branch.name }}{% else %}All
+            Branches{% endif %}
+        </span>
+        <svg
+            class="w-3 h-3 transition-transform"
+            :class="switcherOpen ? 'rotate-180' : ''"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+            />
+        </svg>
+    </button>
+
+    <!-- Switcher Dropdown -->
+    <div
+        x-show="switcherOpen"
+        x-transition
+        class="mt-1 rounded-lg overflow-hidden border border-purple-700"
+        style="background: #0f0627"
+    >
+        {% for branch in user_branches %}
+        <a
+            href="{% url 'agencies:switch_branch' branch.pk %}?next={{ request.path }}"
+            class="flex items-center gap-2 px-3 py-2 text-xs hover:bg-purple-800 transition-colors {% if active_branch.pk == branch.pk %}text-white font-semibold{% else %}text-gray-400{% endif %}"
+        >
+            {% if active_branch.pk == branch.pk %}
+            <span
+                class="w-2 h-2 rounded-full flex-shrink-0"
+                style="background: #7dc143"
+            ></span>
+            {% else %}
+            <span class="w-2 h-2 rounded-full flex-shrink-0 bg-gray-600"></span>
+            {% endif %}
+            <span class="truncate">{{ branch.name }}</span>
+            <span class="ml-auto text-gray-600 flex-shrink-0"
+                >{{ branch.code }}</span
+            >
+        </a>
+        {% endfor %} {% if active_branch %}
+        <a
+            href="{% url 'agencies:clear_context' %}"
+            class="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-gray-300 hover:bg-purple-800 transition-colors border-t border-purple-800"
+        >
+            <svg
+                class="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                />
+            </svg>
+            View All Branches
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Active Branch Badge (collapsed sidebar) -->
+<div x-show="!sidebarOpen" class="mb-2 px-1">
+    {% if active_branch %}
+    <div
+        class="flex items-center justify-center"
+        title="{{ active_branch.name }}"
+    >
+        <span class="w-2 h-2 rounded-full" style="background: #7dc143"></span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- =========================================================
+     MAIN NAVIGATION
+     ========================================================= -->
+
 <!-- Dashboard -->
 {% url 'dashboard' as dashboard_url %}
-<a href="{{ dashboard_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.url_name == 'dashboard' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.url_name == 'dashboard' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-  </svg>
-  <span x-show="sidebarOpen">Dashboard</span>
+<a
+    href="{{ dashboard_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.url_name == 'dashboard' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.url_name == "dashboard" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Dashboard</span>
 </a>
 
-<!-- Meetings (visible to all, but manage only for secretaries/admins) -->
+<!-- =========================================================
+     AGENCIES & BRANCHES SECTION
+     ========================================================= -->
+<div
+    x-show="sidebarOpen"
+    class="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-widest"
+    style="color: #7dc143; opacity: 0.7"
+>
+    Organisation
+</div>
+
+<!-- My Branches -->
+{% url 'agencies:branch_list' as branches_url %}
+<a
+    href="{{ branches_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'agencies' and request.resolver_match.url_name == 'branch_list' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "agencies" and request.resolver_match.url_name == "branch_list" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Branches</span>
+    {% if user_branch_count > 0 %}
+    <span
+        x-show="sidebarOpen"
+        class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
+        style="background: rgba(125, 193, 67, 0.2); color: #7dc143"
+    >
+        {{ user_branch_count }}
+    </span>
+    {% endif %}
+</a>
+
+<!-- Committees -->
+{% url 'agencies:committee_list' as committees_url %}
+<a
+    href="{{ committees_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'agencies' and request.resolver_match.url_name == 'committee_list' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "agencies" and request.resolver_match.url_name == "committee_list" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Committees</span>
+    {% if user_committee_count > 0 %}
+    <span
+        x-show="sidebarOpen"
+        class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
+        style="background: rgba(125, 193, 67, 0.2); color: #7dc143"
+    >
+        {{ user_committee_count }}
+    </span>
+    {% endif %}
+</a>
+
+<!-- Agency Dashboard -->
+{% url 'agencies:agency_dashboard' as agency_dash_url %}
+<a
+    href="{{ agency_dash_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'agencies' and request.resolver_match.url_name == 'agency_dashboard' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "agencies" and request.resolver_match.url_name == "agency_dashboard" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Agency Overview</span>
+</a>
+
+<!-- Organizations (IT Admin only) -->
+{% if is_global_admin %} {% url 'agencies:organization_list' as org_list_url %}
+<a
+    href="{{ org_list_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'agencies' and request.resolver_match.url_name == 'organization_list' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "agencies" and request.resolver_match.url_name == "organization_list" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Organizations</span>
+</a>
+{% endif %}
+
+<!-- =========================================================
+     GOVERNANCE SECTION
+     ========================================================= -->
+<div
+    x-show="sidebarOpen"
+    class="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-widest"
+    style="color: #7dc143; opacity: 0.7"
+>
+    Governance
+</div>
+
+<!-- Meetings -->
 {% url 'meetings:meeting_list' as meetings_url %}
-<a href="{{ meetings_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'meetings' and request.resolver_match.url_name == 'meeting_list' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'meetings' and request.resolver_match.url_name == 'meeting_list' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h3m-6 4h6m-6 4h6"/>
-  </svg>
-  <span x-show="sidebarOpen">Meetings</span>
-  {% if can_manage_meetings %}
-    <span x-show="sidebarOpen" class="ml-auto text-xs bg-yellow-600 text-white px-2 py-1 rounded">Manage</span>
-  {% endif %}
+<a
+    href="{{ meetings_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'meetings' and request.resolver_match.url_name == 'meeting_list' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "meetings" and request.resolver_match.url_name == "meeting_list" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Meetings</span>
+    {% if can_manage_meetings %}
+    <span
+        x-show="sidebarOpen"
+        class="ml-auto text-xs bg-yellow-600 text-white px-1.5 py-0.5 rounded"
+    >
+        Manage
+    </span>
+    {% endif %}
 </a>
 
-<!-- Documents (visible to all) -->
+<!-- Documents -->
 {% url 'documents:document_list' as documents_url %}
-<a href="{{ documents_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'documents' and request.resolver_match.url_name == 'document_list' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'documents' and request.resolver_match.url_name == 'document_list' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-  </svg>
-  <span x-show="sidebarOpen">Documents</span>
+<a
+    href="{{ documents_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'documents' and request.resolver_match.url_name == 'document_list' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "documents" and request.resolver_match.url_name == "document_list" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Documents</span>
 </a>
 
-<!-- Upload Document (visible to users who can manage documents) -->
 {% if can_manage_documents %}
 {% url 'documents:upload_document' as upload_url %}
-<a href="{{ upload_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 ml-6 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'documents' and request.resolver_match.url_name == 'upload_document' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'documents' and request.resolver_match.url_name == 'upload_document' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-  </svg>
-  <span x-show="sidebarOpen">Upload Document</span>
+<a
+    href="{{ upload_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 ml-5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'documents' and request.resolver_match.url_name == 'upload_document' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "documents" and request.resolver_match.url_name == "upload_document" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-4 h-4 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Upload Document</span>
 </a>
 {% endif %}
 
-<!-- Voting (visible to those who can vote) -->
-{% if can_vote %}
-{% url 'voting:motion_list' as voting_url %}
-<a href="{{ voting_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'voting' and request.resolver_match.url_name == 'motion_list' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'voting' and request.resolver_match.url_name == 'motion_list' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-  </svg>
-  <span x-show="sidebarOpen">Voting</span>
+<!-- Voting -->
+{% if can_vote %} {% url 'voting:motion_list' as voting_url %}
+<a
+    href="{{ voting_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'voting' and request.resolver_match.url_name == 'motion_list' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "voting" and request.resolver_match.url_name == "motion_list" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Voting</span>
 </a>
 {% endif %}
 
-<!-- Risk Register (visible to compliance, exec, IT admin, audit) -->
+<!-- =========================================================
+     COMPLIANCE SECTION
+     ========================================================= -->
+<div
+    x-show="sidebarOpen"
+    class="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-widest"
+    style="color: #7dc143; opacity: 0.7"
+>
+    Compliance
+</div>
+
+<!-- E-Signatures -->
+{% url 'esignature:document_list' as esig_url %}
+<a
+    href="{{ esig_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'esignature' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "esignature" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">E-Signatures</span>
+    {% if stats.awaiting_my_signature %}
+    <span
+        x-show="sidebarOpen"
+        class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium bg-red-500 text-white"
+    >
+        {{ stats.awaiting_my_signature }}
+    </span>
+    {% endif %}
+</a>
+
+<!-- Risk Register -->
 {% url 'risk:risk_list' as risk_url %}
-<a href="{{ risk_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 text-gray-300 hover:text-white hover:bg-purple-800">
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-  </svg>
-  <span x-show="sidebarOpen">Risk Register</span>
-  {% if can_manage_risk %}
-    <span x-show="sidebarOpen" class="ml-auto text-xs bg-yellow-600 text-white px-2 py-1 rounded">Manage</span>
-  {% endif %}
+<a
+    href="{{ risk_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'risk' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "risk" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Risk Register</span>
+    {% if can_manage_risk %}
+    <span
+        x-show="sidebarOpen"
+        class="ml-auto text-xs bg-yellow-600 text-white px-1.5 py-0.5 rounded"
+    >
+        Manage
+    </span>
+    {% endif %}
 </a>
 
-<!-- Policies (visible to compliance and all users for viewing) -->
+<!-- Policies -->
 {% url 'policy:policy_list' as policies_url %}
-<a href="{{ policies_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'policy' and request.resolver_match.url_name == 'policy_list' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'policy' and request.resolver_match.url_name == 'policy_list' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-  </svg>
-  <span x-show="sidebarOpen">Policies</span>
-  {% if can_manage_policies %}
-    <span x-show="sidebarOpen" class="ml-auto text-xs bg-yellow-600 text-white px-2 py-1 rounded">Manage</span>
-  {% endif %}
+<a
+    href="{{ policies_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'policy' and request.resolver_match.url_name == 'policy_list' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "policy" and request.resolver_match.url_name == "policy_list" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Policies</span>
+    {% if can_manage_policies %}
+    <span
+        x-show="sidebarOpen"
+        class="ml-auto text-xs bg-yellow-600 text-white px-1.5 py-0.5 rounded"
+    >
+        Manage
+    </span>
+    {% endif %}
 </a>
 
-<!-- Audit Trail (visible only to audit, IT admin, compliance) -->
-{% if can_view_audit %}
-{% url 'audit:audit_list' as audit_url %}
-<a href="{{ audit_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'audit' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'audit' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-  </svg>
-  <span x-show="sidebarOpen">Audit Trail</span>
+<!-- Audit Trail -->
+{% if can_view_audit %} {% url 'audit:audit_list' as audit_url %}
+<a
+    href="{{ audit_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'audit' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "audit" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Audit Trail</span>
 </a>
 {% endif %}
 
-<!-- Board Evaluation (visible to all board members) -->
+<!-- =========================================================
+     PEOPLE & PERFORMANCE SECTION
+     ========================================================= -->
+<div
+    x-show="sidebarOpen"
+    class="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-widest"
+    style="color: #7dc143; opacity: 0.7"
+>
+    People
+</div>
+
+<!-- Board Evaluation -->
 {% url 'evaluation:evaluation_list' as evaluation_url %}
-<a href="{{ evaluation_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'evaluation' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'evaluation' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-  </svg>
-  <span x-show="sidebarOpen">Board Evaluation</span>
+<a
+    href="{{ evaluation_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'evaluation' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "evaluation" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Board Evaluation</span>
 </a>
 
-<!-- Discussions (visible to all users) -->
+<!-- Discussions -->
 {% url 'discussions:forum_list' as discussions_url %}
-<a href="{{ discussions_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'discussions' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'discussions' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
-  </svg>
-  <span x-show="sidebarOpen">Discussions</span>
+<a
+    href="{{ discussions_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'discussions' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "discussions" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Discussions</span>
 </a>
 
-<!-- Analytics (for administrators and company secretaries) -->
-{% if request.user.role in 'it_administrator,company_secretary' %}
+<!-- Analytics -->
+{% if user_role == 'it_administrator' or user_role == 'company_secretary' or user_role == 'compliance_officer' %}
 {% url 'analytics:dashboard' as analytics_url %}
-<a href="{{ analytics_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'analytics' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'analytics' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-  </svg>
-  <span x-show="sidebarOpen">Analytics</span>
+<a
+    href="{{ analytics_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'analytics' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "analytics" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Analytics</span>
 </a>
 {% endif %}
 
-<!-- Divider -->
-<div x-show="sidebarOpen" class="border-t border-purple-800 my-2"></div>
+<!-- =========================================================
+     ACCOUNT SECTION
+     ========================================================= -->
+<div class="border-t border-purple-800 my-3"></div>
 
-<!-- Account Section -->
+<!-- My Profile -->
 {% url 'accounts:profile' as profile_url %}
-<a href="{{ profile_url }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-          {% if request.resolver_match.namespace == 'accounts' and request.resolver_match.url_name == 'profile' %}
-            font-medium text-white
-          {% else %}
-            text-gray-300 hover:text-white hover:bg-purple-800
-          {% endif %}"
-   {% if request.resolver_match.namespace == 'accounts' and request.resolver_match.url_name == 'profile' %}style="background-color:#7dc143;"{% endif %}>
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-  </svg>
-  <span x-show="sidebarOpen">My Profile</span>
+<a
+    href="{{ profile_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'accounts' and request.resolver_match.url_name == 'profile' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "accounts" and request.resolver_match.url_name == "profile" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">My Profile</span>
 </a>
 
-<!-- Admin Panel (visible only to IT administrators) -->
-{% if is_admin %}
-<a href="{% url 'admin:index' %}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 text-gray-300 hover:text-white hover:bg-purple-800">
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-  </svg>
-  <span x-show="sidebarOpen">Admin Panel</span>
+<!-- Notifications -->
+{% url 'notifications:notification_center' as notif_url %}
+<a
+    href="{{ notif_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 {% if request.resolver_match.namespace == 'notifications' %}font-medium text-white{% else %}text-gray-300 hover:text-white hover:bg-purple-800{% endif %}" {% if request.resolver_match.namespace == "notifications" %}style="background-color:#7dc143;"{% endif %}
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Notifications</span>
+</a>
+
+<!-- Admin Panel (IT Administrators only) -->
+{% if is_admin %} {% url 'admin:index' as admin_url %}
+<a
+    href="{{ admin_url }}"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 text-gray-300 hover:text-white hover:bg-purple-800"
+>
+    <svg
+        class="w-5 h-5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+        />
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+    </svg>
+    <span x-show="sidebarOpen">Admin Panel</span>
 </a>
 {% endif %}
