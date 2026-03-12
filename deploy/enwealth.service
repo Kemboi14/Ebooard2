@@ -1,0 +1,109 @@
+# =============================================================================
+# Enwealth E-Board Portal — systemd Service Unit (Gunicorn / Django)
+# =============================================================================
+# Installation (Ubuntu/Debian VPS — no Docker):
+#
+#   sudo cp deploy/enwealth.service /etc/systemd/system/enwealth.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable enwealth
+#   sudo systemctl start enwealth
+#   sudo systemctl status enwealth
+#
+# Logs:
+#   sudo journalctl -u enwealth -f
+#
+# Prerequisites:
+#   - Application checked out to /var/www/enwealth
+#   - Virtual environment created at /var/www/enwealth/venv
+#   - .env file present at /var/www/enwealth/.env
+#   - logs/ directory created:  mkdir -p /var/www/enwealth/logs
+#   - Static files collected:   python manage.py collectstatic --noinput
+#   - Database migrated:        python manage.py migrate --noinput
+# =============================================================================
+
+[Unit]
+Description=Enwealth E-Board Portal (Gunicorn WSGI)
+Documentation=https://github.com/your-org/enwealth
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=notify
+
+# ---------------------------------------------------------------------------
+# Identity — run as www-data (non-root, same user Nginx uses)
+# ---------------------------------------------------------------------------
+User=www-data
+Group=www-data
+
+# ---------------------------------------------------------------------------
+# Working directory & environment
+# ---------------------------------------------------------------------------
+WorkingDirectory=/var/www/enwealth
+
+# Load all variables from .env (python-decouple also reads this file, but
+# setting EnvironmentFile here ensures the OS-level environment is consistent
+# with what Django/Celery see and avoids hard-coding secrets in this unit).
+EnvironmentFile=/var/www/enwealth/.env
+
+# Force production settings regardless of what is in .env
+Environment=DJANGO_SETTINGS_MODULE=config.settings.production
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+# ---------------------------------------------------------------------------
+# Process lifecycle
+# ---------------------------------------------------------------------------
+ExecStart=/var/www/enwealth/venv/bin/gunicorn \
+    config.wsgi:application \
+    -c deploy/gunicorn.conf.py
+
+# Graceful reload: send HUP to the master process — Gunicorn will restart
+# workers one by one without dropping in-flight requests.
+ExecReload=/bin/kill -s HUP $MAINPID
+
+# Graceful stop: send TERM so Gunicorn finishes in-flight requests (up to
+# graceful_timeout seconds as configured in gunicorn.conf.py) before exiting.
+ExecStop=/bin/kill -s TERM $MAINPID
+
+# Kill the entire process group on stop (prevents zombie workers).
+KillMode=mixed
+KillSignal=SIGTERM
+
+# Give workers up to 30 seconds to finish after SIGTERM before SIGKILL.
+TimeoutStopSec=30
+
+# ---------------------------------------------------------------------------
+# Restart policy
+# ---------------------------------------------------------------------------
+Restart=on-failure
+RestartSec=5s
+
+# Maximum 5 start attempts within a 2-minute window before systemd gives up.
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+# ---------------------------------------------------------------------------
+# Logging — captured by journald; view with: journalctl -u enwealth -f
+# ---------------------------------------------------------------------------
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=enwealth
+
+# ---------------------------------------------------------------------------
+# Security hardening (systemd sandbox settings)
+# ---------------------------------------------------------------------------
+# Prevent the service from gaining new privileges via setuid binaries.
+NoNewPrivileges=true
+
+# Give the service a private /tmp so it cannot spy on other services' temp files.
+PrivateTmp=true
+
+# Make /usr, /boot, and /etc read-only from within the service.
+ProtectSystem=full
+
+# Prevent writes to the user's home directory (www-data has no real home anyway).
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

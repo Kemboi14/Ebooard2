@@ -1,0 +1,69 @@
+# =============================================================================
+# Enwealth E-Board Portal — Celery Worker systemd Service
+# =============================================================================
+# Installation (Ubuntu/Debian VPS):
+#
+#   sudo cp deploy/celery-worker.service /etc/systemd/system/enwealth-celery-worker.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable enwealth-celery-worker
+#   sudo systemctl start enwealth-celery-worker
+#   sudo systemctl status enwealth-celery-worker
+#
+# Logs:
+#   sudo journalctl -u enwealth-celery-worker -f
+# =============================================================================
+
+[Unit]
+Description=Enwealth E-Board Portal — Celery Worker
+Documentation=https://docs.celeryq.dev/en/stable/userguide/daemonizing.html
+After=network.target postgresql.service redis.service
+Requires=redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+
+WorkingDirectory=/var/www/enwealth
+EnvironmentFile=/var/www/enwealth/.env
+
+# Activate the virtual environment by prepending its bin/ to PATH
+Environment="PATH=/var/www/enwealth/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="DJANGO_SETTINGS_MODULE=config.settings.production"
+
+# Start the Celery worker.
+# --concurrency=4   : number of child worker processes (tune to CPU count)
+# --loglevel=info   : verbosity level written to the journal
+# -n worker1@%%h    : unique node name so multiple workers can coexist
+ExecStart=/var/www/enwealth/venv/bin/celery \
+    -A config.celery worker \
+    --loglevel=info \
+    --concurrency=4 \
+    -n worker1@%%h
+
+# Graceful reload: send SIGHUP to the master process so in-flight tasks
+# are completed before workers are restarted.
+ExecReload=/bin/kill -s HUP $MAINPID
+
+# Graceful shutdown: send SIGTERM and wait up to 60 s for running tasks
+# to finish before escalating to SIGKILL.
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=60
+
+# Restart policy
+Restart=on-failure
+RestartSec=5s
+
+# Logging — captured by journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=enwealth-celery-worker
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

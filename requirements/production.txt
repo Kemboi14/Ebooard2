@@ -1,2 +1,30 @@
 -r base.txt
+
+# =============================================================================
+# Production-only dependencies
+# =============================================================================
+
+# Static file serving with compression and cache-busting manifests
+# (WhiteNoise is already pulled in via base.txt — listed here for clarity)
+
+# Content Security Policy headers
 django-csp>=3.7
+
+# ---------------------------------------------------------------------------
+# Error tracking — Sentry
+# Set SENTRY_DSN in your .env to enable.
+# ---------------------------------------------------------------------------
+sentry-sdk[django]>=1.40
+
+# ---------------------------------------------------------------------------
+# Media file storage — AWS S3 (optional)
+# Set USE_S3=True and configure AWS_* env vars to switch from local
+# MEDIA_ROOT to an S3 bucket.
+# ---------------------------------------------------------------------------
+django-storages[s3]>=1.14
+boto3>=1.34
+
+# ---------------------------------------------------------------------------
+# System monitoring — used by health-check endpoints and management commands
+# ---------------------------------------------------------------------------
+psutil>=5.9

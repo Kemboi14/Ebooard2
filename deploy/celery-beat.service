@@ -1,0 +1,78 @@
+# =============================================================================
+# Enwealth E-Board Portal — Celery Beat Scheduler systemd Service Unit
+# =============================================================================
+# Installation (Ubuntu/Debian VPS — without Docker):
+#
+#   sudo cp deploy/celery-beat.service /etc/systemd/system/enwealth-celery-beat.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable enwealth-celery-beat
+#   sudo systemctl start enwealth-celery-beat
+#   sudo systemctl status enwealth-celery-beat
+#
+# View logs:
+#   sudo journalctl -u enwealth-celery-beat -f
+#
+# IMPORTANT: Only run ONE instance of celery beat at a time.
+# Running multiple beat instances will cause duplicate task scheduling.
+# =============================================================================
+
+[Unit]
+Description=Enwealth E-Board Portal — Celery Beat Scheduler
+Documentation=https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+# Ensure beat starts after the worker so the database tables exist
+After=enwealth-celery-worker.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+
+WorkingDirectory=/var/www/enwealth
+EnvironmentFile=/var/www/enwealth/.env
+
+# Load the production settings module explicitly
+Environment=DJANGO_SETTINGS_MODULE=config.settings.production
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+# Use the DatabaseScheduler so beat schedule is stored in PostgreSQL
+# (managed via django-celery-beat and the Django admin).
+ExecStart=/var/www/enwealth/venv/bin/celery \
+    -A config.celery beat \
+    --loglevel=info \
+    --scheduler django_celery_beat.schedulers:DatabaseScheduler \
+    --pidfile=/var/run/enwealth/celery-beat.pid
+
+ExecReload=/bin/kill -s HUP $MAINPID
+
+# Clean shutdown: send SIGTERM and wait up to 30 s for beat to exit gracefully
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+
+# Logging — captured by systemd journal
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=enwealth-celery-beat
+
+# ---------------------------------------------------------------------------
+# Runtime directory for the PID file
+# systemd will create /var/run/enwealth/ automatically and remove it on stop.
+# ---------------------------------------------------------------------------
+RuntimeDirectory=enwealth
+RuntimeDirectoryMode=0755
+
+# ---------------------------------------------------------------------------
+# Resource limits (adjust to suit your VPS)
+# ---------------------------------------------------------------------------
+# Beat is lightweight — cap it conservatively
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
