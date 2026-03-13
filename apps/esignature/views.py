@@ -141,6 +141,25 @@ def _record_audit(
         logger.warning("Audit log failed for action %s: %s", action, exc)
 
 
+def _fire_task(task, *args, **kwargs):
+    """
+    Safely dispatch a Celery task.
+
+    If the broker (Redis) is unavailable the exception is swallowed and a
+    warning is logged so the user-facing request is never affected by
+    infrastructure problems.  The task will simply not run until the broker
+    is back and the operator can re-trigger it manually or via a retry.
+    """
+    try:
+        task.delay(*args, **kwargs)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Celery task %s could not be dispatched (broker unavailable?): %s",
+            getattr(task, "name", repr(task)),
+            exc,
+        )
+
+
 def _can_manage_document(user, document: SignableDocument) -> bool:
     """
     Returns True if the user is allowed to manage (invite signers,
@@ -760,7 +779,7 @@ class SigningInterfaceView(View):
         # Send via Celery task
         from .tasks import send_otp_email
 
-        send_otp_email.delay(str(otp_record.pk))
+        _fire_task(send_otp_email, str(otp_record.pk))
 
         _record_audit(
             document=assignment.document,
@@ -986,7 +1005,7 @@ class SigningInterfaceView(View):
             if next_signer:
                 from .tasks import send_signing_invitation
 
-                send_signing_invitation.delay(str(next_signer.pk))
+                _fire_task(send_signing_invitation, str(next_signer.pk))
 
         return render(
             request,
@@ -1037,7 +1056,7 @@ class SigningInterfaceView(View):
         # Notify the document owner
         from .tasks import send_rejection_notification
 
-        send_rejection_notification.delay(str(assignment.pk))
+        _fire_task(send_rejection_notification, str(assignment.pk))
 
         return render(
             request,
@@ -1304,7 +1323,7 @@ class InviteSignerAPIView(APIView):
         if should_send:
             from .tasks import send_signing_invitation
 
-            send_signing_invitation.delay(str(assignment.pk))
+            _fire_task(send_signing_invitation, str(assignment.pk))
 
         out = SignerAssignmentCreateSerializer(
             assignment,
@@ -1426,7 +1445,7 @@ class SigningAPIView(APIView):
             if next_signer:
                 from .tasks import send_signing_invitation
 
-                send_signing_invitation.delay(str(next_signer.pk))
+                _fire_task(send_signing_invitation, str(next_signer.pk))
 
         return Response(
             {
@@ -1467,7 +1486,7 @@ class SigningAPIView(APIView):
 
         from .tasks import send_rejection_notification
 
-        send_rejection_notification.delay(str(assignment.pk))
+        _fire_task(send_rejection_notification, str(assignment.pk))
 
         return Response(
             {
@@ -1562,7 +1581,7 @@ class OTPRequestAPIView(APIView):
 
         from .tasks import send_otp_email
 
-        send_otp_email.delay(str(otp_record.pk))
+        _fire_task(send_otp_email, str(otp_record.pk))
 
         _record_audit(
             document=assignment.document,
@@ -2016,7 +2035,7 @@ def send_reminder_view(request, assignment_pk):
 
     from .tasks import send_signing_reminder
 
-    send_signing_reminder.delay(str(assignment.pk))
+    _fire_task(send_signing_reminder, str(assignment.pk))
 
     messages.success(
         request,
@@ -2055,7 +2074,7 @@ def _check_and_advance_document(document: SignableDocument):
         # Kick off the PDF finalisation task
         from .tasks import finalise_signed_document
 
-        finalise_signed_document.delay(str(document.pk))
+        _fire_task(finalise_signed_document, str(document.pk))
     elif document.status == SignableDocument.STATUS_PENDING:
         document.status = SignableDocument.STATUS_IN_PROGRESS
         document.save(update_fields=["status"])
