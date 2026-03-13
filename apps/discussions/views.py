@@ -54,6 +54,27 @@ class ForumListView(LoginRequiredMixin, ListView):
                 access_level="public", is_active=True
             ).order_by("order", "name")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        forums = self.get_queryset()
+
+        context["total_threads"] = DiscussionThread.objects.filter(
+            forum__in=forums
+        ).count()
+        context["total_posts"] = DiscussionPost.objects.filter(
+            thread__forum__in=forums
+        ).count()
+        context["active_polls"] = DiscussionPoll.objects.filter(
+            thread__forum__in=forums,
+            ends_at__gt=timezone.now(),
+        ).count()
+        context["recent_threads"] = (
+            DiscussionThread.objects.filter(forum__in=forums)
+            .select_related("author", "forum")
+            .order_by("-last_activity")[:10]
+        )
+        return context
+
 
 class ForumDetailView(LoginRequiredMixin, DetailView):
     """View forum details and threads"""
