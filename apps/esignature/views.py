@@ -116,6 +116,7 @@ def _record_audit(
     assignment=None,
     status_before: str = "",
     status_after: str = "",
+    document_hash_snapshot: str = "",
 ):
     """Create an immutable ESignatureAuditLog entry."""
     ip = _get_client_ip(request) if request else None
@@ -134,6 +135,7 @@ def _record_audit(
             related_assignment=assignment,
             status_before=status_before,
             status_after=status_after,
+            document_hash_snapshot=document_hash_snapshot,
         )
     except Exception as exc:
         logger.warning("Audit log failed for action %s: %s", action, exc)
