@@ -1,0 +1,329 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Register New Risk{% endblock %}
+
+{% block page_title %}Register New Risk{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="mb-6 flex items-center gap-2 text-sm">
+    <a href="{% url 'risk:risk_list' %}"
+       class="text-gray-500 hover:text-gray-800 transition-colors">
+      Risk Register
+    </a>
+    <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="font-medium" style="color:#2d1b5e;">Create Risk</span>
+  </nav>
+
+  <!-- Page heading -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color:#2d1b5e;">Register New Risk</h1>
+    <p class="text-gray-500 text-sm mt-1">
+      Complete the form below to add a new risk to the register.
+    </p>
+  </div>
+
+  <!-- Auto-score info box -->
+  <div class="mb-6 flex items-start gap-3 p-4 rounded-xl border"
+       style="background:#f0fbe8; border-color:#b5e07a;">
+    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+         style="color:#5a8a3c;">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+      <p class="text-sm font-semibold" style="color:#2d6b1f;">
+        Risk Score is calculated automatically
+      </p>
+      <p class="text-xs mt-0.5" style="color:#3d7a2a;">
+        The system computes <strong>Risk Score = Impact Level × Probability</strong> (each rated 1–5),
+        producing a score from 1 to 25. Scores of 20–25 are <em>Critical</em>, 15–19 are
+        <em>High</em>, 8–14 are <em>Medium</em>, 4–7 are <em>Low</em>, and 1–3 are <em>Very Low</em>.
+        You do not need to enter a score manually.
+      </p>
+    </div>
+  </div>
+
+  <!-- Form card -->
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+
+    <form method="post" novalidate class="divide-y divide-gray-100">
+      {% csrf_token %}
+
+      <!-- Non-field errors -->
+      {% if form.non_field_errors %}
+      <div class="px-6 pt-6">
+        <div class="p-4 rounded-lg bg-red-50 border border-red-200">
+          {% for error in form.non_field_errors %}
+            <p class="text-sm text-red-700 flex items-center gap-2">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
+                         1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732
+                         16.5c-.77.833.192 2.5 1.732 2.5z"/>
+              </svg>
+              {{ error }}
+            </p>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ── Group 1: Basic Information ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-base font-semibold mb-4 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">1</span>
+          Basic Information
+        </legend>
+
+        <div class="space-y-5">
+
+          <!-- Title -->
+          <div>
+            <label for="{{ form.title.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Risk Title <span class="text-red-500">*</span>
+            </label>
+            {{ form.title }}
+            {% if form.title.errors %}
+              <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
+                           1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732
+                           16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                {{ form.title.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label for="{{ form.description.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Description <span class="text-red-500">*</span>
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
+                           1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732
+                           16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                {{ form.description.errors.0 }}
+              </p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              Describe the risk clearly — include context, triggers, and potential consequences.
+            </p>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Group 2: Risk Classification ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-base font-semibold mb-4 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">2</span>
+          Risk Classification
+        </legend>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+          <!-- Category -->
+          <div>
+            <label for="{{ form.category.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            {{ form.category }}
+            {% if form.category.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.category.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Impact Level -->
+          <div>
+            <label for="{{ form.impact_level.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Impact Level <span class="text-red-500">*</span>
+            </label>
+            {{ form.impact_level }}
+            {% if form.impact_level.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.impact_level.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Rated 1 (Negligible) → 5 (Catastrophic)</p>
+          </div>
+
+          <!-- Probability -->
+          <div>
+            <label for="{{ form.probability.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Probability <span class="text-red-500">*</span>
+            </label>
+            {{ form.probability }}
+            {% if form.probability.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.probability.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">Rated 1 (Rare) → 5 (Almost Certain)</p>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Group 3: Ownership ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-base font-semibold mb-4 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">3</span>
+          Ownership
+        </legend>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Risk Owner -->
+          <div>
+            <label for="{{ form.risk_owner.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Risk Owner
+            </label>
+            {{ form.risk_owner }}
+            {% if form.risk_owner.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.risk_owner.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              The person ultimately accountable for this risk.
+            </p>
+          </div>
+
+          <!-- Assigned To -->
+          <div>
+            <label for="{{ form.assigned_to.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Assigned To
+            </label>
+            {{ form.assigned_to }}
+            {% if form.assigned_to.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.assigned_to.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              The person responsible for day-to-day management.
+            </p>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Group 4: Financial Impact (Optional) ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-base font-semibold mb-1 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">4</span>
+          Financial Impact
+          <span class="text-xs font-normal text-gray-400 ml-1">(Optional)</span>
+        </legend>
+        <p class="text-xs text-gray-400 mb-4 ml-8">
+          Provide estimated financial exposure if the risk materialises.
+        </p>
+
+        <div class="space-y-5">
+
+          <!-- Potential Impact (monetary) -->
+          <div>
+            <label for="{{ form.potential_impact.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Estimated Financial Exposure ($)
+            </label>
+            {{ form.potential_impact }}
+            {% if form.potential_impact.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.potential_impact.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Potential Impact Description -->
+          <div>
+            <label for="{{ form.potential_impact_description.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Impact Description
+            </label>
+            {{ form.potential_impact_description }}
+            {% if form.potential_impact_description.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.potential_impact_description.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              Describe broader non-financial impacts such as reputational, regulatory, or operational.
+            </p>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Group 5: Timeline ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-base font-semibold mb-4 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">5</span>
+          Timeline
+        </legend>
+
+        <div class="max-w-xs">
+          <label for="{{ form.target_resolution_date.id_for_label }}"
+                 class="block text-sm font-medium text-gray-700 mb-1">
+            Target Resolution Date
+          </label>
+          {{ form.target_resolution_date }}
+          {% if form.target_resolution_date.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.target_resolution_date.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-400">
+            The date by which this risk should be resolved or adequately mitigated.
+          </p>
+        </div>
+      </fieldset>
+
+      <!-- ── Form Actions ── -->
+      <div class="px-6 py-5 bg-gray-50 flex flex-col sm:flex-row justify-end gap-3">
+        <a href="{% url 'risk:risk_list' %}"
+           class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border
+                  border-gray-300 bg-white text-sm font-medium text-gray-700
+                  hover:bg-gray-100 transition-colors duration-200">
+          Cancel
+        </a>
+        <button type="submit"
+                class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg
+                       text-white text-sm font-semibold transition-colors duration-200"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Register Risk
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

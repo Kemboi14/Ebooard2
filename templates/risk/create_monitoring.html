@@ -1,0 +1,420 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Add Monitoring Record — {{ risk.title }}{% endblock %}
+
+{% block page_title %}Add Monitoring Record{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="mb-6 flex items-center gap-2 text-sm flex-wrap">
+    <a href="{% url 'risk:risk_list' %}"
+       class="text-gray-500 hover:text-gray-800 transition-colors">
+      Risk Register
+    </a>
+    <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'risk:risk_detail' pk=risk.pk %}"
+       class="text-gray-500 hover:text-gray-800 transition-colors truncate max-w-xs">
+      {{ risk.title }}
+    </a>
+    <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="font-medium" style="color:#2d1b5e;">Add Monitoring Record</span>
+  </nav>
+
+  <!-- Risk Summary Bar -->
+  <div class="mb-6 bg-white rounded-xl shadow-sm border-l-4 px-5 py-4 flex flex-wrap items-center justify-between gap-4"
+       style="border-left-color:#2d1b5e;">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center"
+           style="background:#ede9f7;">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             style="color:#2d1b5e;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0
+                   002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2
+                   2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2
+                   2 0 01-2-2z"/>
+        </svg>
+      </div>
+      <div class="min-w-0">
+        <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Monitoring risk</p>
+        <p class="text-sm font-semibold text-gray-900 truncate">{{ risk.title }}</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 flex-wrap">
+      <!-- Risk level badge -->
+      <span class="px-3 py-1 text-xs font-semibold rounded-full
+        {% if risk.risk_level == 'Critical' %}bg-red-100 text-red-800
+        {% elif risk.risk_level == 'High' %}bg-orange-100 text-orange-800
+        {% elif risk.risk_level == 'Medium' %}bg-yellow-100 text-yellow-800
+        {% elif risk.risk_level == 'Low' %}bg-blue-100 text-blue-800
+        {% else %}bg-gray-100 text-gray-700{% endif %}">
+        {{ risk.risk_level }} Risk
+      </span>
+
+      <!-- Current score pill -->
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+                   bg-purple-100 text-purple-800">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+        Current Score: {{ risk.risk_score }}/25
+      </span>
+
+      <!-- Status badge -->
+      <span class="px-3 py-1 text-xs font-medium rounded-full
+        {% if risk.status == 'identified' %}bg-gray-100 text-gray-700
+        {% elif risk.status == 'assessed' %}bg-blue-100 text-blue-800
+        {% elif risk.status == 'mitigated' %}bg-green-100 text-green-800
+        {% elif risk.status == 'monitored' %}bg-purple-100 text-purple-800
+        {% elif risk.status == 'escalated' %}bg-red-100 text-red-800
+        {% else %}bg-gray-100 text-gray-700{% endif %}">
+        {{ risk.get_status_display }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Form card — Alpine scope for escalation toggle -->
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden"
+       x-data="{ escalate: {% if form.escalation_required.value %}true{% else %}false{% endif %} }">
+
+    <div class="px-6 py-5 border-b border-gray-100" style="background:#2d1b5e;">
+      <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0
+                   002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2
+                   2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2
+                   2 0 01-2-2z"/>
+        </svg>
+        Add Monitoring Record
+      </h2>
+      <p class="text-purple-200 text-sm mt-1">
+        Record the current status, any score changes, and actions taken since the last review.
+      </p>
+    </div>
+
+    <form method="post" novalidate class="divide-y divide-gray-100">
+      {% csrf_token %}
+
+      <!-- Non-field errors -->
+      {% if form.non_field_errors %}
+      <div class="px-6 pt-5">
+        <div class="p-4 rounded-lg bg-red-50 border border-red-200">
+          {% for error in form.non_field_errors %}
+            <p class="text-sm text-red-700 flex items-center gap-2">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                         L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+              </svg>
+              {{ error }}
+            </p>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ── Group 1: Monitoring Dates & Type ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-sm font-semibold mb-4 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">1</span>
+          Monitoring Details
+        </legend>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+          <!-- Monitoring Type -->
+          <div>
+            <label for="{{ form.monitoring_type.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Monitoring Type <span class="text-red-500">*</span>
+            </label>
+            {{ form.monitoring_type }}
+            {% if form.monitoring_type.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.monitoring_type.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Monitoring Date -->
+          <div>
+            <label for="{{ form.monitoring_date.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Monitoring Date <span class="text-red-500">*</span>
+            </label>
+            {{ form.monitoring_date }}
+            {% if form.monitoring_date.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.monitoring_date.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Next Review Date -->
+          <div>
+            <label for="{{ form.next_review_date.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Next Review Date
+            </label>
+            {{ form.next_review_date }}
+            {% if form.next_review_date.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.next_review_date.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              Schedule the next formal review of this risk.
+            </p>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Group 2: Current Status ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-sm font-semibold mb-4 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">2</span>
+          Current Status
+        </legend>
+
+        <div>
+          <label for="{{ form.current_status.id_for_label }}"
+                 class="block text-sm font-medium text-gray-700 mb-1">
+            Status Summary <span class="text-red-500">*</span>
+          </label>
+          {{ form.current_status }}
+          {% if form.current_status.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.current_status.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-400">
+            Summarise the current state of the risk — whether it has changed, what has happened
+            since the last review, and whether existing controls are still effective.
+          </p>
+        </div>
+      </fieldset>
+
+      <!-- ── Group 3: Score Update ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-sm font-semibold mb-1 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">3</span>
+          Score Update
+          <span class="text-xs font-normal text-gray-400 ml-1">(Optional)</span>
+        </legend>
+
+        <!-- Current score note -->
+        <div class="ml-8 mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
+                    bg-purple-50 border border-purple-200">
+          <svg class="w-4 h-4 flex-shrink-0 text-purple-600" fill="none" stroke="currentColor"
+               viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span class="text-xs text-purple-800 font-medium">
+            Current risk score: <strong>{{ risk.risk_score }}/25</strong>
+            ({{ risk.risk_level }})
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Risk Score Change -->
+          <div>
+            <label for="{{ form.risk_score_change.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Score Change
+            </label>
+            {{ form.risk_score_change }}
+            {% if form.risk_score_change.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.risk_score_change.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              Enter a positive value if the risk increased, or a negative value if it decreased.
+              Leave blank if unchanged.
+            </p>
+          </div>
+
+          <!-- New Risk Score -->
+          <div>
+            <label for="{{ form.new_risk_score.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              New Risk Score
+            </label>
+            {{ form.new_risk_score }}
+            {% if form.new_risk_score.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.new_risk_score.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              The revised score (1–25) after any changes. Leave blank if the score is unchanged.
+            </p>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Group 4: Actions & Effectiveness ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-sm font-semibold mb-4 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">4</span>
+          Actions &amp; Effectiveness
+        </legend>
+
+        <div class="space-y-5">
+
+          <!-- Actions Taken -->
+          <div>
+            <label for="{{ form.actions_taken.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Actions Taken
+            </label>
+            {{ form.actions_taken }}
+            {% if form.actions_taken.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.actions_taken.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              Describe any actions, interventions, or control activities carried out since
+              the previous monitoring record.
+            </p>
+          </div>
+
+          <!-- Effectiveness Assessment -->
+          <div>
+            <label for="{{ form.effectiveness_assessment.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Effectiveness Assessment
+            </label>
+            {{ form.effectiveness_assessment }}
+            {% if form.effectiveness_assessment.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.effectiveness_assessment.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              Evaluate how effective the current mitigation and control measures have been
+              in reducing the risk.
+            </p>
+          </div>
+
+          <!-- Recommendations -->
+          <div>
+            <label for="{{ form.recommendations.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1">
+              Recommendations
+            </label>
+            {{ form.recommendations }}
+            {% if form.recommendations.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.recommendations.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-400">
+              Suggest any further actions, changes to controls, or next steps.
+            </p>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── Group 5: Escalation ── -->
+      <fieldset class="px-6 py-6">
+        <legend class="text-sm font-semibold mb-4 flex items-center gap-2"
+                style="color:#2d1b5e;">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+                        font-bold text-white flex-shrink-0"
+                style="background:#2d1b5e;">5</span>
+          Escalation
+        </legend>
+
+        <!-- Escalation Required checkbox -->
+        <div class="flex items-start gap-3 p-4 rounded-lg border border-gray-200 bg-gray-50 mb-4">
+          <div class="flex items-center h-5 mt-0.5">
+            {{ form.escalation_required }}
+          </div>
+          <div>
+            <label for="{{ form.escalation_required.id_for_label }}"
+                   class="block text-sm font-semibold text-gray-800 cursor-pointer select-none"
+                   @click="escalate = !escalate">
+              Escalation Required
+            </label>
+            <p class="text-xs text-gray-500 mt-0.5">
+              Check this box if this risk needs to be escalated to senior management or a
+              governance committee for immediate attention.
+            </p>
+          </div>
+          {% if form.escalation_required.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ form.escalation_required.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Escalation Reason — shown only when escalation_required is checked -->
+        <div x-show="escalate"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-1">
+          <div class="p-4 rounded-lg border border-red-200 bg-red-50">
+            <div class="flex items-center gap-2 mb-3">
+              <svg class="w-4 h-4 flex-shrink-0 text-red-600" fill="none" stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                         L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+              </svg>
+              <span class="text-sm font-semibold text-red-800">Escalation Details Required</span>
+            </div>
+            <label for="{{ form.escalation_reason.id_for_label }}"
+                   class="block text-sm font-medium text-red-700 mb-1">
+              Escalation Reason <span class="text-red-500">*</span>
+            </label>
+            {{ form.escalation_reason }}
+            {% if form.escalation_reason.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ form.escalation_reason.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-red-600">
+              Explain clearly why this risk requires escalation and what decision or action
+              is needed from senior stakeholders.
+            </p>
+          </div>
+        </div>
+
+      </fieldset>
+
+      <!-- ── Form Actions ── -->
+      <div class="px-6 py-5 bg-gray-50 flex flex-col sm:flex-row justify-end gap-3">
+        <a href="{% url 'risk:risk_detail' pk=risk.pk %}"
+           class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border
+                  border-gray-300 bg-white text-sm font-medium text-gray-700
+                  hover:bg-gray-100 transition-colors duration-200">
+          Cancel
+        </a>
+        <button type="submit"
+                class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg
+                       text-white text-sm font-semibold transition-colors duration-200"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 13l4 4L19 7"/>
+          </svg>
+          Save Monitoring Record
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,665 @@
+{% extends 'base/base.html' %} {% block title %}Report Incident — {{ risk.title
+}}{% endblock %} {% block page_title %}Report Risk Incident{% endblock %} {%
+block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 flex items-center gap-2 text-sm flex-wrap">
+        <a
+            href="{% url 'risk:risk_list' %}"
+            class="text-gray-500 hover:text-gray-800 transition-colors"
+        >
+            Risk Register
+        </a>
+        <svg
+            class="w-4 h-4 text-gray-300 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+            />
+        </svg>
+        <a
+            href="{% url 'risk:risk_detail' pk=risk.pk %}"
+            class="text-gray-500 hover:text-gray-800 transition-colors truncate max-w-xs"
+        >
+            {{ risk.title }}
+        </a>
+        <svg
+            class="w-4 h-4 text-gray-300 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+            />
+        </svg>
+        <span class="font-medium" style="color: #2d1b5e">Report Incident</span>
+    </nav>
+
+    <!-- Risk Summary Bar -->
+    <div
+        class="mb-6 bg-white rounded-xl shadow-sm border-l-4 px-5 py-4 flex flex-wrap items-center justify-between gap-4"
+        style="border-left-color: #2d1b5e"
+    >
+        <div class="flex items-center gap-3 min-w-0">
+            <div
+                class="flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center"
+                style="background: #ede9f7"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    style="color: #2d1b5e"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                   L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                </svg>
+            </div>
+            <div class="min-w-0">
+                <p
+                    class="text-xs text-gray-400 uppercase tracking-wide font-medium"
+                >
+                    Reporting incident against
+                </p>
+                <p class="text-sm font-semibold text-gray-900 truncate">
+                    {{ risk.title }}
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap">
+            <!-- Risk level badge -->
+            <span
+                class="px-3 py-1 text-xs font-semibold rounded-full {% if risk.risk_level == 'Critical' %}bg-red-100 text-red-800 {% elif risk.risk_level == 'High' %}bg-orange-100 text-orange-800 {% elif risk.risk_level == 'Medium' %}bg-yellow-100 text-yellow-800 {% elif risk.risk_level == 'Low' %}bg-blue-100 text-blue-800 {% else %}bg-gray-100 text-gray-700{% endif %}"
+            >
+                {{ risk.risk_level }} Risk
+            </span>
+
+            <!-- Current score pill -->
+            <span
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800"
+            >
+                <svg
+                    class="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                    />
+                </svg>
+                Score: {{ risk.risk_score }}/25
+            </span>
+
+            <!-- Status badge -->
+            <span
+                class="px-3 py-1 text-xs font-medium rounded-full {% if risk.status == 'identified' %}bg-gray-100 text-gray-700 {% elif risk.status == 'assessed' %}bg-blue-100 text-blue-800 {% elif risk.status == 'mitigated' %}bg-green-100 text-green-800 {% elif risk.status == 'monitored' %}bg-purple-100 text-purple-800 {% elif risk.status == 'escalated' %}bg-red-100 text-red-800 {% else %}bg-gray-100 text-gray-700{% endif %}"
+            >
+                {{ risk.get_status_display }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Red Warning Banner -->
+    <div
+        class="mb-6 flex items-start gap-4 p-4 rounded-xl border border-red-300 bg-red-50"
+    >
+        <div
+            class="flex-shrink-0 mt-0.5 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center"
+        >
+            <svg
+                class="w-5 h-5 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                 L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+            </svg>
+        </div>
+        <div>
+            <h3 class="text-sm font-bold text-red-800 mb-1">
+                You are reporting an incident against this risk
+            </h3>
+            <p class="text-sm text-red-700 leading-relaxed">
+                Submitting this form will create an incident record linked to
+                <strong>{{ risk.title }}</strong>.
+                <strong
+                    >Critical severity incidents will automatically escalate the
+                    risk status</strong
+                >
+                and notify the risk owner and relevant stakeholders. Please
+                ensure all details are accurate before submitting.
+            </p>
+        </div>
+    </div>
+
+    <!-- Form card -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div
+            class="px-6 py-5 border-b border-red-200"
+            style="background: #7f1d1d"
+        >
+            <h2
+                class="text-lg font-semibold text-white flex items-center gap-2"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                   L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                </svg>
+                Report Risk Incident
+            </h2>
+            <p class="text-red-200 text-sm mt-1">
+                Document the incident details, severity, and actual impact
+                observed.
+            </p>
+        </div>
+
+        <form method="post" novalidate class="divide-y divide-gray-100">
+            {% csrf_token %}
+
+            <!-- Non-field errors -->
+            {% if form.non_field_errors %}
+            <div class="px-6 pt-5">
+                <div class="p-4 rounded-lg bg-red-50 border border-red-200">
+                    {% for error in form.non_field_errors %}
+                    <p class="text-sm text-red-700 flex items-center gap-2">
+                        <svg
+                            class="w-4 h-4 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                         L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
+                        </svg>
+                        {{ error }}
+                    </p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ── Group 1: Title & Severity ── -->
+            <fieldset class="px-6 py-6">
+                <legend
+                    class="text-sm font-semibold mb-4 flex items-center gap-2"
+                    style="color: #2d1b5e"
+                >
+                    <span
+                        class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white flex-shrink-0"
+                        style="background: #2d1b5e"
+                        >1</span
+                    >
+                    Incident Identity
+                </legend>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Title -->
+                    <div>
+                        <label
+                            for="{{ form.title.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Incident Title <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.title }} {% if form.title.errors %}
+                        <p
+                            class="mt-1 text-xs text-red-600 flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                           L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                            {{ form.title.errors.0 }}
+                        </p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-400">
+                            A short, descriptive name that identifies this
+                            incident.
+                        </p>
+                    </div>
+
+                    <!-- Severity -->
+                    <div>
+                        <label
+                            for="{{ form.severity.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Severity <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.severity }} {% if form.severity.errors %}
+                        <p
+                            class="mt-1 text-xs text-red-600 flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                           L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                            {{ form.severity.errors.0 }}
+                        </p>
+                        {% endif %}
+                        <!-- Severity colour guide -->
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <span
+                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                            >
+                                <span
+                                    class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"
+                                ></span>
+                                Low
+                            </span>
+                            <span
+                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+                            >
+                                <span
+                                    class="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block"
+                                ></span>
+                                Medium
+                            </span>
+                            <span
+                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
+                            >
+                                <span
+                                    class="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block"
+                                ></span>
+                                High
+                            </span>
+                            <span
+                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+                            >
+                                <span
+                                    class="w-1.5 h-1.5 rounded-full bg-red-600 inline-block"
+                                ></span>
+                                Critical — auto-escalates
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ── Group 2: Description & Date ── -->
+            <fieldset class="px-6 py-6">
+                <legend
+                    class="text-sm font-semibold mb-4 flex items-center gap-2"
+                    style="color: #2d1b5e"
+                >
+                    <span
+                        class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white flex-shrink-0"
+                        style="background: #2d1b5e"
+                        >2</span
+                    >
+                    Description &amp; Date
+                </legend>
+
+                <div class="space-y-5">
+                    <!-- Description -->
+                    <div>
+                        <label
+                            for="{{ form.description.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Incident Description
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.description }} {% if form.description.errors %}
+                        <p
+                            class="mt-1 text-xs text-red-600 flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                           L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                            {{ form.description.errors.0 }}
+                        </p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-400">
+                            Provide a clear and factual account of what
+                            happened, when it was first noticed, who was
+                            involved, and what immediate steps (if any) were
+                            taken.
+                        </p>
+                    </div>
+
+                    <!-- Incident Date -->
+                    <div class="max-w-xs">
+                        <label
+                            for="{{ form.incident_date.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Incident Date &amp; Time
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.incident_date }} {% if form.incident_date.errors
+                        %}
+                        <p
+                            class="mt-1 text-xs text-red-600 flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                           L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                            {{ form.incident_date.errors.0 }}
+                        </p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-400">
+                            When the incident occurred or was first detected.
+                        </p>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ── Group 3: Impact ── -->
+            <fieldset class="px-6 py-6">
+                <legend
+                    class="text-sm font-semibold mb-4 flex items-center gap-2"
+                    style="color: #2d1b5e"
+                >
+                    <span
+                        class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white flex-shrink-0"
+                        style="background: #2d1b5e"
+                        >3</span
+                    >
+                    Impact Assessment
+                </legend>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Actual Impact -->
+                    <div>
+                        <label
+                            for="{{ form.actual_impact.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Actual Impact
+                        </label>
+                        {{ form.actual_impact }} {% if form.actual_impact.errors
+                        %}
+                        <p
+                            class="mt-1 text-xs text-red-600 flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                           L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                            {{ form.actual_impact.errors.0 }}
+                        </p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-400">
+                            Describe the confirmed, observed impact of this
+                            incident on operations, people, data, or reputation.
+                        </p>
+                    </div>
+
+                    <!-- Financial Impact -->
+                    <div>
+                        <label
+                            for="{{ form.financial_impact.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Financial Impact ($)
+                        </label>
+                        {{ form.financial_impact }} {% if
+                        form.financial_impact.errors %}
+                        <p
+                            class="mt-1 text-xs text-red-600 flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                           L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                            {{ form.financial_impact.errors.0 }}
+                        </p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-400">
+                            Estimated or confirmed monetary loss or cost arising
+                            from this incident. Leave blank if not applicable or
+                            unknown.
+                        </p>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ── Group 4: Lessons & Assignment ── -->
+            <fieldset class="px-6 py-6">
+                <legend
+                    class="text-sm font-semibold mb-4 flex items-center gap-2"
+                    style="color: #2d1b5e"
+                >
+                    <span
+                        class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white flex-shrink-0"
+                        style="background: #2d1b5e"
+                        >4</span
+                    >
+                    Lessons &amp; Follow-up
+                </legend>
+
+                <div class="space-y-5">
+                    <!-- Lessons Learned -->
+                    <div>
+                        <label
+                            for="{{ form.lessons_learned.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Lessons Learned
+                        </label>
+                        {{ form.lessons_learned }} {% if
+                        form.lessons_learned.errors %}
+                        <p
+                            class="mt-1 text-xs text-red-600 flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                           L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                            {{ form.lessons_learned.errors.0 }}
+                        </p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-400">
+                            Document any lessons that can be drawn from this
+                            incident to prevent recurrence or to improve future
+                            risk controls.
+                        </p>
+                    </div>
+
+                    <!-- Assigned To -->
+                    <div class="max-w-sm">
+                        <label
+                            for="{{ form.assigned_to.id_for_label }}"
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Assigned To
+                        </label>
+                        {{ form.assigned_to }} {% if form.assigned_to.errors %}
+                        <p
+                            class="mt-1 text-xs text-red-600 flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                           L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                            {{ form.assigned_to.errors.0 }}
+                        </p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-400">
+                            Person responsible for investigating and resolving
+                            this incident.
+                        </p>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ── Form Actions ── -->
+            <div
+                class="px-6 py-5 bg-red-50 border-t border-red-100 flex flex-col sm:flex-row items-center justify-between gap-3"
+            >
+                <!-- Reminder note -->
+                <div class="flex items-center gap-2 text-xs text-red-700">
+                    <svg
+                        class="w-4 h-4 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+                    Critical incidents trigger automatic risk escalation.
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <a
+                        href="{% url 'risk:risk_detail' pk=risk.pk %}"
+                        class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                        Cancel
+                    </a>
+                    <button
+                        type="submit"
+                        class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors duration-200 bg-red-600 hover:bg-red-700"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5
+                       L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
+                        </svg>
+                        Report Incident
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

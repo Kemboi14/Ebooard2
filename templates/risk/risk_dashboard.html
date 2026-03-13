@@ -1,0 +1,483 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Risk Dashboard{% endblock %}
+
+{% block page_title %}Risk Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+
+  <!-- ============================================================
+       PAGE HEADER
+  ============================================================ -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold" style="color:#2d1b5e;">Risk Dashboard</h1>
+      <p class="text-gray-500 text-sm mt-1">
+        Real-time overview of organisational risks and incidents
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <a href="{% url 'risk:risk_list' %}"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+         style="border-color:#2d1b5e;">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+        </svg>
+        Risk Register
+      </a>
+      <a href="{% url 'risk:risk_reports' %}"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+         style="border-color:#2d1b5e;">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 17v-2m3 2v-4m3 4v-6M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+        </svg>
+        Reports
+      </a>
+      {% if can_manage %}
+      <a href="{% url 'risk:create_risk' %}"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.background='#5a8a3c'"
+         onmouseout="this.style.background='#7dc143'">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Risk
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ============================================================
+       STATS CARDS  (8 cards — 4 per row on lg, 2 on sm)
+  ============================================================ -->
+  <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-8">
+
+    <!-- Total Risks -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3
+                xl:col-span-1 col-span-1">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</p>
+        <div class="p-2 rounded-lg" style="background:#e8f5d0;">
+          <svg class="w-4 h-4" style="color:#2d1b5e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold" style="color:#2d1b5e;">{{ stats.total_risks }}</p>
+      <p class="text-xs text-gray-400">Total Risks</p>
+    </div>
+
+    <!-- Open Risks -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Open</p>
+        <div class="p-2 bg-blue-50 rounded-lg">
+          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-blue-600">{{ stats.open_risks }}</p>
+      <p class="text-xs text-gray-400">Open Risks</p>
+    </div>
+
+    <!-- Critical -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Critical</p>
+        <div class="p-2 bg-red-50 rounded-lg">
+          <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+          </svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-red-600">{{ stats.critical_risks }}</p>
+      <p class="text-xs text-gray-400">Critical</p>
+    </div>
+
+    <!-- High -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">High</p>
+        <div class="p-2 bg-orange-50 rounded-lg">
+          <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+          </svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-orange-500">{{ stats.high_risks }}</p>
+      <p class="text-xs text-gray-400">High</p>
+    </div>
+
+    <!-- Medium -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Medium</p>
+        <div class="p-2 bg-yellow-50 rounded-lg">
+          <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20 12H4"/>
+          </svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-yellow-500">{{ stats.medium_risks }}</p>
+      <p class="text-xs text-gray-400">Medium</p>
+    </div>
+
+    <!-- Low -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Low</p>
+        <div class="p-2 bg-blue-50 rounded-lg">
+          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-blue-400">{{ stats.low_risks }}</p>
+      <p class="text-xs text-gray-400">Low</p>
+    </div>
+
+    <!-- Overdue -->
+    <div class="bg-white rounded-xl shadow-sm border border-red-100 p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold text-red-400 uppercase tracking-wide">Overdue</p>
+        <div class="p-2 bg-red-50 rounded-lg">
+          <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-red-500">{{ stats.overdue_risks }}</p>
+      <p class="text-xs text-gray-400">Overdue</p>
+    </div>
+
+    <!-- Recent Incidents -->
+    <div class="bg-white rounded-xl shadow-sm border border-purple-100 p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold text-purple-400 uppercase tracking-wide">Incidents</p>
+        <div class="p-2 bg-purple-50 rounded-lg">
+          <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-purple-500">{{ stats.recent_incidents }}</p>
+      <p class="text-xs text-gray-400">Recent</p>
+    </div>
+
+  </div><!-- /stats grid -->
+
+  <!-- ============================================================
+       MIDDLE ROW: High-Priority Risks (left) + Recent Incidents (right)
+  ============================================================ -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+    <!-- ---- High Priority Risks Table ---- -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <!-- card header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div class="flex items-center gap-2">
+          <span class="w-1 h-6 rounded-full inline-block" style="background:#2d1b5e;"></span>
+          <h2 class="text-base font-semibold" style="color:#2d1b5e;">High Priority Risks</h2>
+        </div>
+        <a href="{% url 'risk:risk_list' %}"
+           class="text-xs font-medium hover:underline"
+           style="color:#7dc143;">
+          View all &rarr;
+        </a>
+      </div>
+
+      {% if high_priority_risks %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-100">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Risk</th>
+              <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Level</th>
+              <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Score</th>
+              <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Status</th>
+              <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Owner</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            {% for risk in high_priority_risks %}
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-5 py-3">
+                <a href="{% url 'risk:risk_detail' risk.pk %}"
+                   class="text-sm font-medium hover:underline truncate max-w-[160px] block"
+                   style="color:#2d1b5e;">
+                  {{ risk.title|truncatechars:40 }}
+                </a>
+              </td>
+              <td class="px-5 py-3 whitespace-nowrap">
+                <span class="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full
+                  {% if risk.risk_level == 'Critical' %}bg-red-100 text-red-700
+                  {% elif risk.risk_level == 'High' %}bg-orange-100 text-orange-700
+                  {% elif risk.risk_level == 'Medium' %}bg-yellow-100 text-yellow-700
+                  {% elif risk.risk_level == 'Low' %}bg-blue-100 text-blue-700
+                  {% else %}bg-gray-100 text-gray-600{% endif %}">
+                  {{ risk.risk_level }}
+                </span>
+              </td>
+              <td class="px-5 py-3 whitespace-nowrap">
+                <span class="text-sm font-bold
+                  {% if risk.risk_level == 'Critical' %}text-red-600
+                  {% elif risk.risk_level == 'High' %}text-orange-500
+                  {% else %}text-gray-700{% endif %}">
+                  {{ risk.risk_score }}/25
+                </span>
+              </td>
+              <td class="px-5 py-3 whitespace-nowrap">
+                <span class="inline-flex px-2 py-0.5 text-xs rounded-full
+                  {% if risk.status == 'identified' %}bg-gray-100 text-gray-700
+                  {% elif risk.status == 'assessed' %}bg-blue-100 text-blue-700
+                  {% elif risk.status == 'mitigated' %}bg-green-100 text-green-700
+                  {% elif risk.status == 'monitored' %}bg-purple-100 text-purple-700
+                  {% elif risk.status == 'escalated' %}bg-red-100 text-red-700
+                  {% else %}bg-gray-100 text-gray-600{% endif %}">
+                  {{ risk.get_status_display }}
+                </span>
+              </td>
+              <td class="px-5 py-3 whitespace-nowrap">
+                <span class="text-sm text-gray-600 truncate max-w-[100px] block">
+                  {{ risk.risk_owner.get_full_name|default:"—"|truncatechars:18 }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="flex flex-col items-center justify-center py-14 text-center px-6">
+        <div class="p-4 rounded-full mb-3" style="background:#e8f5d0;">
+          <svg class="w-8 h-8" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <p class="text-sm font-medium text-gray-600">No high-priority risks</p>
+        <p class="text-xs text-gray-400 mt-1">Great — all critical and high risks are under control.</p>
+      </div>
+      {% endif %}
+    </div><!-- /high priority card -->
+
+    <!-- ---- Recent Incidents List ---- -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <!-- card header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div class="flex items-center gap-2">
+          <span class="w-1 h-6 rounded-full inline-block bg-purple-500"></span>
+          <h2 class="text-base font-semibold" style="color:#2d1b5e;">Recent Incidents</h2>
+        </div>
+        <span class="text-xs text-gray-400">Latest reported</span>
+      </div>
+
+      {% if recent_incidents %}
+      <ul class="divide-y divide-gray-50">
+        {% for incident in recent_incidents %}
+        <li class="px-6 py-4 hover:bg-gray-50 transition-colors">
+          <div class="flex items-start justify-between gap-3">
+            <!-- left: dot + text -->
+            <div class="flex items-start gap-3 min-w-0">
+              <span class="mt-1.5 flex-shrink-0 w-2.5 h-2.5 rounded-full
+                {% if incident.severity == 'critical' %}bg-red-500
+                {% elif incident.severity == 'high' %}bg-orange-400
+                {% elif incident.severity == 'medium' %}bg-yellow-400
+                {% else %}bg-green-400{% endif %}">
+              </span>
+              <div class="min-w-0">
+                <a href="{% url 'risk:risk_detail' incident.risk.pk %}#incidents"
+                   class="text-sm font-medium text-gray-800 hover:underline block truncate"
+                   style="max-width:220px;">
+                  {{ incident.title|truncatechars:50 }}
+                </a>
+                <p class="text-xs text-gray-400 mt-0.5 truncate" style="max-width:220px;">
+                  Risk:
+                  <a href="{% url 'risk:risk_detail' incident.risk.pk %}"
+                     class="hover:underline" style="color:#2d1b5e;">
+                    {{ incident.risk.title|truncatechars:35 }}
+                  </a>
+                </p>
+              </div>
+            </div>
+            <!-- right: badges + date -->
+            <div class="flex flex-col items-end gap-1 flex-shrink-0">
+              <span class="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full
+                {% if incident.severity == 'critical' %}bg-red-100 text-red-700
+                {% elif incident.severity == 'high' %}bg-orange-100 text-orange-700
+                {% elif incident.severity == 'medium' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-green-100 text-green-700{% endif %}">
+                {{ incident.get_severity_display }}
+              </span>
+              <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500">
+                {{ incident.get_status_display }}
+              </span>
+              <time class="text-xs text-gray-400" datetime="{{ incident.incident_date|date:'Y-m-d' }}">
+                {{ incident.incident_date|date:"M d, Y" }}
+              </time>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="flex flex-col items-center justify-center py-14 text-center px-6">
+        <div class="p-4 bg-purple-50 rounded-full mb-3">
+          <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <p class="text-sm font-medium text-gray-600">No incidents recorded</p>
+        <p class="text-xs text-gray-400 mt-1">Incidents will appear here once reported.</p>
+      </div>
+      {% endif %}
+    </div><!-- /incidents card -->
+
+  </div><!-- /middle row -->
+
+  <!-- ============================================================
+       BOTTOM: Recent Risks Table
+  ============================================================ -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- card header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div class="flex items-center gap-2">
+        <span class="w-1 h-6 rounded-full inline-block" style="background:#7dc143;"></span>
+        <h2 class="text-base font-semibold" style="color:#2d1b5e;">Recently Identified Risks</h2>
+      </div>
+      <a href="{% url 'risk:risk_list' %}"
+         class="text-xs font-medium hover:underline"
+         style="color:#7dc143;">
+        Full register &rarr;
+      </a>
+    </div>
+
+    {% if recent_risks %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-100">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide w-2/5">
+              Title
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">
+              Level
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">
+              Status
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">
+              Owner
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">
+              Date Identified
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for risk in recent_risks %}
+          <tr class="hover:bg-gray-50 transition-colors group">
+            <td class="px-6 py-4">
+              <a href="{% url 'risk:risk_detail' risk.pk %}"
+                 class="text-sm font-medium group-hover:underline"
+                 style="color:#2d1b5e;">
+                {{ risk.title|truncatechars:60 }}
+              </a>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold rounded-full
+                {% if risk.risk_level == 'Critical' %}bg-red-100 text-red-700
+                {% elif risk.risk_level == 'High' %}bg-orange-100 text-orange-700
+                {% elif risk.risk_level == 'Medium' %}bg-yellow-100 text-yellow-700
+                {% elif risk.risk_level == 'Low' %}bg-blue-100 text-blue-700
+                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                <span class="w-1.5 h-1.5 rounded-full inline-block
+                  {% if risk.risk_level == 'Critical' %}bg-red-500
+                  {% elif risk.risk_level == 'High' %}bg-orange-400
+                  {% elif risk.risk_level == 'Medium' %}bg-yellow-400
+                  {% elif risk.risk_level == 'Low' %}bg-blue-400
+                  {% else %}bg-gray-400{% endif %}">
+                </span>
+                {{ risk.risk_level }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex px-2.5 py-0.5 text-xs rounded-full
+                {% if risk.status == 'identified' %}bg-gray-100 text-gray-700
+                {% elif risk.status == 'assessed' %}bg-blue-100 text-blue-700
+                {% elif risk.status == 'mitigated' %}bg-green-100 text-green-700
+                {% elif risk.status == 'monitored' %}bg-purple-100 text-purple-700
+                {% elif risk.status == 'escalated' %}bg-red-100 text-red-700
+                {% elif risk.status == 'closed' %}bg-gray-100 text-gray-500
+                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                {{ risk.get_status_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center gap-2">
+                {% if risk.risk_owner %}
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                     style="background:#2d1b5e;">
+                  {{ risk.risk_owner.first_name|slice:":1" }}{{ risk.risk_owner.last_name|slice:":1" }}
+                </div>
+                <span class="text-sm text-gray-700 truncate" style="max-width:120px;">
+                  {{ risk.risk_owner.get_full_name|truncatechars:20 }}
+                </span>
+                {% else %}
+                <span class="text-sm text-gray-400 italic">Unassigned</span>
+                {% endif %}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <time class="text-sm text-gray-500" datetime="{{ risk.identified_date|date:'Y-m-d' }}">
+                {{ risk.identified_date|date:"M d, Y" }}
+              </time>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="flex flex-col items-center justify-center py-16 text-center px-6">
+      <div class="p-4 rounded-full mb-3" style="background:#e8f5d0;">
+        <svg class="w-10 h-10" style="color:#7dc143;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+        </svg>
+      </div>
+      <h3 class="text-base font-semibold text-gray-700 mb-1">No risks identified yet</h3>
+      <p class="text-sm text-gray-400 mb-4">Start building your risk register to track organisational risks.</p>
+      {% if can_manage %}
+      <a href="{% url 'risk:create_risk' %}"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.background='#5a8a3c'"
+         onmouseout="this.style.background='#7dc143'">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Your First Risk
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div><!-- /recent risks card -->
+
+</div><!-- /max-w-7xl -->
+{% endblock %}
