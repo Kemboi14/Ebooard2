@@ -70,7 +70,15 @@ class MotionDetailView(LoginRequiredMixin, DetailView):
         motion = self.get_object()
         user = self.request.user
 
+        can_manage = user.role in [
+            "company_secretary",
+            "executive_management",
+            "it_administrator",
+        ]
+
         context["can_vote"] = user.role in CAN_VOTE
+        context["can_manage"] = can_manage
+        context["can_create"] = can_manage
         context["has_voted"] = Vote.objects.filter(motion=motion, voter=user).exists()
         context["vote_options"] = motion.vote_options.all().order_by("order")
         context["user_vote"] = Vote.objects.filter(motion=motion, voter=user).first()
@@ -276,6 +284,40 @@ def vote_results(request, pk):
             in ["company_secretary", "executive_management", "it_administrator"],
         },
     )
+
+
+@require_POST
+@role_required("company_secretary", "executive_management", "it_administrator")
+def propose_motion(request, pk):
+    """Transition a motion from draft → proposed."""
+    motion = get_object_or_404(Motion, pk=pk)
+    if motion.status != "draft":
+        messages.error(
+            request,
+            f"Motion must be in Draft status to propose it (currently: {motion.get_status_display()}).",
+        )
+        return redirect("voting:motion_detail", pk=pk)
+    motion.status = "proposed"
+    motion.save(update_fields=["status", "updated_at"])
+    messages.success(request, f'Motion "{motion.title}" has been proposed.')
+    return redirect("voting:motion_detail", pk=pk)
+
+
+@require_POST
+@role_required("company_secretary", "executive_management", "it_administrator")
+def open_debate(request, pk):
+    """Transition a motion from proposed → debate."""
+    motion = get_object_or_404(Motion, pk=pk)
+    if motion.status != "proposed":
+        messages.error(
+            request,
+            f"Motion must be in Proposed status to open debate (currently: {motion.get_status_display()}).",
+        )
+        return redirect("voting:motion_detail", pk=pk)
+    motion.status = "debate"
+    motion.save(update_fields=["status", "updated_at"])
+    messages.success(request, f'Debate has been opened for "{motion.title}".')
+    return redirect("voting:motion_detail", pk=pk)
 
 
 @require_POST
