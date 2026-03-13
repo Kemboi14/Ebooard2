@@ -1,9 +1,7 @@
-{% extends "admin/base_site.html" %} {% load static %} {% block extrastyle %}{{
-block.super }}<link
+{% extends "admin/base_site.html" %} {% load static %} {% block extrastyle %}{{ block.super }}<link
     rel="stylesheet"
     href="{% static 'css/enhanced_admin.css' %}"
-/>{% endblock %} {% block bodyclass %}enhanced-admin{% endblock %} {% block
-branding %}
+/>{% endblock %} {% block bodyclass %}enhanced-admin{% endblock %} {% block branding %}
 <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
         <img

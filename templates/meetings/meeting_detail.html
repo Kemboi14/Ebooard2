@@ -1,6 +1,4 @@
-{% extends 'base/base.html' %} {% load tz_tags %} {% block title %}{{
-meeting.title }}{% endblock %} {% block page_title %}{{ meeting.title }}{%
-endblock %} {% block content %}
+{% extends 'base/base.html' %} {% load tz_tags %} {% block title %}{{ meeting.title }}{% endblock %} {% block page_title %}{{ meeting.title }}{% endblock %} {% block content %}
 <div class="max-w-7xl mx-auto">
     <!-- Meeting Header -->
     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -78,19 +76,15 @@ endblock %} {% block content %}
                         Date & Time
                     </h3>
 
-                    {% timezone_notice
-                    meeting.branch.timezone_name|default:"Africa/Nairobi" %}
+                    {% timezone_notice meeting.branch.timezone_name|default:"Africa/Nairobi" %}
 
                     <p class="text-gray-900">
                         <strong>Date:</strong>
-                        {{ meeting.scheduled_date|localtime:request.user|date:"F
-                        d, Y" }}
+                        {{ meeting.scheduled_date|localtime:request.user|date:"F d, Y" }}
                     </p>
                     <p class="text-gray-900">
                         <strong>Time:</strong>
-                        {% meeting_time_range meeting.scheduled_date
-                        meeting.scheduled_end_time date_fmt="" time_fmt="%I:%M
-                        %p" %}
+                        {% meeting_time_range meeting.scheduled_date meeting.scheduled_end_time date_fmt="" time_fmt="%I:%M %p" %}
                     </p>
                     <p class="text-xs text-gray-400 mt-0.5">
                         All times shown in
@@ -100,8 +94,7 @@ endblock %} {% block content %}
                     </p>
                     {% if meeting.duration_minutes %}
                     <p class="text-gray-900 mt-1">
-                        <strong>Duration:</strong> {{ meeting.duration_display
-                        }}
+                        <strong>Duration:</strong> {{ meeting.duration_display }}
                     </p>
                     {% endif %}
                 </div>
@@ -120,8 +113,7 @@ endblock %} {% block content %}
                         class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
                     >
                         <p class="text-sm font-medium text-blue-800 mb-2">
-                            <strong>Virtual Platform:</strong> {{
-                            meeting.get_virtual_platform_display }}
+                            <strong>Virtual Platform:</strong> {{ meeting.get_virtual_platform_display }}
                         </p>
                         {% if meeting.virtual_meeting_url %}
                         <a
@@ -182,8 +174,7 @@ endblock %} {% block content %}
                         Description
                     </h3>
                     <p class="text-gray-900 whitespace-pre-wrap">
-                        {{ meeting.description|default:"No description provided"
-                        }}
+                        {{ meeting.description|default:"No description provided" }}
                     </p>
                 </div>
 
@@ -195,8 +186,7 @@ endblock %} {% block content %}
                         Organizer
                     </h3>
                     <p class="text-gray-900">
-                        {{ meeting.organizer.get_full_name|default:"Not
-                        assigned" }}
+                        {{ meeting.organizer.get_full_name|default:"Not assigned" }}
                     </p>
                 </div>
             </div>
@@ -227,8 +217,7 @@ endblock %} {% block content %}
                                     class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white mr-3"
                                     style="background: #7dc143"
                                 >
-                                    {{ attendee.first_name|slice:":1" }}{{
-                                    attendee.last_name|slice:":1" }}
+                                    {{ attendee.first_name|slice:":1" }}{{ attendee.last_name|slice:":1" }}
                                 </div>
                                 {% endif %}
                                 <div>
@@ -309,8 +298,7 @@ endblock %} {% block content %}
 
                             {% if item.estimated_duration %}
                             <p class="text-xs text-gray-500">
-                                <strong>Estimated Duration:</strong> {{
-                                item.estimated_duration }} minutes
+                                <strong>Estimated Duration:</strong> {{ item.estimated_duration }} minutes
                             </p>
                             {% endif %} {% if item.attachment %}
                             <div class="mt-2">
@@ -387,18 +375,15 @@ endblock %} {% block content %}
                             <div>
                                 {% if minutes.drafted_by %}
                                 <p>
-                                    Drafted by: {{
-                                    minutes.drafted_by.get_full_name }}
+                                    Drafted by: {{ minutes.drafted_by.get_full_name }}
                                 </p>
                                 {% endif %} {% if minutes.reviewed_by %}
                                 <p>
-                                    Reviewed by: {{
-                                    minutes.reviewed_by.get_full_name }}
+                                    Reviewed by: {{ minutes.reviewed_by.get_full_name }}
                                 </p>
                                 {% endif %} {% if minutes.approved_by %}
                                 <p>
-                                    Approved by: {{
-                                    minutes.approved_by.get_full_name }}
+                                    Approved by: {{ minutes.approved_by.get_full_name }}
                                 </p>
                                 {% endif %}
                             </div>
