@@ -90,7 +90,7 @@ class ForumDetailView(LoginRequiredMixin, DetailView):
         # Get threads for this forum
         threads = (
             forum.threads.select_related("author")
-            .prefetch_related("tags")
+            .prefetch_related("thread_tags__tag")
             .order_by("-is_pinned", "-last_activity")
         )
 
