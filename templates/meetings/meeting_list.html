@@ -1,10 +1,12 @@
-{% extends 'base/base.html' %} {% load tz_tags %} {% block title %}Meetings{%
-endblock %} {% block page_title %}Meetings{% endblock %} {% block content %}
+{% extends 'base/base.html' %}
+{% load tz_tags %}
+{% block title %}Meetings{% endblock %}
+{% block page_title %}Meetings{% endblock %}
+{% block content %}
 <div class="max-w-7xl mx-auto">
     <!-- Header with Actions -->
     <div class="mb-8 flex justify-between items-center">
         <h1 class="text-2xl font-bold" style="color: #2d1b5e">Meetings</h1>
-
         {% if can_manage %}
         <a
             href="{% url 'meetings:create_meeting' %}"
@@ -29,27 +31,22 @@ endblock %} {% block page_title %}Meetings{% endblock %} {% block content %}
                     {{ search_form.search_type.label_tag }} {{
                     search_form.search_type }}
                 </div>
-
                 <div>
                     {{ search_form.query.label_tag }} {{ search_form.query }}
                 </div>
-
                 <div>
                     {{ search_form.date_from.label_tag }} {{
                     search_form.date_from }}
                 </div>
-
                 <div>
                     {{ search_form.date_to.label_tag }} {{ search_form.date_to
                     }}
                 </div>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     {{ search_form.status.label_tag }} {{ search_form.status }}
                 </div>
-
                 <div class="flex items-end">
                     <button
                         type="submit"
@@ -103,6 +100,7 @@ endblock %} {% block page_title %}Meetings{% endblock %} {% block content %}
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for meeting in meetings %}
                     <tr class="hover:bg-gray-50">
+                        <!-- Title -->
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <a
@@ -120,27 +118,33 @@ endblock %} {% block page_title %}Meetings{% endblock %} {% block content %}
                                 {% endif %}
                             </div>
                         </td>
+
+                        <!-- Date -->
                         <td
                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                         >
-                            {% meeting_time_range meeting.scheduled_date
-                            meeting.scheduled_end_time date_fmt="%d %b %Y"
-                            time_fmt="%I:%M %p" %}
+                            {% meeting_time_range meeting.scheduled_date meeting.scheduled_end_time date_fmt="%d %b %Y" time_fmt="%I:%M %p" %}
                         </td>
+
+                        <!-- Type -->
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span
-                                class="px-2 py-1 text-xs rounded-full {% if meeting.meeting_type == 'board' %}bg-blue-100 text-blue-800{% endif %} {% if meeting.meeting_type == 'committee' %}bg-green-100 text-green-800{% endif %} {% if meeting.meeting_type == 'agm' %}bg-purple-100 text-purple-800{% endif %} {% if meeting.meeting_type == 'emergency' %}bg-red-100 text-red-800{% endif %} {% if meeting.meeting_type == 'workshop' %}bg-yellow-100 text-yellow-800{% endif %}"
+                                class="px-2 py-1 text-xs rounded-full {% if meeting.meeting_type == 'board' %}bg-blue-100 text-blue-800{% elif meeting.meeting_type == 'committee' %}bg-green-100 text-green-800{% elif meeting.meeting_type == 'agm' %}bg-purple-100 text-purple-800{% elif meeting.meeting_type == 'emergency' %}bg-red-100 text-red-800{% elif meeting.meeting_type == 'workshop' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}"
                             >
                                 {{ meeting.get_meeting_type_display }}
                             </span>
                         </td>
+
+                        <!-- Status -->
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span
-                                class="px-2 py-1 text-xs rounded-full {% if meeting.status == 'scheduled' %}bg-gray-100 text-gray-800{% endif %} {% if meeting.status == 'in_progress' %}bg-blue-100 text-blue-800{% endif %} {% if meeting.status == 'completed' %}bg-green-100 text-green-800{% endif %} {% if meeting.status == 'cancelled' %}bg-red-100 text-red-800{% endif %} {% if meeting.status == 'postponed' %}bg-yellow-100 text-yellow-800{% endif %}"
+                                class="px-2 py-1 text-xs rounded-full {% if meeting.status == 'scheduled' %}bg-gray-100 text-gray-800{% elif meeting.status == 'in_progress' %}bg-blue-100 text-blue-800{% elif meeting.status == 'completed' %}bg-green-100 text-green-800{% elif meeting.status == 'cancelled' %}bg-red-100 text-red-800{% elif meeting.status == 'postponed' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}"
                             >
                                 {{ meeting.get_status_display }}
                             </span>
                         </td>
+
+                        <!-- Actions -->
                         {% if can_manage %}
                         <td
                             class="px-6 py-4 whitespace-nowrap text-sm font-medium"
@@ -182,20 +186,26 @@ endblock %} {% block page_title %}Meetings{% endblock %} {% block content %}
         <div
             class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 lg:px-8"
         >
+            <!-- Mobile pagination -->
             <div class="flex-1 flex justify-between sm:hidden">
+                {% if page_obj.has_previous %}
                 <a
                     href="?page={{ page_obj.previous_page_number }}"
                     class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
                     Previous
                 </a>
+                {% endif %} {% if page_obj.has_next %}
                 <a
                     href="?page={{ page_obj.next_page_number }}"
                     class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
                     Next
                 </a>
+                {% endif %}
             </div>
+
+            <!-- Desktop pagination -->
             <div
                 class="hidden sm:flex-1 sm:flex sm:justify-between sm:items-center"
             >
@@ -215,8 +225,8 @@ endblock %} {% block page_title %}Meetings{% endblock %} {% block content %}
                                 Previous
                             </a>
                         </li>
-                        {% endif %} {% for num in page_obj.paginator.page_range
-                        %}
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
                         <li>
                             {% if page_obj.number == num %}
                             <span
