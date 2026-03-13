@@ -222,9 +222,7 @@
                             >Proposed By</span
                         >
                         <span class="text-gray-900"
-                            >{{
-                            motion.proposed_by.get_full_name|default:"Unknown"
-                            }}</span
+                            >{{ motion.proposed_by.get_full_name|default:"Unknown" }}</span
                         >
                     </div>
                     {% if motion.seconded_by %}
@@ -256,8 +254,7 @@
                     <div class="flex flex-col">
                         <span class="font-medium text-gray-500">Created</span>
                         <span class="text-gray-900"
-                            >{{ motion.created_at|date:"M d, Y" }} at {{
-                            motion.created_at|time:"g:i A" }}</span
+                            >{{ motion.created_at|date:"M d, Y" }} at {{ motion.created_at|time:"g:i A" }}</span
                         >
                     </div>
                     <div class="flex flex-col">
@@ -265,8 +262,7 @@
                             >Voting Deadline</span
                         >
                         <span class="text-gray-900"
-                            >{{ motion.voting_deadline|date:"M d, Y" }} at {{
-                            motion.voting_deadline|time:"g:i A" }}</span
+                            >{{ motion.voting_deadline|date:"M d, Y" }} at {{ motion.voting_deadline|time:"g:i A" }}</span
                         >
                     </div>
                     <div class="flex flex-col">
@@ -554,8 +550,7 @@
                     </p>
                 </div>
 
-                {% elif motion.status == 'voting' and motion.is_deadline_passed
-                %}
+                {% elif motion.status == 'voting' and motion.is_deadline_passed %}
                 <div
                     class="p-4 bg-orange-50 border border-orange-200 rounded-xl"
                 >
@@ -630,8 +625,7 @@
                         >
                             <span>Yes</span>
                             <span
-                                >{{ motion.yes_votes }} ({{
-                                motion.yes_percentage }}%)</span
+                                >{{ motion.yes_votes }} ({{ motion.yes_percentage }}%)</span
                             >
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2">
@@ -647,8 +641,7 @@
                         >
                             <span>No</span>
                             <span
-                                >{{ motion.no_votes }} ({{ motion.no_percentage
-                                }}%)</span
+                                >{{ motion.no_votes }} ({{ motion.no_percentage }}%)</span
                             >
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2">
@@ -664,8 +657,7 @@
                         >
                             <span>Abstain</span>
                             <span
-                                >{{ motion.abstain_votes }} ({{
-                                motion.abstain_percentage }}%)</span
+                                >{{ motion.abstain_votes }} ({{ motion.abstain_percentage }}%)</span
                             >
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2">
@@ -704,16 +696,14 @@
                     <div class="flex justify-between">
                         <span>Voting opened:</span>
                         <span
-                            >{{ motion.voting_started_at|date:"M d, Y g:i A"
-                            }}</span
+                            >{{ motion.voting_started_at|date:"M d, Y g:i A" }}</span
                         >
                     </div>
                     {% endif %} {% if motion.voting_ended_at %}
                     <div class="flex justify-between">
                         <span>Voting closed:</span>
                         <span
-                            >{{ motion.voting_ended_at|date:"M d, Y g:i A"
-                            }}</span
+                            >{{ motion.voting_ended_at|date:"M d, Y g:i A" }}</span
                         >
                     </div>
                     {% endif %}
