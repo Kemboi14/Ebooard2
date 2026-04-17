@@ -48,7 +48,7 @@ class ForumListView(LoginRequiredMixin, BranchOrganizationFilterMixin, ListView)
 
     def get_queryset(self):
         user = self.request.user
-        queryset = DiscussionForum.objects.select_related("branch", "branch__organization")
+        queryset = DiscussionForum.objects.select_related("created_by")
 
         # Organization and branch filtering
         queryset = self.filter_queryset_by_branch(queryset)
