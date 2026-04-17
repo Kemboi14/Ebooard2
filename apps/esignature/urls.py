@@ -15,7 +15,7 @@ urlpatterns = [
     ),
     path(
         "signabledocument/",
-        views.DownloadSignedDocumentsView.as_view(),
+        views.DocumentListView.as_view(),
         name="signabledocument",
     ),
     path(
