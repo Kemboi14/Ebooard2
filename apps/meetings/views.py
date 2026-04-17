@@ -1146,6 +1146,33 @@ class BoardPackCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+class VideoConferenceSessionListView(LoginRequiredMixin, BranchOrganizationFilterMixin, ListView):
+    """List all video conference sessions"""
+    model = VideoConferenceSession
+    template_name = 'meetings/video_conference_sessions.html'
+    context_object_name = 'sessions'
+    paginate_by = 20
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = VideoConferenceSession.objects.select_related("meeting", "meeting__branch", "meeting__organizer")
+
+        # Organization and branch filtering
+        qs = self.filter_queryset_by_branch(qs, branch_field='meeting__branch')
+
+        # Role-based filtering within branch context
+        if user.role in MANAGE_MEETINGS:
+            pass  # See all sessions in their branches
+        elif user.role == "board_member":
+            qs = qs.filter(
+                Q(meeting__attendees=user) | Q(meeting__required_attendees=user) | Q(meeting__organizer=user)
+            )
+        else:
+            qs = qs.filter(meeting__organizer=user)
+
+        return qs.order_by("-created_at")
+
+
 @login_required
 @require_POST
 def distribute_board_pack(request, pk):

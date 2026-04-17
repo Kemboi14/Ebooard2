@@ -5,14 +5,11 @@
 {% block content %}
 <div class="p-6">
     <!-- Header -->
-    <div class="mb-8 flex items-center justify-between">
+    <div class="mb-8">
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Meeting Recordings</h1>
             <p class="text-gray-600 mt-2">View and manage all meeting recordings</p>
         </div>
-        <a href="{% url 'recordings:settings' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            Configure Settings
-        </a>
     </div>
 
     <!-- Filters -->
@@ -89,7 +86,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span>{{ recording.duration_seconds|div:60 }} minutes</span>
+                        <span>{{ recording.duration_minutes }} minutes</span>
                     </div>
                     {% endif %}
                 </div>
@@ -141,7 +138,6 @@
         </svg>
         <h3 class="text-lg font-medium text-gray-900 mb-2">No recordings found</h3>
         <p class="text-gray-600 mb-4">Configure your Zoom or Teams integration to start recording meetings</p>
-        <a href="{% url 'recordings:settings' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Configure Settings</a>
     </div>
     {% endif %}
 </div>

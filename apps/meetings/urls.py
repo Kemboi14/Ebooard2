@@ -52,6 +52,7 @@ urlpatterns = [
     # Video Conferencing
     path("<uuid:pk>/video/zoom/", views.create_zoom_meeting, name="create_zoom_meeting"),
     path("<uuid:pk>/video/teams/", views.create_teams_meeting, name="create_teams_meeting"),
+    path("videoconferencesession/", views.VideoConferenceSessionListView.as_view(), name="videoconferencesession"),
     
     # Agenda Suggestions
     path("agenda-suggestions/create/", views.AgendaSuggestionCreateView.as_view(), name="agenda_suggestion_create"),

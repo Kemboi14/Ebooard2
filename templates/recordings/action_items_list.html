@@ -140,8 +140,8 @@
 <script>
 function updateStatus(actionItemId, status) {
     if (!status) return;
-    
-    fetch(`{% url 'recordings:update_action_item_status' 0 %}`.replace('0', actionItemId), {
+
+    fetch(`/recordings/action-items/${actionItemId}/update-status/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

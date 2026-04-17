@@ -49,6 +49,13 @@ def recording_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Add duration_minutes to each recording
+    for recording in page_obj:
+        if recording.duration_seconds:
+            recording.duration_minutes = recording.duration_seconds // 60
+        else:
+            recording.duration_minutes = 0
+    
     context = {
         'page_obj': page_obj,
         'platform': platform,

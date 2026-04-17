@@ -1,0 +1,57 @@
+{% extends "base/base.html" %}
+
+{% block title %}Video Conference Sessions - Enwealth E-Board{% endblock %}
+
+{% block page_title %}Video Conference Sessions{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-semibold text-gray-900">Video Conference Sessions</h2>
+        </div>
+        <div class="p-6">
+            {% if sessions %}
+                <div class="divide-y">
+                    {% for session in sessions %}
+                        <div class="p-4 hover:bg-gray-50 transition">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{ session.meeting.title }}
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        Platform: {{ session.platform|title }}
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        Meeting ID: {{ session.meeting_id }}
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        Status: 
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium {% if session.status == 'active' %}bg-green-100 text-green-800{% elif session.status == 'ended' %}bg-gray-100 text-gray-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                            {{ session.status|title }}
+                                        </span>
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        Created: {{ session.created_at|date:"M d, Y H:i" }}
+                                    </p>
+                                </div>
+                                <div class="flex space-x-2 ml-4">
+                                    <a href="{% url 'meetings:meeting_detail' session.meeting.pk %}" 
+                                       class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        View Meeting
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="p-8 text-center text-gray-500">
+                    <p>No video conference sessions found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
