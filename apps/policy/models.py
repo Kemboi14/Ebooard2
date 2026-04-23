@@ -198,3 +198,131 @@ class PolicyAcknowledgment(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.policy.title}"
+
+
+class PolicyExpiryMonitor(models.Model):
+    """Monitor policy expiry and send notifications"""
+
+    NOTIFICATION_STATUS_CHOICES = [
+        ('not_sent', 'Not Sent'),
+        ('sent_30_days', 'Sent 30 Days Before'),
+        ('sent_14_days', 'Sent 14 Days Before'),
+        ('sent_7_days', 'Sent 7 Days Before'),
+        ('sent_1_day', 'Sent 1 Day Before'),
+        ('expired', 'Expired'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    policy = models.ForeignKey(Policy, on_delete=models.CASCADE, related_name='expiry_monitors')
+    
+    # Expiry tracking
+    expiry_date = models.DateField(help_text="Date when policy expires")
+    notification_status = models.CharField(
+        max_length=20,
+        choices=NOTIFICATION_STATUS_CHOICES,
+        default='not_sent'
+    )
+    
+    # Notification tracking
+    last_notified_at = models.DateTimeField(null=True, blank=True)
+    notification_count = models.PositiveIntegerField(default=0, help_text="Number of notifications sent")
+    
+    # Recipients
+    notified_users = models.ManyToManyField(User, blank=True, related_name='policy_expiry_notifications')
+    
+    # Actions taken
+    action_taken = models.TextField(blank=True, help_text="Actions taken in response to expiry")
+    action_taken_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='policy_expiry_actions'
+    )
+    action_taken_at = models.DateTimeField(null=True, blank=True)
+    
+    # Resolution
+    is_resolved = models.BooleanField(default=False, help_text="Whether expiry has been addressed")
+    resolution_notes = models.TextField(blank=True, help_text="Notes on how expiry was resolved")
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Policy Expiry Monitor'
+        verbose_name_plural = 'Policy Expiry Monitors'
+        ordering = ['expiry_date']
+        unique_together = ['policy', 'expiry_date']
+        indexes = [
+            models.Index(fields=['expiry_date']),
+            models.Index(fields=['notification_status']),
+            models.Index(fields=['is_resolved']),
+        ]
+    
+    def __str__(self):
+        return f"{self.policy.title} - Expires {self.expiry_date}"
+    
+    @property
+    def days_until_expiry(self):
+        """Calculate days until expiry"""
+        from datetime import timedelta
+        today = timezone.now().date()
+        if self.expiry_date >= today:
+            return (self.expiry_date - today).days
+        return 0
+    
+    @property
+    def is_expired(self):
+        """Check if policy has expired"""
+        return timezone.now().date() > self.expiry_date
+    
+    @property
+    def needs_notification(self):
+        """Check if notification should be sent"""
+        if self.is_resolved or self.notification_status == 'expired':
+            return False
+        
+        days = self.days_until_expiry
+        
+        # Check if we need to send notification at specific intervals
+        if days == 30 and self.notification_status == 'not_sent':
+            return True
+        elif days == 14 and self.notification_status == 'sent_30_days':
+            return True
+        elif days == 7 and self.notification_status == 'sent_14_days':
+            return True
+        elif days == 1 and self.notification_status == 'sent_7_days':
+            return True
+        elif days == 0 and self.notification_status == 'sent_1_day':
+            return True
+        
+        return False
+    
+    def send_notification(self):
+        """Mark notification as sent"""
+        from apps.notifications.services.email_service import send_policy_expiry_notification
+        
+        days = self.days_until_expiry
+        
+        if days == 30:
+            self.notification_status = 'sent_30_days'
+        elif days == 14:
+            self.notification_status = 'sent_14_days'
+        elif days == 7:
+            self.notification_status = 'sent_7_days'
+        elif days == 1:
+            self.notification_status = 'sent_1_day'
+        elif days == 0:
+            self.notification_status = 'expired'
+        
+        self.last_notified_at = timezone.now()
+        self.notification_count += 1
+        self.save(update_fields=['notification_status', 'last_notified_at', 'notification_count'])
+        
+        # Queue email notification
+        try:
+            send_policy_expiry_notification.delay(str(self.policy.id), days)
+        except Exception:
+            # Fallback to synchronous if Celery not available
+            send_policy_expiry_notification(str(self.policy.id), days)

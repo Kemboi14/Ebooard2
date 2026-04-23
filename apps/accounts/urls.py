@@ -33,4 +33,26 @@ urlpatterns = [
     path('translations/', views.TranslationListView.as_view(), name='translations'),
     path('translations/create/', views.TranslationCreateView.as_view(), name='translation_create'),
     path('translations/<uuid:pk>/update/', views.TranslationUpdateView.as_view(), name='translation_update'),
+    
+    # Committees
+    path('committees/', views.CommitteeListView.as_view(), name='committees'),
+    path('committees/<uuid:pk>/', views.CommitteeDetailView.as_view(), name='committee_detail'),
+    path('committees/create/', views.CommitteeCreateView.as_view(), name='committee_create'),
+    path('committees/<uuid:pk>/update/', views.CommitteeUpdateView.as_view(), name='committee_update'),
+    
+    # Committee Memberships
+    path('committee-memberships/', views.CommitteeMembershipListView.as_view(), name='committee_memberships'),
+    path('committee-memberships/create/', views.CommitteeMembershipCreateView.as_view(), name='committee_membership_create'),
+    path('committee-memberships/<uuid:pk>/update/', views.CommitteeMembershipUpdateView.as_view(), name='committee_membership_update'),
+    
+    # Bookmarks
+    path('bookmarks/', views.BookmarkListView.as_view(), name='bookmarks'),
+    path('bookmarks/create/', views.BookmarkCreateView.as_view(), name='bookmark_create'),
+    path('bookmarks/<uuid:pk>/update/', views.BookmarkUpdateView.as_view(), name='bookmark_update'),
+    path('bookmarks/<uuid:pk>/delete/', views.BookmarkDeleteView.as_view(), name='bookmark_delete'),
+    
+    # Field Edit Permissions
+    path('field-permissions/', views.FieldEditPermissionListView.as_view(), name='field_permissions'),
+    path('field-permissions/create/', views.FieldEditPermissionCreateView.as_view(), name='field_permission_create'),
+    path('field-permissions/<uuid:pk>/update/', views.FieldEditPermissionUpdateView.as_view(), name='field_permission_update'),
 ]

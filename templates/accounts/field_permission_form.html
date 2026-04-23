@@ -1,0 +1,144 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Field Permission{% else %}Add Field Permission{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Field Permission{% else %}Add Field Permission{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="id_model_name" class="block text-sm font-medium text-gray-700 mb-1">Model Name</label>
+          <input type="text" name="model_name" id="id_model_name" value="{{ form.model_name.value|default:'' }}" required
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., accounts.User">
+          {% if form.model_name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.model_name.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-sm text-gray-500">The Django model name (app_label.ModelName)</p>
+        </div>
+        
+        <div>
+          <label for="id_field_name" class="block text-sm font-medium text-gray-700 mb-1">Field Name</label>
+          <input type="text" name="field_name" id="id_field_name" value="{{ form.field_name.value|default:'' }}" required
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., email">
+          {% if form.field_name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.field_name.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-sm text-gray-500">The field name within the model</p>
+        </div>
+      </div>
+      
+      <div>
+        <label for="id_allowed_roles" class="block text-sm font-medium text-gray-700 mb-1">Allowed Roles</label>
+        <input type="text" name="allowed_roles" id="id_allowed_roles" value="{{ form.allowed_roles.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., it_administrator, company_secretary">
+        {% if form.allowed_roles.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.allowed_roles.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">Comma-separated list of roles that can edit this field</p>
+      </div>
+      
+      <div>
+        <label for="id_freeze_condition" class="block text-sm font-medium text-gray-700 mb-1">Freeze Condition</label>
+        <select name="freeze_condition" id="id_freeze_condition" 
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="" {% if not form.freeze_condition.value %}selected{% endif %}>No freeze condition</option>
+          <option value="after_submission" {% if form.freeze_condition.value == 'after_submission' %}selected{% endif %}>After Submission</option>
+          <option value="after_approval" {% if form.freeze_condition.value == 'after_approval' %}selected{% endif %}>After Approval</option>
+          <option value="after_signing" {% if form.freeze_condition.value == 'after_signing' %}selected{% endif %}>After Signing</option>
+          <option value="custom" {% if form.freeze_condition.value == 'custom' %}selected{% endif %}>Custom Condition</option>
+        </select>
+        {% if form.freeze_condition.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.freeze_condition.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">When should this field become read-only</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="id_freeze_on_status" class="block text-sm font-medium text-gray-700 mb-1">Freeze On Status</label>
+          <input type="text" name="freeze_on_status" id="id_freeze_on_status" value="{{ form.freeze_on_status.value|default:'' }}"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., approved">
+          {% if form.freeze_on_status.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.freeze_on_status.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-sm text-gray-500">Status value that triggers freeze (optional)</p>
+        </div>
+        
+        <div>
+          <label for="id_freeze_after_date" class="block text-sm font-medium text-gray-700 mb-1">Freeze After Date</label>
+          <input type="date" name="freeze_after_date" id="id_freeze_after_date" value="{{ form.freeze_after_date.value|default:'' }}"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          {% if form.freeze_after_date.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.freeze_after_date.errors }}</p>
+          {% endif %}
+          <p class="mt-1 text-sm text-gray-500">Date after which field becomes read-only (optional)</p>
+        </div>
+      </div>
+      
+      <div>
+        <label for="id_freeze_after_days" class="block text-sm font-medium text-gray-700 mb-1">Freeze After Days</label>
+        <input type="number" name="freeze_after_days" id="id_freeze_after_days" value="{{ form.freeze_after_days.value|default:'' }}" min="0"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., 30">
+        {% if form.freeze_after_days.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.freeze_after_days.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">Number of days after creation before field becomes read-only (optional)</p>
+      </div>
+      
+      <div class="flex items-center">
+        <input type="checkbox" name="require_approval" id="id_require_approval" {% if form.require_approval.value %}checked{% endif %}
+               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+        <label for="id_require_approval" class="ml-2 block text-sm font-medium text-gray-700">Require Approval for Edits</label>
+        {% if form.require_approval.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.require_approval.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500 ml-6">If checked, edits to this field require approval from designated approvers</p>
+      </div>
+      
+      <div>
+        <label for="id_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea name="description" id="id_description" rows="3" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Describe the purpose of this permission rule">{{ form.description.value|default:'' }}</textarea>
+        {% if form.description.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.description.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex items-center">
+        <input type="checkbox" name="is_active" id="id_is_active" {% if form.is_active.value %}checked{% endif %}
+               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+        <label for="id_is_active" class="ml-2 block text-sm font-medium text-gray-700">Active</label>
+        {% if form.is_active.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500 ml-6">If unchecked, this permission rule is disabled</p>
+      </div>
+      
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'accounts:field_permissions' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Permission{% else %}Create Permission{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

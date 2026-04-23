@@ -1229,6 +1229,108 @@ class CustomReportCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+# ============================================================================
+# Enhanced Analytics Dashboard Views
+# ============================================================================
+
+class GovernanceDashboardListView(LoginRequiredMixin, ListView):
+    """List all governance dashboards"""
+    model = AnalyticsDashboard
+    template_name = 'analytics/governance_dashboard_list.html'
+    context_object_name = 'dashboards'
+    ordering = ['-is_default', 'created_at']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        dashboard_type = self.request.GET.get('dashboard_type')
+        if dashboard_type:
+            queryset = queryset.filter(dashboard_type=dashboard_type)
+        return queryset
+
+
+class GovernanceDashboardDetailView(LoginRequiredMixin, DetailView):
+    """View governance dashboard details with widgets"""
+    model = AnalyticsDashboard
+    template_name = 'analytics/governance_dashboard_detail.html'
+    context_object_name = 'dashboard'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['widgets'] = self.object.widgets.filter(is_visible=True).order_by('-is_pinned', 'order')
+        return context
+
+
+class GovernanceDashboardCreateView(LoginRequiredMixin, CreateView):
+    """Create a new governance dashboard"""
+    model = AnalyticsDashboard
+    template_name = 'analytics/governance_dashboard_form.html'
+    fields = ['name', 'description', 'dashboard_type', 'is_public', 'auto_refresh_interval', 
+              'allowed_roles']
+    success_url = reverse_lazy('analytics:governance_dashboards')
+    
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        messages.success(self.request, 'Governance dashboard created successfully.')
+        return super().form_valid(form)
+
+
+class GovernanceDashboardUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a governance dashboard"""
+    model = AnalyticsDashboard
+    template_name = 'analytics/governance_dashboard_form.html'
+    fields = ['name', 'description', 'is_public', 'auto_refresh_interval', 'allowed_roles']
+    success_url = reverse_lazy('analytics:governance_dashboards')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Governance dashboard updated successfully.')
+        return super().form_valid(form)
+
+
+# ============================================================================
+# Analytics Widget Views
+# ============================================================================
+
+class AnalyticsWidgetListView(LoginRequiredMixin, ListView):
+    """List all analytics widgets"""
+    model = AnalyticsWidget
+    template_name = 'analytics/widget_list.html'
+    context_object_name = 'widgets'
+    ordering = ['dashboard', 'order']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.select_related('dashboard', 'metric')
+        dashboard_id = self.request.GET.get('dashboard')
+        if dashboard_id:
+            queryset = queryset.filter(dashboard_id=dashboard_id)
+        return queryset
+
+
+class AnalyticsWidgetCreateView(LoginRequiredMixin, CreateView):
+    """Create a new analytics widget"""
+    model = AnalyticsWidget
+    template_name = 'analytics/widget_form.html'
+    fields = ['dashboard', 'metric', 'widget_type', 'title', 'order', 'is_visible', 'is_pinned', 
+              'show_insights', 'insight_config', 'visualization_settings']
+    success_url = reverse_lazy('analytics:widgets')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Analytics widget created successfully.')
+        return super().form_valid(form)
+
+
+class AnalyticsWidgetUpdateView(LoginRequiredMixin, UpdateView):
+    """Update an analytics widget"""
+    model = AnalyticsWidget
+    template_name = 'analytics/widget_form.html'
+    fields = ['title', 'order', 'is_visible', 'is_pinned', 'show_insights', 'insight_config', 'visualization_settings']
+    success_url = reverse_lazy('analytics:widgets')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Analytics widget updated successfully.')
+        return super().form_valid(form)
+
+
 class CustomReportGenerateView(LoginRequiredMixin, DetailView):
     """Generate and export custom report"""
     model = CustomReport

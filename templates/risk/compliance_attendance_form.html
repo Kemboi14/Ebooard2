@@ -1,0 +1,104 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Compliance Attendance{% else %}Add Compliance Attendance{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Compliance Attendance{% else %}Add Compliance Attendance{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div>
+        <label for="id_meeting" class="block text-sm font-medium text-gray-700 mb-1">Meeting</label>
+        <select name="meeting" id="id_meeting"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="">Select meeting (optional)</option>
+          {% for meeting in form.fields.meeting.queryset %}
+          <option value="{{ meeting.pk }}" {% if form.meeting.value == meeting.pk|stringformat:"s" %}selected{% endif %}>{{ meeting.title }} - {{ meeting.scheduled_date|date:"F j, Y" }}</option>
+          {% endfor %}
+        </select>
+        {% if form.meeting.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.meeting.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_meeting_title" class="block text-sm font-medium text-gray-700 mb-1">Meeting Title</label>
+        <input type="text" name="meeting_title" id="id_meeting_title" value="{{ form.meeting_title.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., Q1 2024 Board Meeting">
+        {% if form.meeting_title.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.meeting_title.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_meeting_date" class="block text-sm font-medium text-gray-700 mb-1">Meeting Date</label>
+        <input type="date" name="meeting_date" id="id_meeting_date" value="{{ form.meeting_date.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        {% if form.meeting_date.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.meeting_date.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="id_required_attendance" class="block text-sm font-medium text-gray-700 mb-1">Required Attendance</label>
+          <input type="number" name="required_attendance" id="id_required_attendance" value="{{ form.required_attendance.value|default:'' }}" required min="0"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., 10">
+          {% if form.required_attendance.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.required_attendance.errors }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="id_actual_attendance" class="block text-sm font-medium text-gray-700 mb-1">Actual Attendance</label>
+          <input type="number" name="actual_attendance" id="id_actual_attendance" value="{{ form.actual_attendance.value|default:'' }}" required min="0"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., 8">
+          {% if form.actual_attendance.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.actual_attendance.errors }}</p>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div>
+        <label for="id_absent_members" class="block text-sm font-medium text-gray-700 mb-1">Absent Members</label>
+        <input type="text" name="absent_members" id="id_absent_members" value="{{ form.absent_members.value|default:'' }}"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., John Doe, Jane Smith (comma-separated)">
+        {% if form.absent_members.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.absent_members.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+        <textarea name="notes" id="id_notes" rows="3" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Additional notes about this attendance record">{{ form.notes.value|default:'' }}</textarea>
+        {% if form.notes.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.notes.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'risk:compliance_attendances' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Attendance Record{% else %}Create Attendance Record{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

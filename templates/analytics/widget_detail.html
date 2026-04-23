@@ -1,0 +1,97 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ widget.name }}{% endblock %}
+
+{% block page_title %}{{ widget.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-start mb-6">
+      <h2 class="text-xl font-semibold" style="color:#2d1b5e;">{{ widget.name }}</h2>
+      {% if user.role == 'it_administrator' or user.role == 'executive_management' %}
+      <div class="space-x-2">
+        <a href="{% url 'analytics:widget_update' widget.pk %}" 
+           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+           style="background:#7dc143;"
+           onmouseover="this.style.backgroundColor='#5a8a3c'"
+           onmouseout="this.style.backgroundColor='#7dc143'">
+          Edit
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Widget Type</h3>
+          <p class="text-gray-900">{{ widget.get_widget_type_display }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Data Type</h3>
+          <p class="text-gray-900">{{ widget.get_data_type_display }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Status</h3>
+          <p class="text-gray-900">
+            {% if widget.is_active %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      {% if widget.description %}
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Description</h3>
+        <p class="text-gray-900">{{ widget.description }}</p>
+      </div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Data Source</h3>
+          <p class="text-gray-900">{{ widget.data_source }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Refresh Interval</h3>
+          <p class="text-gray-900">{{ widget.refresh_interval_minutes }} minutes</p>
+        </div>
+      </div>
+
+      {% if widget.config %}
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Configuration</h3>
+        <pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm text-gray-700">{{ widget.config|safe }}</pre>
+      </div>
+      {% endif %}
+
+      <div class="pt-6 border-t">
+        <h3 class="text-lg font-semibold mb-4" style="color:#2d1b5e;">Associated Dashboards</h3>
+        {% if widget.dashboards.exists %}
+        <div class="flex flex-wrap gap-2">
+          {% for dashboard in widget.dashboards.all %}
+          <a href="{% url 'analytics:governance_dashboard_detail' dashboard.pk %}" 
+             class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 hover:bg-purple-200">
+            {{ dashboard.name }}
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500">This widget is not added to any dashboard yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="mt-6 pt-6 border-t">
+      <a href="{% url 'analytics:widgets' %}" 
+         class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+         Back to Widgets
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

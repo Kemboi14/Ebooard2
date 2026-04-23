@@ -22,4 +22,10 @@ urlpatterns = [
     
     # Dashboard
     path('dashboard/', views.policy_dashboard, name='dashboard'),
+    
+    # Policy Expiry Monitor
+    path('expiry-monitors/', views.PolicyExpiryMonitorListView.as_view(), name='policy_expiry_monitors'),
+    path('expiry-monitors/<uuid:pk>/', views.PolicyExpiryMonitorDetailView.as_view(), name='policy_expiry_monitor_detail'),
+    path('expiry-monitors/create/', views.PolicyExpiryMonitorCreateView.as_view(), name='policy_expiry_monitor_create'),
+    path('expiry-monitors/<uuid:pk>/update/', views.PolicyExpiryMonitorUpdateView.as_view(), name='policy_expiry_monitor_update'),
 ]

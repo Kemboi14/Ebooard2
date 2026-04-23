@@ -33,6 +33,7 @@ from .models import (
     AgendaSuggestion,
     BoardPack,
     BoardPackAccessLog,
+    AnnualMeeting,
 )
 from apps.recordings.models import MeetingRecording
 import uuid
@@ -1196,3 +1197,64 @@ def distribute_board_pack(request, pk):
     
     messages.success(request, 'Board pack distributed successfully.')
     return redirect('meetings:board_pack_detail', pk=pk)
+
+
+# ============================================================================
+# Annual Meeting Views
+# ============================================================================
+
+class AnnualMeetingListView(LoginRequiredMixin, ListView):
+    """List all annual meetings"""
+    model = AnnualMeeting
+    template_name = 'meetings/annual_meeting_list.html'
+    context_object_name = 'annual_meetings'
+    ordering = ['-year']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.select_related('organization', 'meeting')
+        year_filter = self.request.GET.get('year')
+        if year_filter:
+            queryset = queryset.filter(year=year_filter)
+        return queryset
+
+
+class AnnualMeetingDetailView(LoginRequiredMixin, DetailView):
+    """View annual meeting details"""
+    model = AnnualMeeting
+    template_name = 'meetings/annual_meeting_detail.html'
+    context_object_name = 'annual_meeting'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['attendees'] = self.object.attendees.all()
+        context['resolutions'] = self.object.resolutions.all()
+        return context
+
+
+class AnnualMeetingCreateView(LoginRequiredMixin, CreateView):
+    """Create a new annual meeting"""
+    model = AnnualMeeting
+    template_name = 'meetings/annual_meeting_form.html'
+    fields = ['year', 'organization', 'meeting', 'statutory_deadline', 'compliance_status', 
+              'audit_report_submitted', 'financial_statements_submitted', 'directors_report_submitted',
+              'notes', 'attendance_tracking_method']
+    success_url = reverse_lazy('meetings:annual_meetings')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Annual meeting created successfully.')
+        return super().form_valid(form)
+
+
+class AnnualMeetingUpdateView(LoginRequiredMixin, UpdateView):
+    """Update an annual meeting"""
+    model = AnnualMeeting
+    template_name = 'meetings/annual_meeting_form.html'
+    fields = ['organization', 'meeting', 'statutory_deadline', 'compliance_status', 
+              'audit_report_submitted', 'financial_statements_submitted', 'directors_report_submitted',
+              'notes', 'attendance_tracking_method']
+    success_url = reverse_lazy('meetings:annual_meetings')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Annual meeting updated successfully.')
+        return super().form_valid(form)

@@ -73,7 +73,7 @@ class DocumentViewerInline(admin.TabularInline):
 class ESignatureAuditLogInline(admin.TabularInline):
     model = ESignatureAuditLog
     extra = 0
-    fields = ("timestamp", "actor_email", "action", "detail", "ip_address")
+    fields = ("timestamp", "actor_identifier", "action_type", "action_details", "ip_address")
     readonly_fields = fields
     ordering = ("-timestamp",)
     max_num = 20
@@ -466,18 +466,15 @@ class ESignatureAuditLogAdmin(admin.ModelAdmin):
     list_display = (
         "timestamp",
         "document_ref",
-        "action_badge",
-        "actor_email",
-        "detail_short",
+        "action_type_badge",
+        "actor_identifier",
         "ip_address",
-        "document_status_after",
     )
-    list_filter = ("action", "document__status")
+    list_filter = ("action_type", "document__status")
     search_fields = (
         "document__reference_number",
-        "actor_email",
+        "actor_identifier",
         "actor__email",
-        "detail",
         "ip_address",
     )
     readonly_fields = [
@@ -505,33 +502,36 @@ class ESignatureAuditLogAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', url, obj.document.reference_number)
 
     @admin.display(description="Action")
-    def action_badge(self, obj):
+    def action_type_badge(self, obj):
         colours = {
-            "upload": "#3b82f6",
-            "view": "#6b7280",
-            "download": "#8b5cf6",
-            "sign": "#10b981",
-            "reject": "#ef4444",
-            "invite": "#f59e0b",
-            "remind": "#f59e0b",
-            "revoke": "#f97316",
-            "cancel": "#9ca3af",
-            "expire": "#9ca3af",
-            "otp_request": "#06b6d4",
-            "otp_verify": "#06b6d4",
-            "tamper_detected": "#dc2626",
+            "document_created": "#3b82f6",
+            "document_updated": "#3b82f6",
+            "document_deleted": "#ef4444",
+            "document_viewed": "#6b7280",
+            "signer_added": "#10b981",
+            "signer_removed": "#ef4444",
+            "signer_notified": "#f59e0b",
+            "signature_started": "#3b82f6",
+            "signature_completed": "#10b981",
+            "signature_rejected": "#ef4444",
+            "signature_expired": "#9ca3af",
+            "document_completed": "#10b981",
+            "document_cancelled": "#9ca3af",
+            "otp_generated": "#06b6d4",
+            "otp_verified": "#06b6d4",
+            "otp_failed": "#dc2626",
+            "access_granted": "#10b981",
+            "access_denied": "#ef4444",
+            "document_downloaded": "#8b5cf6",
+            "document_printed": "#8b5cf6",
         }
-        colour = colours.get(obj.action, "#6b7280")
+        colour = colours.get(obj.action_type, "#6b7280")
         return format_html(
             '<span style="background:{};color:#fff;padding:2px 8px;'
             'border-radius:12px;font-size:11px;">{}</span>',
             colour,
-            obj.get_action_display(),
+            obj.get_action_type_display(),
         )
-
-    @admin.display(description="Detail")
-    def detail_short(self, obj):
-        return obj.detail[:80] + ("…" if len(obj.detail) > 80 else "")
 
 
 # ---------------------------------------------------------------------------

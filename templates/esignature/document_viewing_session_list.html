@@ -1,0 +1,84 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Document Viewing Sessions{% endblock %}
+
+{% block page_title %}Document Viewing Sessions{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold" style="color:#2d1b5e;">Document Viewing Sessions</h2>
+      <a href="{% url 'esignature:document_viewing_session_create' %}" 
+         class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add Session
+      </a>
+    </div>
+
+    {% if sessions %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Started At</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ended At</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pages Viewed</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for session in sessions %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              {% if session.document %}
+                <a href="{% url 'esignature:document_detail' session.document.pk %}" class="text-indigo-600 hover:text-indigo-900">{{ session.document.title }}</a>
+              {% else %}
+                {{ session.document_title }}
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ session.user.get_full_name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ session.started_at|date:"F j, Y, g:i a" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {% if session.ended_at %}
+                {{ session.ended_at|date:"F j, Y, g:i a" }}
+              {% else %}
+                <span class="text-green-600">In Progress</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {% if session.duration_seconds %}
+                {{ session.duration_seconds }}s
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ session.pages_viewed }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <a href="{% url 'esignature:document_viewing_session_detail' session.pk %}" class="text-indigo-600 hover:text-indigo-900">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-lg">No document viewing sessions recorded yet.</p>
+      <a href="{% url 'esignature:document_viewing_session_create' %}" 
+         class="mt-4 inline-block px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add First Session
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

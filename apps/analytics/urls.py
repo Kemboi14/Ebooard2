@@ -48,4 +48,15 @@ urlpatterns = [
     # API endpoints
     path('api/data/', views.analytics_api_data, name='api_data'),
     path('api/live/', views.analytics_live_data, name='live_data'),
+    
+    # Governance Dashboards
+    path('governance-dashboards/', views.GovernanceDashboardListView.as_view(), name='governance_dashboards'),
+    path('governance-dashboards/<uuid:pk>/', views.GovernanceDashboardDetailView.as_view(), name='governance_dashboard_detail'),
+    path('governance-dashboards/create/', views.GovernanceDashboardCreateView.as_view(), name='governance_dashboard_create'),
+    path('governance-dashboards/<uuid:pk>/update/', views.GovernanceDashboardUpdateView.as_view(), name='governance_dashboard_update'),
+    
+    # Analytics Widgets
+    path('widgets/', views.AnalyticsWidgetListView.as_view(), name='widgets'),
+    path('widgets/create/', views.AnalyticsWidgetCreateView.as_view(), name='widget_create'),
+    path('widgets/<uuid:pk>/update/', views.AnalyticsWidgetUpdateView.as_view(), name='widget_update'),
 ]

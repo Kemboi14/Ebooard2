@@ -1,0 +1,129 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Annual Meeting{% else %}Add Annual Meeting{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Annual Meeting{% else %}Add Annual Meeting{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      {% if not form.instance.pk %}
+      <div>
+        <label for="id_year" class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+        <input type="number" name="year" id="id_year" value="{{ form.year.value|default:'' }}" required min="2000" max="2100"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., 2024">
+        {% if form.year.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.year.errors }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+      
+      <div>
+        <label for="id_organization" class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+        <input type="text" name="organization" id="id_organization" value="{{ form.organization.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., Enwealth Sacco">
+        {% if form.organization.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.organization.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_meeting" class="block text-sm font-medium text-gray-700 mb-1">Linked Meeting</label>
+        <select name="meeting" id="id_meeting"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="">Select meeting (optional)</option>
+          {% for meeting in form.fields.meeting.queryset %}
+          <option value="{{ meeting.pk }}" {% if form.meeting.value == meeting.pk|stringformat:"s" %}selected{% endif %}>{{ meeting.title }} - {{ meeting.scheduled_date|date:"F j, Y" }}</option>
+          {% endfor %}
+        </select>
+        {% if form.meeting.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.meeting.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_statutory_deadline" class="block text-sm font-medium text-gray-700 mb-1">Statutory Deadline</label>
+        <input type="date" name="statutory_deadline" id="id_statutory_deadline" value="{{ form.statutory_deadline.value|default:'' }}"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        {% if form.statutory_deadline.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.statutory_deadline.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_compliance_status" class="block text-sm font-medium text-gray-700 mb-1">Compliance Status</label>
+        <select name="compliance_status" id="id_compliance_status" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="pending" {% if form.compliance_status.value == 'pending' %}selected{% endif %}>Pending</option>
+          <option value="compliant" {% if form.compliance_status.value == 'compliant' %}selected{% endif %}>Compliant</option>
+          <option value="non_compliant" {% if form.compliance_status.value == 'non_compliant' %}selected{% endif %}>Non-Compliant</option>
+          <option value="exempt" {% if form.compliance_status.value == 'exempt' %}selected{% endif %}>Exempt</option>
+        </select>
+        {% if form.compliance_status.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.compliance_status.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="flex items-center">
+          <input type="checkbox" name="audit_report_submitted" id="id_audit_report_submitted" {% if form.audit_report_submitted.value %}checked{% endif %}
+                 class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+          <label for="id_audit_report_submitted" class="ml-2 block text-sm font-medium text-gray-700">Audit Report Submitted</label>
+        </div>
+        <div class="flex items-center">
+          <input type="checkbox" name="financial_statements_submitted" id="id_financial_statements_submitted" {% if form.financial_statements_submitted.value %}checked{% endif %}
+                 class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+          <label for="id_financial_statements_submitted" class="ml-2 block text-sm font-medium text-gray-700">Financial Statements Submitted</label>
+        </div>
+        <div class="flex items-center">
+          <input type="checkbox" name="directors_report_submitted" id="id_directors_report_submitted" {% if form.directors_report_submitted.value %}checked{% endif %}
+                 class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+          <label for="id_directors_report_submitted" class="ml-2 block text-sm font-medium text-gray-700">Directors Report Submitted</label>
+        </div>
+      </div>
+      
+      <div>
+        <label for="id_attendance_tracking_method" class="block text-sm font-medium text-gray-700 mb-1">Attendance Tracking Method</label>
+        <select name="attendance_tracking_method" id="id_attendance_tracking_method" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="manual" {% if form.attendance_tracking_method.value == 'manual' %}selected{% endif %}>Manual</option>
+          <option value="digital" {% if form.attendance_tracking_method.value == 'digital' %}selected{% endif %}>Digital</option>
+          <option value="hybrid" {% if form.attendance_tracking_method.value == 'hybrid' %}selected{% endif %}>Hybrid</option>
+        </select>
+        {% if form.attendance_tracking_method.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.attendance_tracking_method.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+        <textarea name="notes" id="id_notes" rows="3" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Additional notes about this annual meeting">{{ form.notes.value|default:'' }}</textarea>
+        {% if form.notes.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.notes.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'meetings:annual_meetings' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Annual Meeting{% else %}Create Annual Meeting{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

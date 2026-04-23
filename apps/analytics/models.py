@@ -21,6 +21,29 @@ class AnalyticsMetric(models.Model):
         ('system_usage', 'System Usage'),
         ('compliance', 'Compliance Metrics'),
         ('performance', 'Performance Metrics'),
+        ('governance', 'Governance Metrics'),
+        ('financial', 'Financial Metrics'),
+        ('operational', 'Operational Metrics'),
+        ('risk', 'Risk Metrics'),
+    ]
+
+    DATA_TYPES = [
+        ('count', 'Count'),
+        ('percentage', 'Percentage'),
+        ('currency', 'Currency'),
+        ('number', 'Number'),
+        ('ratio', 'Ratio'),
+        ('score', 'Score'),
+    ]
+
+    CATEGORIES = [
+        ('governance', 'Governance'),
+        ('financial', 'Financial'),
+        ('operational', 'Operational'),
+        ('compliance', 'Compliance'),
+        ('risk', 'Risk'),
+        ('performance', 'Performance'),
+        ('meetings', 'Meetings'),
     ]
 
     FREQUENCY_CHOICES = [
@@ -33,15 +56,32 @@ class AnalyticsMetric(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    key = models.CharField(max_length=100, unique=True, default='', help_text="Unique key for the metric")
     metric_type = models.CharField(max_length=50, choices=METRIC_TYPES)
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    category = models.CharField(max_length=50, choices=CATEGORIES, default='governance')
+    data_type = models.CharField(max_length=20, choices=DATA_TYPES, default='number')
     frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES, default='daily')
 
     # Metric configuration
     is_active = models.BooleanField(default=True)
     target_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     unit = models.CharField(max_length=50, blank=True, help_text="Unit of measurement")
+    
+    # Visualization settings
+    visualization_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('line', 'Line Chart'),
+            ('bar', 'Bar Chart'),
+            ('pie', 'Pie Chart'),
+            ('gauge', 'Gauge'),
+            ('number', 'Number Display'),
+            ('table', 'Table'),
+        ],
+        default='line'
+    )
 
     # Metadata
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_metrics')
@@ -51,14 +91,16 @@ class AnalyticsMetric(models.Model):
     class Meta:
         verbose_name = 'Analytics Metric'
         verbose_name_plural = 'Analytics Metrics'
-        ordering = ['metric_type', 'name']
+        ordering = ['category', 'name']
         indexes = [
+            models.Index(fields=['key']),
+            models.Index(fields=['category', 'is_active']),
             models.Index(fields=['metric_type', 'is_active']),
             models.Index(fields=['frequency', 'is_active']),
         ]
 
     def __str__(self):
-        return f"{self.get_metric_type_display()} - {self.name}"
+        return f"{self.name} ({self.key})"
 
 
 class AnalyticsDataPoint(models.Model):
@@ -95,17 +137,33 @@ class AnalyticsDataPoint(models.Model):
 class AnalyticsDashboard(models.Model):
     """Customizable analytics dashboards"""
 
+    DASHBOARD_TYPES = [
+        ('governance', 'Governance Dashboard'),
+        ('financial', 'Financial Dashboard'),
+        ('operational', 'Operational Dashboard'),
+        ('compliance', 'Compliance Dashboard'),
+        ('risk', 'Risk Dashboard'),
+        ('performance', 'Performance Dashboard'),
+        ('custom', 'Custom Dashboard'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     slug = models.SlugField(unique=True)
+    dashboard_type = models.CharField(max_length=20, choices=DASHBOARD_TYPES, default='custom')
 
     # Dashboard configuration
     layout_config = models.JSONField(default=dict, blank=True, help_text="Dashboard layout configuration")
     filters_config = models.JSONField(default=dict, blank=True, help_text="Default filters configuration")
+    
+    # Auto-refresh settings
+    auto_refresh_enabled = models.BooleanField(default=False)
+    auto_refresh_interval = models.PositiveIntegerField(default=300, help_text="Auto-refresh interval in seconds")
 
     # Access control
     is_public = models.BooleanField(default=False)
+    is_default = models.BooleanField(default=False, help_text="Whether this is a default dashboard for the type")
     allowed_roles = models.JSONField(default=list, blank=True, help_text="List of allowed user roles")
 
     # Metadata
@@ -116,10 +174,15 @@ class AnalyticsDashboard(models.Model):
     class Meta:
         verbose_name = 'Analytics Dashboard'
         verbose_name_plural = 'Analytics Dashboards'
-        ordering = ['name']
+        ordering = ['dashboard_type', 'name']
+        indexes = [
+            models.Index(fields=['dashboard_type']),
+            models.Index(fields=['is_default']),
+            models.Index(fields=['is_public']),
+        ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_dashboard_type_display()})"
 
 
 class AnalyticsWidget(models.Model):
@@ -134,6 +197,8 @@ class AnalyticsWidget(models.Model):
         ('table', 'Data Table'),
         ('heatmap', 'Heatmap'),
         ('gauge', 'Gauge Chart'),
+        ('trend', 'Trend Indicator'),
+        ('kpi_card', 'KPI Card'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -146,11 +211,19 @@ class AnalyticsWidget(models.Model):
     position_y = models.PositiveIntegerField(default=0)
     width = models.PositiveIntegerField(default=6)
     height = models.PositiveIntegerField(default=4)
+    
+    # Visibility settings
+    is_visible = models.BooleanField(default=True)
+    is_pinned = models.BooleanField(default=False, help_text="Pin widget to top of dashboard")
 
     # Data configuration
     metric = models.ForeignKey(AnalyticsMetric, on_delete=models.CASCADE, null=True, blank=True)
     data_config = models.JSONField(default=dict, blank=True, help_text="Widget data configuration")
     chart_config = models.JSONField(default=dict, blank=True, help_text="Chart-specific configuration")
+    
+    # Insight settings
+    show_insights = models.BooleanField(default=True, help_text="Show AI-generated insights")
+    insight_config = models.JSONField(default=dict, blank=True, help_text="Insight configuration")
 
     # Metadata
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_widgets')
@@ -160,7 +233,7 @@ class AnalyticsWidget(models.Model):
     class Meta:
         verbose_name = 'Analytics Widget'
         verbose_name_plural = 'Analytics Widgets'
-        ordering = ['position_y', 'position_x']
+        ordering = ['-is_pinned', 'position_y', 'position_x']
 
     def __str__(self):
         return f"{self.title} ({self.get_widget_type_display()})"

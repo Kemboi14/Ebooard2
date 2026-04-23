@@ -19,7 +19,7 @@ import base64
 from .forms import LoginForm, UserProfileForm, CustomPasswordChangeForm
 from .models import (
     User, SSOProvider, UserSSOIdentity, UserSession, EncryptionKey,
-    Language, Translation
+    Language, Translation, Committee, CommitteeMembership, Bookmark, FieldEditPermission
 )
 
 # Roles that require MFA - get from settings
@@ -440,4 +440,205 @@ class TranslationUpdateView(LoginRequiredMixin, UpdateView):
     
     def form_valid(self, form):
         messages.success(self.request, 'Translation updated successfully.')
+        return super().form_valid(form)
+
+
+# ============================================================================
+# Committee Views
+# ============================================================================
+
+class CommitteeListView(LoginRequiredMixin, ListView):
+    """List all committees"""
+    model = Committee
+    template_name = 'accounts/committee_list.html'
+    context_object_name = 'committees'
+    ordering = ['name']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(is_active=True)
+        return queryset
+
+
+class CommitteeDetailView(LoginRequiredMixin, DetailView):
+    """View committee details"""
+    model = Committee
+    template_name = 'accounts/committee_detail.html'
+    context_object_name = 'committee'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['memberships'] = self.object.memberships.select_related('user').all()
+        return context
+
+
+class CommitteeCreateView(LoginRequiredMixin, CreateView):
+    """Create a new committee"""
+    model = Committee
+    template_name = 'accounts/committee_form.html'
+    fields = ['name', 'description', 'committee_type', 'is_active', 'meeting_frequency']
+    success_url = reverse_lazy('accounts:committees')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Committee created successfully.')
+        return super().form_valid(form)
+
+
+class CommitteeUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a committee"""
+    model = Committee
+    template_name = 'accounts/committee_form.html'
+    fields = ['name', 'description', 'committee_type', 'is_active', 'meeting_frequency']
+    success_url = reverse_lazy('accounts:committees')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Committee updated successfully.')
+        return super().form_valid(form)
+
+
+# ============================================================================
+# CommitteeMembership Views
+# ============================================================================
+
+class CommitteeMembershipListView(LoginRequiredMixin, ListView):
+    """List all committee memberships"""
+    model = CommitteeMembership
+    template_name = 'accounts/committee_membership_list.html'
+    context_object_name = 'memberships'
+    ordering = ['committee', '-joined_at']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        committee_id = self.request.GET.get('committee')
+        if committee_id:
+            queryset = queryset.filter(committee_id=committee_id)
+        return queryset
+
+
+class CommitteeMembershipCreateView(LoginRequiredMixin, CreateView):
+    """Add a member to a committee"""
+    model = CommitteeMembership
+    template_name = 'accounts/committee_membership_form.html'
+    fields = ['committee', 'user', 'role', 'has_voting_rights', 'is_chair', 'joined_at']
+    success_url = reverse_lazy('accounts:committee_memberships')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Committee membership added successfully.')
+        return super().form_valid(form)
+
+
+class CommitteeMembershipUpdateView(LoginRequiredMixin, UpdateView):
+    """Update committee membership"""
+    model = CommitteeMembership
+    template_name = 'accounts/committee_membership_form.html'
+    fields = ['role', 'has_voting_rights', 'is_chair', 'left_at']
+    success_url = reverse_lazy('accounts:committee_memberships')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Committee membership updated successfully.')
+        return super().form_valid(form)
+
+
+# ============================================================================
+# Bookmark Views
+# ============================================================================
+
+class BookmarkListView(LoginRequiredMixin, ListView):
+    """List user's bookmarks"""
+    model = Bookmark
+    template_name = 'accounts/bookmark_list.html'
+    context_object_name = 'bookmarks'
+    ordering = ['-is_pinned', '-created_at']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
+        folder = self.request.GET.get('folder')
+        if folder:
+            queryset = queryset.filter(folder=folder)
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['folders'] = Bookmark.objects.filter(
+            user=self.request.user
+        ).values_list('folder', flat=True).distinct()
+        return context
+
+
+class BookmarkCreateView(LoginRequiredMixin, CreateView):
+    """Create a new bookmark"""
+    model = Bookmark
+    template_name = 'accounts/bookmark_form.html'
+    fields = ['bookmark_type', 'target_id', 'target_url', 'title', 'description', 'folder', 'is_pinned']
+    success_url = reverse_lazy('accounts:bookmarks')
+    
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        messages.success(self.request, 'Bookmark created successfully.')
+        return super().form_valid(form)
+
+
+class BookmarkUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a bookmark"""
+    model = Bookmark
+    template_name = 'accounts/bookmark_form.html'
+    fields = ['title', 'description', 'folder', 'is_pinned']
+    success_url = reverse_lazy('accounts:bookmarks')
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Bookmark updated successfully.')
+        return super().form_valid(form)
+
+
+class BookmarkDeleteView(LoginRequiredMixin, View):
+    """Delete a bookmark"""
+    def post(self, request, pk):
+        bookmark = get_object_or_404(Bookmark, pk=pk, user=request.user)
+        bookmark.delete()
+        messages.success(request, 'Bookmark deleted successfully.')
+        return redirect('accounts:bookmarks')
+
+
+# ============================================================================
+# FieldEditPermission Views
+# ============================================================================
+
+class FieldEditPermissionListView(LoginRequiredMixin, ListView):
+    """List all field edit permissions"""
+    model = FieldEditPermission
+    template_name = 'accounts/field_permission_list.html'
+    context_object_name = 'permissions'
+    ordering = ['model_name', 'field_name']
+
+
+class FieldEditPermissionCreateView(LoginRequiredMixin, CreateView):
+    """Create a new field edit permission"""
+    model = FieldEditPermission
+    template_name = 'accounts/field_permission_form.html'
+    fields = ['model_name', 'field_name', 'allowed_roles', 'freeze_condition', 
+              'freeze_on_status', 'freeze_after_date', 'freeze_after_days', 
+              'require_approval', 'description', 'is_active']
+    success_url = reverse_lazy('accounts:field_permissions')
+    
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        messages.success(self.request, 'Field edit permission created successfully.')
+        return super().form_valid(form)
+
+
+class FieldEditPermissionUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a field edit permission"""
+    model = FieldEditPermission
+    template_name = 'accounts/field_permission_form.html'
+    fields = ['allowed_roles', 'freeze_condition', 'freeze_on_status', 
+              'freeze_after_date', 'freeze_after_days', 'require_approval', 
+              'description', 'is_active']
+    success_url = reverse_lazy('accounts:field_permissions')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Field edit permission updated successfully.')
         return super().form_valid(form)

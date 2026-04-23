@@ -317,6 +317,16 @@ class VotingSession(models.Model):
     eligible_voters = models.ManyToManyField(
         User, related_name="eligible_sessions", blank=True
     )
+    
+    # Committee restriction - if set, only committee members can vote
+    committee = models.ForeignKey(
+        "accounts.Committee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="voting_sessions",
+        help_text="Restrict voting to members of this committee"
+    )
 
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="created_sessions"
@@ -352,6 +362,43 @@ class VotingSession(models.Model):
     def complete(self):
         self.status = "completed"
         self.save(update_fields=["status", "updated_at"])
+    
+    def get_eligible_voters(self):
+        """
+        Get eligible voters for this session.
+        If committee is set, only active committee members with voting rights are eligible.
+        Otherwise, returns all eligible_voters.
+        """
+        if self.committee:
+            # Return only active committee members with voting rights
+            from apps.accounts.models import CommitteeMembership
+            committee_members = CommitteeMembership.objects.filter(
+                committee=self.committee,
+                is_active=True,
+                has_voting_rights=True
+            ).select_related('user')
+            return [cm.user for cm in committee_members if cm.is_currently_active]
+        else:
+            # Return all manually added eligible voters
+            return list(self.eligible_voters.all())
+    
+    def is_user_eligible_to_vote(self, user):
+        """
+        Check if a user is eligible to vote in this session.
+        """
+        if self.committee:
+            # Check if user is an active committee member with voting rights
+            from apps.accounts.models import CommitteeMembership
+            membership = CommitteeMembership.objects.filter(
+                user=user,
+                committee=self.committee,
+                is_active=True,
+                has_voting_rights=True
+            ).first()
+            return membership is not None and membership.is_currently_active
+        else:
+            # Check if user is in eligible_voters
+            return self.eligible_voters.filter(id=user.id).exists()
 
 
 class VoteOption(models.Model):

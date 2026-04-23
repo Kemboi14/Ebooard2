@@ -42,4 +42,13 @@ urlpatterns = [
     path('board-evaluations/create/', views.BoardEvaluationCreateView.as_view(), name='board_evaluation_create'),
     path('director-evaluations/<uuid:pk>/', views.DirectorEvaluationDetailView.as_view(), name='director_evaluation_detail'),
     path('director-evaluations/<uuid:pk>/update/', views.DirectorEvaluationUpdateView.as_view(), name='director_evaluation_update'),
+    
+    # Compliance Archive
+    path('compliance-archives/', views.ComplianceArchiveListView.as_view(), name='compliance_archives'),
+    path('compliance-archives/<uuid:pk>/', views.ComplianceArchiveDetailView.as_view(), name='compliance_archive_detail'),
+    
+    # Compliance Attendance
+    path('compliance-attendance/', views.ComplianceAttendanceListView.as_view(), name='compliance_attendance'),
+    path('compliance-attendance/create/', views.ComplianceAttendanceCreateView.as_view(), name='compliance_attendance_create'),
+    path('compliance-attendance/<uuid:pk>/update/', views.ComplianceAttendanceUpdateView.as_view(), name='compliance_attendance_update'),
 ]

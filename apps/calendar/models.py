@@ -20,6 +20,11 @@ class CalendarEvent(models.Model):
         ("committee_meeting", "Committee Meeting"),
         ("discussion_event", "Discussion Event"),
         ("esignature_deadline", "E-Signature Deadline"),
+        ("governance_event", "Governance Event"),
+        ("compliance_deadline", "Compliance Deadline"),
+        ("policy_expiry", "Policy Expiry"),
+        ("annual_meeting", "Annual Meeting"),
+        ("training", "Training Session"),
         ("other", "Other"),
     ]
 
@@ -54,6 +59,52 @@ class CalendarEvent(models.Model):
     color = models.CharField(max_length=7, default="#7dc143")  # Hex color code
     status = models.CharField(max_length=50, blank=True, null=True)
     
+    # Priority and importance
+    priority = models.CharField(
+        max_length=20,
+        choices=[
+            ('low', 'Low'),
+            ('medium', 'Medium'),
+            ('high', 'High'),
+            ('critical', 'Critical'),
+        ],
+        default='medium'
+    )
+    
+    # Reminder settings
+    reminder_enabled = models.BooleanField(default=True)
+    reminder_minutes_before = models.PositiveIntegerField(
+        default=15,
+        help_text="Minutes before event to send reminder"
+    )
+    reminder_sent = models.BooleanField(default=False)
+    
+    # Recurrence
+    is_recurring = models.BooleanField(default=False)
+    recurrence_pattern = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="e.g., daily, weekly, monthly, yearly"
+    )
+    recurrence_end_date = models.DateTimeField(null=True, blank=True)
+    
+    # Compliance specific
+    compliance_category = models.CharField(max_length=100, blank=True, help_text="Compliance category for compliance deadlines")
+    is_mandatory = models.BooleanField(default=False, help_text="Whether attendance/action is mandatory")
+    
+    # Governance specific
+    governance_type = models.CharField(
+        max_length=50,
+        blank=True,
+        choices=[
+            ('board', 'Board'),
+            ('committee', 'Committee'),
+            ('statutory', 'Statutory'),
+            ('regulatory', 'Regulatory'),
+        ],
+        help_text="Type of governance event"
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -66,10 +117,47 @@ class CalendarEvent(models.Model):
             models.Index(fields=["event_type"]),
             models.Index(fields=["source_app", "source_object_id"]),
             models.Index(fields=["user"]),
+            models.Index(fields=["priority"]),
+            models.Index(fields=["compliance_category"]),
+            models.Index(fields=["governance_type"]),
         ]
 
     def __str__(self):
         return f"{self.title} ({self.get_event_type_display()})"
+    
+    @property
+    def is_upcoming(self):
+        """Check if event is in the future"""
+        return self.start_date > timezone.now()
+    
+    @property
+    def is_past(self):
+        """Check if event has passed"""
+        return self.end_date and self.end_date < timezone.now()
+    
+    @property
+    def is_today(self):
+        """Check if event is today"""
+        today = timezone.now().date()
+        return self.start_date.date() == today
+    
+    @property
+    def days_until(self):
+        """Days until event"""
+        if self.is_upcoming:
+            delta = self.start_date - timezone.now()
+            return delta.days
+        return 0
+    
+    @property
+    def needs_reminder(self):
+        """Check if reminder should be sent"""
+        if not self.reminder_enabled or self.reminder_sent:
+            return False
+        if self.is_past:
+            return False
+        minutes_until = (self.start_date - timezone.now()).total_seconds() / 60
+        return minutes_until <= self.reminder_minutes_before
 
 
 class CalendarConfigurator(models.Model):

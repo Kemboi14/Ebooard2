@@ -1,0 +1,83 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Committees{% endblock %}
+
+{% block page_title %}Committees{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold" style="color:#2d1b5e;">Committees</h2>
+      {% if user.role == 'it_administrator' or user.role == 'company_secretary' or user.role == 'executive_management' %}
+      <a href="{% url 'accounts:committee_create' %}" 
+         class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add Committee
+      </a>
+      {% endif %}
+    </div>
+
+    {% if committees %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chairperson</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active Members</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for committee in committees %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ committee.name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ committee.get_meeting_type_display }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {% if committee.chairperson %}
+                {{ committee.chairperson.get_full_name }}
+              {% else %}
+                Not assigned
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ committee.active_members_count }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {% if committee.is_active %}
+                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
+              {% else %}
+                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <a href="{% url 'accounts:committee_detail' committee.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
+              {% if user.role == 'it_administrator' or user.role == 'company_secretary' or user.role == 'executive_management' %}
+              <a href="{% url 'accounts:committee_update' committee.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-lg">No committees configured yet.</p>
+      {% if user.role == 'it_administrator' or user.role == 'company_secretary' or user.role == 'executive_management' %}
+      <a href="{% url 'accounts:committee_create' %}" 
+         class="mt-4 inline-block px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add First Committee
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

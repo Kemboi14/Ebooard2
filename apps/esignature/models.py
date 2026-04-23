@@ -323,12 +323,27 @@ class SignerAssignment(models.Model):
         related_name="signature_assignments",
         null=True,
         blank=True,
-        help_text="Leave blank for external signers (use email below)",
+        help_text="Organization member required by default. Leave blank only if external signer approved.",
     )
 
     # External signer support (no system account required)
     external_name = models.CharField(max_length=150, blank=True)
     external_email = models.EmailField(blank=True)
+    
+    # External signer approval
+    external_signer_approved = models.BooleanField(
+        default=False,
+        help_text="Whether external signer has been approved by administrator"
+    )
+    external_signer_approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_external_signers',
+        help_text="Administrator who approved this external signer"
+    )
+    external_signer_approved_at = models.DateTimeField(null=True, blank=True)
 
     # Workflow
     signing_order = models.PositiveIntegerField(
@@ -377,6 +392,11 @@ class SignerAssignment(models.Model):
     notified_at = models.DateTimeField(null=True, blank=True)
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
     reminder_count = models.PositiveIntegerField(default=0)
+    
+    # Document viewing tracking
+    document_viewed = models.BooleanField(default=False, help_text="Whether signer has viewed the document")
+    document_viewed_at = models.DateTimeField(null=True, blank=True, help_text="When document was viewed")
+    document_view_duration_seconds = models.PositiveIntegerField(null=True, blank=True, help_text="Duration of document viewing in seconds")
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -421,6 +441,40 @@ class SignerAssignment(models.Model):
 
     def get_signing_url(self):
         return reverse("esignature:sign_document", kwargs={"token": self.signing_token})
+    
+    def clean(self):
+        """Validate that either user is set or external signer is approved"""
+        from django.core.exceptions import ValidationError
+        
+        if not self.user and not (self.external_name and self.external_email):
+            raise ValidationError(
+                "Either a user must be specified or external signer details (name and email) must be provided."
+            )
+        
+        if not self.user and not self.external_signer_approved:
+            raise ValidationError(
+                "External signers must be approved by an administrator before they can be assigned."
+            )
+    
+    @property
+    def is_organization_member(self):
+        """Check if signer is an organization member"""
+        return self.user is not None
+    
+    def mark_document_viewed(self, duration_seconds=None):
+        """Mark that the signer has viewed the document"""
+        self.document_viewed = True
+        self.document_viewed_at = timezone.now()
+        if duration_seconds:
+            self.document_view_duration_seconds = duration_seconds
+        self.save(update_fields=['document_viewed', 'document_viewed_at', 'document_view_duration_seconds'])
+    
+    @property
+    def can_proceed_to_sign(self):
+        """Check if signer can proceed to signing (must have viewed document first)"""
+        # For now, document viewing is not strictly required for signing
+        # This can be enforced at the view level if needed
+        return True
 
 
 # ---------------------------------------------------------------------------
@@ -566,110 +620,87 @@ class ESignatureAuditLog(models.Model):
     e-signature–specific fields such as document_hash snapshots.
     """
 
-    ACTION_UPLOAD = "upload"
-    ACTION_VIEW = "view"
-    ACTION_DOWNLOAD = "download"
-    ACTION_SIGN = "sign"
-    ACTION_REJECT = "reject"
-    ACTION_INVITE = "invite"
-    ACTION_REMIND = "remind"
-    ACTION_REVOKE = "revoke"
-    ACTION_CANCEL = "cancel"
-    ACTION_EXPIRE = "expire"
-    ACTION_OTP_REQUEST = "otp_request"
-    ACTION_OTP_VERIFY = "otp_verify"
-    ACTION_TAMPER_DETECTED = "tamper_detected"
-
-    ACTION_CHOICES = [
-        (ACTION_UPLOAD, "Document Uploaded"),
-        (ACTION_VIEW, "Document Viewed"),
-        (ACTION_DOWNLOAD, "Document Downloaded"),
-        (ACTION_SIGN, "Document Signed"),
-        (ACTION_REJECT, "Signature Rejected"),
-        (ACTION_INVITE, "Signer Invited"),
-        (ACTION_REMIND, "Reminder Sent"),
-        (ACTION_REVOKE, "Signer Revoked"),
-        (ACTION_CANCEL, "Document Cancelled"),
-        (ACTION_EXPIRE, "Document Expired"),
-        (ACTION_OTP_REQUEST, "OTP Requested"),
-        (ACTION_OTP_VERIFY, "OTP Verified"),
-        (ACTION_TAMPER_DETECTED, "Tampering Detected"),
+    ACTION_TYPES = [
+        ("document_created", "Document Created"),
+        ("document_updated", "Document Updated"),
+        ("document_deleted", "Document Deleted"),
+        ("document_viewed", "Document Viewed"),
+        ("signer_added", "Signer Added"),
+        ("signer_removed", "Signer Removed"),
+        ("signer_notified", "Signer Notified"),
+        ("signature_started", "Signature Started"),
+        ("signature_completed", "Signature Completed"),
+        ("signature_rejected", "Signature Rejected"),
+        ("signature_expired", "Signature Expired"),
+        ("document_completed", "Document Completed"),
+        ("document_cancelled", "Document Cancelled"),
+        ("otp_generated", "OTP Generated"),
+        ("otp_verified", "OTP Verified"),
+        ("otp_failed", "OTP Verification Failed"),
+        ("access_granted", "Access Granted"),
+        ("access_denied", "Access Denied"),
+        ("document_downloaded", "Document Downloaded"),
+        ("document_printed", "Document Printed"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     document = models.ForeignKey(
-        SignableDocument,
-        on_delete=models.PROTECT,
-        related_name="audit_logs",
-        db_index=True,
+        SignableDocument, on_delete=models.CASCADE, related_name="audit_logs"
     )
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES, default='document_created')
     actor = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="esig_audit_logs",
+        related_name="esignature_audit_logs",
     )
-    actor_email = models.EmailField(
+    actor_identifier = models.CharField(
+        max_length=255,
         blank=True,
-        help_text="Captured at log time; persists if actor user is later deleted",
-    )
-    action = models.CharField(max_length=20, choices=ACTION_CHOICES, db_index=True)
-    detail = models.TextField(blank=True, help_text="Human-readable detail")
-
-    # State snapshot
-    document_status_before = models.CharField(max_length=20, blank=True)
-    document_status_after = models.CharField(max_length=20, blank=True)
-    document_hash_snapshot = models.CharField(
-        max_length=64,
-        blank=True,
-        help_text="SHA-256 of the document at this moment",
+        help_text="Identifier for actor (email, IP, etc.) when user is null",
     )
 
-    # Forensic
+    # Action details
+    action_details = models.JSONField(default=dict, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
-    timestamp = models.DateTimeField(default=timezone.now, db_index=True)
 
-    # Related signer (optional)
-    related_assignment = models.ForeignKey(
-        SignerAssignment,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="audit_logs",
-    )
-
-    # Extra structured data
-    metadata = models.JSONField(null=True, blank=True)
+    # Timestamps
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    # Retention and cleanup
+    is_archived = models.BooleanField(default=False, help_text="Whether this log entry has been archived")
+    archived_at = models.DateTimeField(null=True, blank=True)
+    retention_until = models.DateTimeField(null=True, blank=True, help_text="Date until which this log must be retained")
 
     class Meta:
         verbose_name = "E-Signature Audit Log"
         verbose_name_plural = "E-Signature Audit Logs"
         ordering = ["-timestamp"]
         indexes = [
-            models.Index(fields=["document", "timestamp"]),
-            models.Index(fields=["actor", "timestamp"]),
-            models.Index(fields=["action", "timestamp"]),
-            models.Index(fields=["ip_address", "timestamp"]),
+            models.Index(fields=["document", "-timestamp"]),
+            models.Index(fields=["action_type", "-timestamp"]),
+            models.Index(fields=["actor", "-timestamp"]),
+            models.Index(fields=["timestamp"]),
+            models.Index(fields=["is_archived"]),
+            models.Index(fields=["retention_until"]),
         ]
-        # Prevent accidental bulk updates/deletes at the DB layer
-        # (enforced in the app layer — see save() below)
 
     def __str__(self):
-        actor = self.actor_email or "System"
-        return f"[{self.timestamp:%Y-%m-%d %H:%M}] {actor} – {self.get_action_display()} on {self.document.reference_number}"
-
-    def save(self, *args, **kwargs):
-        """Capture actor_email at creation time; block updates."""
-        if self.pk:
-            # This record already exists — deny changes (immutability)
-            raise ValueError(
-                "ESignatureAuditLog entries are immutable and cannot be updated."
-            )
-        if self.actor and not self.actor_email:
-            self.actor_email = self.actor.email
-        super().save(*args, **kwargs)
+        actor_str = self.actor.get_full_name() if self.actor else self.actor_identifier
+        return f"{self.get_action_type_display()} by {actor_str} at {self.timestamp}"
+    
+    @property
+    def can_be_deleted(self):
+        """Check if this log entry can be deleted based on retention policy"""
+        if self.is_archived:
+            return False
+        if self.retention_until:
+            return timezone.now() > self.retention_until
+        # Default retention: 7 years
+        default_retention = timezone.now() - timezone.timedelta(days=7*365)
+        return self.timestamp < default_retention
 
     @classmethod
     def record(
@@ -750,6 +781,185 @@ class DocumentViewer(models.Model):
         if self.expires_at:
             return timezone.now() > self.expires_at
         return False
+
+
+class DocumentViewingSession(models.Model):
+    """
+    Track individual viewing sessions for documents with UX analytics.
+    """
+
+    VIEW_MODE_CHOICES = [
+        ('single_page', 'Single Page'),
+        ('continuous', 'Continuous Scroll'),
+        ('split', 'Split View'),
+        ('fullscreen', 'Fullscreen'),
+    ]
+
+    ZOOM_LEVEL_CHOICES = [
+        ('fit_width', 'Fit Width'),
+        ('fit_page', 'Fit Page'),
+        ('50', '50%'),
+        ('75', '75%'),
+        ('100', '100%'),
+        ('125', '125%'),
+        ('150', '150%'),
+        ('200', '200%'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    document = models.ForeignKey(
+        SignableDocument, on_delete=models.CASCADE, related_name="viewing_sessions"
+    )
+    viewer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="document_viewing_sessions",
+    )
+    viewer_identifier = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Identifier for viewer (email, IP, etc.) when user is null",
+    )
+
+    # Viewing session
+    view_start_time = models.DateTimeField(auto_now_add=True)
+    view_end_time = models.DateTimeField(null=True, blank=True)
+    view_duration_seconds = models.PositiveIntegerField(null=True, blank=True)
+    
+    # Viewing preferences (for UX improvement)
+    view_mode = models.CharField(max_length=20, choices=VIEW_MODE_CHOICES, default='single_page')
+    zoom_level = models.CharField(max_length=20, choices=ZOOM_LEVEL_CHOICES, default='100')
+    page_number = models.PositiveIntegerField(default=1, help_text="Last page viewed")
+    
+    # Interaction tracking
+    pages_viewed = models.JSONField(default=list, help_text="List of page numbers viewed")
+    scroll_events = models.PositiveIntegerField(default=0, help_text="Number of scroll events")
+    search_queries = models.JSONField(default=list, help_text="Search queries made during viewing")
+    
+    # Additional context
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    device_type = models.CharField(max_length=50, blank=True, help_text="e.g., desktop, tablet, mobile")
+
+    class Meta:
+        verbose_name = "Document Viewing Session"
+        verbose_name_plural = "Document Viewing Sessions"
+        ordering = ["-view_start_time"]
+        indexes = [
+            models.Index(fields=["document", "-view_start_time"]),
+            models.Index(fields=["viewer", "-view_start_time"]),
+            models.Index(fields=["view_mode"]),
+        ]
+
+    def __str__(self):
+        viewer_str = self.viewer.get_full_name() if self.viewer else self.viewer_identifier
+        return f"{viewer_str} viewed {self.document.title} at {self.view_start_time}"
+    
+    def end_view(self):
+        """End the viewing session and calculate duration"""
+        if not self.view_end_time:
+            self.view_end_time = timezone.now()
+            if self.view_start_time:
+                delta = self.view_end_time - self.view_start_time
+                self.view_duration_seconds = int(delta.total_seconds())
+            self.save(update_fields=['view_end_time', 'view_duration_seconds'])
+    
+    @property
+    def pages_viewed_count(self):
+        """Count of unique pages viewed"""
+        return len(set(self.pages_viewed)) if self.pages_viewed else 0
+
+
+class PDFAnnotation(models.Model):
+    """
+    Annotations on PDF documents (highlights, comments, bookmarks, etc.)
+    """
+
+    ANNOTATION_TYPES = [
+        ('highlight', 'Highlight'),
+        ('comment', 'Comment'),
+        ('bookmark', 'Bookmark'),
+        ('text', 'Text'),
+        ('drawing', 'Drawing'),
+        ('strikeout', 'Strikeout'),
+        ('underline', 'Underline'),
+        ('signature', 'Signature'),
+    ]
+
+    COLOR_CHOICES = [
+        ('yellow', 'Yellow'),
+        ('green', 'Green'),
+        ('blue', 'Blue'),
+        ('red', 'Red'),
+        ('purple', 'Purple'),
+        ('orange', 'Orange'),
+        ('black', 'Black'),
+        ('white', 'White'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    document = models.ForeignKey(
+        SignableDocument, on_delete=models.CASCADE, related_name="pdf_annotations"
+    )
+    viewing_session = models.ForeignKey(
+        DocumentViewingSession,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="annotations"
+    )
+    
+    # Annotation details
+    annotation_type = models.CharField(max_length=20, choices=ANNOTATION_TYPES)
+    page_number = models.PositiveIntegerField(help_text="Page number where annotation is placed")
+    
+    # Position and content
+    x_position = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="X coordinate")
+    y_position = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Y coordinate")
+    width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Width of annotation area")
+    height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Height of annotation area")
+    
+    # Content
+    content = models.TextField(blank=True, help_text="Annotation text or comment")
+    color = models.CharField(max_length=20, choices=COLOR_CHOICES, default='yellow')
+    
+    # Author
+    author = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pdf_annotations"
+    )
+    author_identifier = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Identifier for author when user is null"
+    )
+    
+    # Visibility and sharing
+    is_private = models.BooleanField(default=False, help_text="Only visible to author")
+    is_resolved = models.BooleanField(default=False, help_text="For comments, whether resolved")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'PDF Annotation'
+        verbose_name_plural = 'PDF Annotations'
+        ordering = ['document', 'page_number', 'created_at']
+        indexes = [
+            models.Index(fields=['document', 'page_number']),
+            models.Index(fields=['author']),
+            models.Index(fields=['annotation_type']),
+            models.Index(fields=['is_private']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_annotation_type_display()} on page {self.page_number} by {self.author}"
 
 
 # ---------------------------------------------------------------------------

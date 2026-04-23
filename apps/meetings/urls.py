@@ -64,4 +64,10 @@ urlpatterns = [
     path("board-packs/<uuid:pk>/", views.BoardPackDetailView.as_view(), name="board_pack_detail"),
     path("board-packs/create/", views.BoardPackCreateView.as_view(), name="board_pack_create"),
     path("board-packs/<uuid:pk>/distribute/", views.distribute_board_pack, name="distribute_board_pack"),
+    
+    # Annual Meetings
+    path("annual-meetings/", views.AnnualMeetingListView.as_view(), name="annual_meetings"),
+    path("annual-meetings/<uuid:pk>/", views.AnnualMeetingDetailView.as_view(), name="annual_meeting_detail"),
+    path("annual-meetings/create/", views.AnnualMeetingCreateView.as_view(), name="annual_meeting_create"),
+    path("annual-meetings/<uuid:pk>/update/", views.AnnualMeetingUpdateView.as_view(), name="annual_meeting_update"),
 ]

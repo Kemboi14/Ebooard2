@@ -1,0 +1,138 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Analytics Widget{% else %}Add Analytics Widget{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Analytics Widget{% else %}Add Analytics Widget{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div>
+        <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">Widget Name</label>
+        <input type="text" name="name" id="id_name" value="{{ form.name.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., Meeting Attendance Chart">
+        {% if form.name.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.name.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea name="description" id="id_description" rows="3" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Widget description and purpose">{{ form.description.value|default:'' }}</textarea>
+        {% if form.description.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.description.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_widget_type" class="block text-sm font-medium text-gray-700 mb-1">Widget Type</label>
+        <select name="widget_type" id="id_widget_type" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="line_chart" {% if form.widget_type.value == 'line_chart' %}selected{% endif %}>Line Chart</option>
+          <option value="bar_chart" {% if form.widget_type.value == 'bar_chart' %}selected{% endif %}>Bar Chart</option>
+          <option value="pie_chart" {% if form.widget_type.value == 'pie_chart' %}selected{% endif %}>Pie Chart</option>
+          <option value="gauge" {% if form.widget_type.value == 'gauge' %}selected{% endif %}>Gauge</option>
+          <option value="table" {% if form.widget_type.value == 'table' %}selected{% endif %}>Table</option>
+          <option value="counter" {% if form.widget_type.value == 'counter' %}selected{% endif %}>Counter</option>
+          <option value="kpi_card" {% if form.widget_type.value == 'kpi_card' %}selected{% endif %}>KPI Card</option>
+          <option value="heatmap" {% if form.widget_type.value == 'heatmap' %}selected{% endif %}>Heatmap</option>
+          <option value="calendar" {% if form.widget_type.value == 'calendar' %}selected{% endif %}>Calendar</option>
+          <option value="funnel" {% if form.widget_type.value == 'funnel' %}selected{% endif %}>Funnel</option>
+        </select>
+        {% if form.widget_type.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.widget_type.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_data_type" class="block text-sm font-medium text-gray-700 mb-1">Data Type</label>
+        <select name="data_type" id="id_data_type" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="count" {% if form.data_type.value == 'count' %}selected{% endif %}>Count</option>
+          <option value="percentage" {% if form.data_type.value == 'percentage' %}selected{% endif %}>Percentage</option>
+          <option value="currency" {% if form.data_type.value == 'currency' %}selected{% endif %}>Currency</option>
+          <option value="number" {% if form.data_type.value == 'number' %}selected{% endif %}>Number</option>
+          <option value="ratio" {% if form.data_type.value == 'ratio' %}selected{% endif %}>Ratio</option>
+          <option value="score" {% if form.data_type.value == 'score' %}selected{% endif %}>Score</option>
+        </select>
+        {% if form.data_type.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.data_type.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_data_source" class="block text-sm font-medium text-gray-700 mb-1">Data Source</label>
+        <input type="text" name="data_source" id="id_data_source" value="{{ form.data_source.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., meetings.Meeting, accounts.Committee">
+        {% if form.data_source.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.data_source.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">Django model path or API endpoint for data source</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="id_refresh_interval_minutes" class="block text-sm font-medium text-gray-700 mb-1">Refresh Interval (minutes)</label>
+          <input type="number" name="refresh_interval_minutes" id="id_refresh_interval_minutes" value="{{ form.refresh_interval_minutes.value|default:5 }}" required min="1"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., 5">
+          {% if form.refresh_interval_minutes.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.refresh_interval_minutes.errors }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="id_allowed_roles" class="block text-sm font-medium text-gray-700 mb-1">Allowed Roles</label>
+          <input type="text" name="allowed_roles" id="id_allowed_roles" value="{{ form.allowed_roles.value|default:'' }}"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., board_member, executive_management (comma-separated)">
+          {% if form.allowed_roles.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.allowed_roles.errors }}</p>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div>
+        <label for="id_config" class="block text-sm font-medium text-gray-700 mb-1">Configuration (JSON)</label>
+        <textarea name="config" id="id_config" rows="4" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
+                  placeholder='{"x_axis": "date", "y_axis": "count", "color": "#7dc143"}'>{{ form.config.value|default:'' }}</textarea>
+        {% if form.config.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.config.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">JSON configuration for widget visualization settings</p>
+      </div>
+      
+      <div class="flex items-center">
+        <input type="checkbox" name="is_active" id="id_is_active" {% if form.is_active.value %}checked{% endif %}
+               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+        <label for="id_is_active" class="ml-2 block text-sm font-medium text-gray-700">Active</label>
+        {% if form.is_active.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'analytics:widgets' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Widget{% else %}Create Widget{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

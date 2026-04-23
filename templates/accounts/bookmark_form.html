@@ -1,0 +1,114 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Bookmark{% else %}Add Bookmark{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Bookmark{% else %}Add Bookmark{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div>
+        <label for="id_bookmark_type" class="block text-sm font-medium text-gray-700 mb-1">Bookmark Type</label>
+        <select name="bookmark_type" id="id_bookmark_type" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="" {% if not form.bookmark_type.value %}selected{% endif %}>Select type</option>
+          <option value="meeting" {% if form.bookmark_type.value == 'meeting' %}selected{% endif %}>Meeting</option>
+          <option value="document" {% if form.bookmark_type.value == 'document' %}selected{% endif %}>Document</option>
+          <option value="motion" {% if form.bookmark_type.value == 'motion' %}selected{% endif %}>Motion</option>
+          <option value="policy" {% if form.bookmark_type.value == 'policy' %}selected{% endif %}>Policy</option>
+          <option value="risk" {% if form.bookmark_type.value == 'risk' %}selected{% endif %}>Risk Assessment</option>
+          <option value="committee" {% if form.bookmark_type.value == 'committee' %}selected{% endif %}>Committee</option>
+          <option value="annual_meeting" {% if form.bookmark_type.value == 'annual_meeting' %}selected{% endif %}>Annual Meeting</option>
+          <option value="report" {% if form.bookmark_type.value == 'report' %}selected{% endif %}>Report</option>
+          <option value="other" {% if form.bookmark_type.value == 'other' %}selected{% endif %}>Other</option>
+        </select>
+        {% if form.bookmark_type.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.bookmark_type.errors }}</p>
+        {% endif %}
+      </div>
+
+      {% if not form.instance.pk %}
+      <div>
+        <label for="id_target_id" class="block text-sm font-medium text-gray-700 mb-1">Target ID</label>
+        <input type="text" name="target_id" id="id_target_id" value="{{ form.target_id.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., 123e4567-e89b-12d3-a456-426614174000">
+        {% if form.target_id.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.target_id.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">UUID of the bookmarked item</p>
+      </div>
+      {% endif %}
+
+      <div>
+        <label for="id_target_url" class="block text-sm font-medium text-gray-700 mb-1">Target URL</label>
+        <input type="url" name="target_url" id="id_target_url" value="{{ form.target_url.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., /meetings/123/">
+        {% if form.target_url.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.target_url.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">URL to access the bookmarked item</p>
+      </div>
+
+      <div>
+        <label for="id_title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <input type="text" name="title" id="id_title" value="{{ form.title.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="Bookmark title">
+        {% if form.title.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.title.errors }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="id_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea name="description" id="id_description" rows="3" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Optional notes about this bookmark">{{ form.description.value|default:'' }}</textarea>
+        {% if form.description.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.description.errors }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="id_folder" class="block text-sm font-medium text-gray-700 mb-1">Folder</label>
+        <input type="text" name="folder" id="id_folder" value="{{ form.folder.value|default:'' }}"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., Important Meetings, Reports">
+        {% if form.folder.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.folder.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">Folder/category for organizing bookmarks</p>
+      </div>
+
+      <div class="flex items-center">
+        <input type="checkbox" name="is_pinned" id="id_is_pinned" {% if form.is_pinned.value %}checked{% endif %}
+               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+        <label for="id_is_pinned" class="ml-2 block text-sm font-medium text-gray-700">Pin to top</label>
+        {% if form.is_pinned.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.is_pinned.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500 ml-6">Pinned bookmarks appear at the top of your list</p>
+      </div>
+
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'accounts:bookmarks' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Bookmark{% else %}Create Bookmark{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

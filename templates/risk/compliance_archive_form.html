@@ -1,0 +1,118 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Compliance Archive{% else %}Add Compliance Archive{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Compliance Archive{% else %}Add Compliance Archive{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div>
+        <label for="id_title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <input type="text" name="title" id="id_title" value="{{ form.title.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., 2024 Board Meeting Minutes">
+        {% if form.title.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.title.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea name="description" id="id_description" rows="3" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Description of the archived compliance record">{{ form.description.value|default:'' }}</textarea>
+        {% if form.description.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.description.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <select name="category" id="id_category" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="meeting_minutes" {% if form.category.value == 'meeting_minutes' %}selected{% endif %}>Meeting Minutes</option>
+          <option value="resolutions" {% if form.category.value == 'resolutions' %}selected{% endif %}>Resolutions</option>
+          <option value="financial_reports" {% if form.category.value == 'financial_reports' %}selected{% endif %}>Financial Reports</option>
+          <option value="audit_reports" {% if form.category.value == 'audit_reports' %}selected{% endif %}>Audit Reports</option>
+          <option value="compliance_certificates" {% if form.category.value == 'compliance_certificates' %}selected{% endif %}>Compliance Certificates</option>
+          <option value="regulatory_filings" {% if form.category.value == 'regulatory_filings' %}selected{% endif %}>Regulatory Filings</option>
+          <option value="board_packs" {% if form.category.value == 'board_packs' %}selected{% endif %}>Board Packs</option>
+          <option value="other" {% if form.category.value == 'other' %}selected{% endif %}>Other</option>
+        </select>
+        {% if form.category.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.category.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="id_retention_period_years" class="block text-sm font-medium text-gray-700 mb-1">Retention Period (Years)</label>
+          <input type="number" name="retention_period_years" id="id_retention_period_years" value="{{ form.retention_period_years.value|default:7 }}" required min="1"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., 7">
+          {% if form.retention_period_years.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.retention_period_years.errors }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="id_reference_number" class="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
+          <input type="text" name="reference_number" id="id_reference_number" value="{{ form.reference_number.value|default:'' }}"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., ARC-2024-001">
+          {% if form.reference_number.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.reference_number.errors }}</p>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div>
+        <label for="id_location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+        <input type="text" name="location" id="id_location" value="{{ form.location.value|default:'' }}"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., /documents/archives/2024/">
+        {% if form.location.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.location.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+        <textarea name="notes" id="id_notes" rows="3" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Additional notes about this archive">{{ form.notes.value|default:'' }}</textarea>
+        {% if form.notes.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.notes.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex items-center">
+        <input type="checkbox" name="is_archived" id="id_is_archived" {% if form.is_archived.value %}checked{% endif %}
+               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+        <label for="id_is_archived" class="ml-2 block text-sm font-medium text-gray-700">Mark as Archived</label>
+        {% if form.is_archived.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.is_archived.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'risk:compliance_archives' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Archive{% else %}Create Archive{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

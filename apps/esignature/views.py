@@ -54,10 +54,11 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.generic import DetailView, ListView, TemplateView
+from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
@@ -72,6 +73,8 @@ from .models import (
     SignableDocument,
     SignerAssignment,
     SigningOTPRecord,
+    PDFAnnotation,
+    DocumentViewingSession,
 )
 from .serializers import (
     CapturedSignatureCreateSerializer,
@@ -2227,6 +2230,85 @@ def _render_typed_signature(text: str) -> bytes:
     except Exception:
         pass
 
-    # Fallback: just return the raw bytes (won't be a PNG, but won't crash)
-    buf.seek(0)
-    return buf.read()
+
+# ============================================================================
+# PDF Annotation Views
+# ============================================================================
+
+class PDFAnnotationListView(LoginRequiredMixin, ListView):
+    """List PDF annotations for a document"""
+    model = PDFAnnotation
+    template_name = 'esignature/pdf_annotation_list.html'
+    context_object_name = 'annotations'
+    ordering = ['page_number', 'created_at']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        document_id = self.kwargs.get('document_id')
+        if document_id:
+            queryset = queryset.filter(document_id=document_id)
+        queryset = queryset.filter(author=self.request.user)
+        return queryset
+
+
+class PDFAnnotationCreateView(LoginRequiredMixin, CreateView):
+    """Create a new PDF annotation"""
+    model = PDFAnnotation
+    template_name = 'esignature/pdf_annotation_form.html'
+    fields = ['document', 'annotation_type', 'page_number', 'x_position', 'y_position', 
+              'width', 'height', 'content', 'color', 'is_private']
+    success_url = reverse_lazy('esignature:document_list')
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Annotation created successfully.')
+        return super().form_valid(form)
+
+
+class PDFAnnotationUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a PDF annotation"""
+    model = PDFAnnotation
+    template_name = 'esignature/pdf_annotation_form.html'
+    fields = ['content', 'color', 'is_private', 'is_resolved']
+    success_url = reverse_lazy('esignature:document_list')
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(author=self.request.user)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Annotation updated successfully.')
+        return super().form_valid(form)
+
+
+# ============================================================================
+# Document Viewing Session Views
+# ============================================================================
+
+class DocumentViewingSessionListView(LoginRequiredMixin, ListView):
+    """List document viewing sessions"""
+    model = DocumentViewingSession
+    template_name = 'esignature/viewing_session_list.html'
+    context_object_name = 'sessions'
+    ordering = ['-view_start_time']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.select_related('document', 'viewer')
+        document_id = self.kwargs.get('document_id')
+        if document_id:
+            queryset = queryset.filter(document_id=document_id)
+        queryset = queryset.filter(viewer=self.request.user)
+        return queryset
+
+
+class DocumentViewingSessionCreateView(LoginRequiredMixin, CreateView):
+    """Create a new viewing session"""
+    model = DocumentViewingSession
+    template_name = 'esignature/viewing_session_form.html'
+    fields = ['document', 'view_mode', 'zoom_level']
+    success_url = reverse_lazy('esignature:document_list')
+    
+    def form_valid(self, form):
+        form.instance.viewer = self.request.user
+        messages.success(self.request, 'Viewing session started.')
+        return super().form_valid(form)

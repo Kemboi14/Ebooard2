@@ -1,0 +1,93 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Policy Expiry Monitor{% else %}Add Policy Expiry Monitor{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Policy Expiry Monitor{% else %}Add Policy Expiry Monitor{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div>
+        <label for="id_policy" class="block text-sm font-medium text-gray-700 mb-1">Policy</label>
+        <select name="policy" id="id_policy"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="">Select policy (optional)</option>
+          {% for policy in form.fields.policy.queryset %}
+          <option value="{{ policy.pk }}" {% if form.policy.value == policy.pk|stringformat:"s" %}selected{% endif %}>{{ policy.title }}</option>
+          {% endfor %}
+        </select>
+        {% if form.policy.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.policy.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_policy_title" class="block text-sm font-medium text-gray-700 mb-1">Policy Title</label>
+        <input type="text" name="policy_title" id="id_policy_title" value="{{ form.policy_title.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., Data Protection Policy">
+        {% if form.policy_title.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.policy_title.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_expiry_date" class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+        <input type="date" name="expiry_date" id="id_expiry_date" value="{{ form.expiry_date.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        {% if form.expiry_date.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.expiry_date.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_notification_days_before" class="block text-sm font-medium text-gray-700 mb-1">Notification Days Before</label>
+        <input type="number" name="notification_days_before" id="id_notification_days_before" value="{{ form.notification_days_before.value|default:30 }}" required min="0"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., 30">
+        {% if form.notification_days_before.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.notification_days_before.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">Days before expiry to send notification</p>
+      </div>
+      
+      <div class="flex items-center">
+        <input type="checkbox" name="auto_renew" id="id_auto_renew" {% if form.auto_renew.value %}checked{% endif %}
+               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+        <label for="id_auto_renew" class="ml-2 block text-sm font-medium text-gray-700">Auto-Renew</label>
+        {% if form.auto_renew.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.auto_renew.errors }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500 ml-6">Automatically renew policy on expiry</p>
+      </div>
+      
+      <div>
+        <label for="id_notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+        <textarea name="notes" id="id_notes" rows="3" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Additional notes about this policy expiry monitor">{{ form.notes.value|default:'' }}</textarea>
+        {% if form.notes.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.notes.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'policy:policy_expiry_monitors' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Monitor{% else %}Create Monitor{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

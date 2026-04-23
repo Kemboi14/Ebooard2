@@ -1,0 +1,101 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit PDF Annotation{% else %}Add PDF Annotation{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit PDF Annotation{% else %}Add PDF Annotation{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div>
+        <label for="id_document" class="block text-sm font-medium text-gray-700 mb-1">Document</label>
+        <select name="document" id="id_document" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="">Select document</option>
+          {% for document in form.fields.document.queryset %}
+          <option value="{{ document.pk }}" {% if form.document.value == document.pk|stringformat:"s" %}selected{% endif %}>{{ document.title }}</option>
+          {% endfor %}
+        </select>
+        {% if form.document.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.document.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_annotation_type" class="block text-sm font-medium text-gray-700 mb-1">Annotation Type</label>
+        <select name="annotation_type" id="id_annotation_type" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="highlight" {% if form.annotation_type.value == 'highlight' %}selected{% endif %}>Highlight</option>
+          <option value="comment" {% if form.annotation_type.value == 'comment' %}selected{% endif %}>Comment</option>
+          <option value="text" {% if form.annotation_type.value == 'text' %}selected{% endif %}>Text</option>
+          <option value="signature" {% if form.annotation_type.value == 'signature' %}selected{% endif %}>Signature</option>
+          <option value="stamp" {% if form.annotation_type.value == 'stamp' %}selected{% endif %}>Stamp</option>
+          <option value="drawing" {% if form.annotation_type.value == 'drawing' %}selected{% endif %}>Drawing</option>
+        </select>
+        {% if form.annotation_type.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.annotation_type.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_page_number" class="block text-sm font-medium text-gray-700 mb-1">Page Number</label>
+        <input type="number" name="page_number" id="id_page_number" value="{{ form.page_number.value|default:1 }}" required min="1"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., 1">
+        {% if form.page_number.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.page_number.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_content" class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+        <textarea name="content" id="id_content" rows="4" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Annotation content or comment">{{ form.content.value|default:'' }}</textarea>
+        {% if form.content.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.content.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="id_x_position" class="block text-sm font-medium text-gray-700 mb-1">X Position</label>
+          <input type="number" name="x_position" id="id_x_position" value="{{ form.x_position.value|default:0 }}" step="0.1"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., 100">
+          {% if form.x_position.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.x_position.errors }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="id_y_position" class="block text-sm font-medium text-gray-700 mb-1">Y Position</label>
+          <input type="number" name="y_position" id="id_y_position" value="{{ form.y_position.value|default:0 }}" step="0.1"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                 placeholder="e.g., 100">
+          {% if form.y_position.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.y_position.errors }}</p>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'esignature:pdf_annotations' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Annotation{% else %}Create Annotation{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

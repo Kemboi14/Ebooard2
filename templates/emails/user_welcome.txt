@@ -1,0 +1,23 @@
+Welcome to {{ portal_name }}
+
+Dear {{ user.get_full_name }},
+
+Welcome to the {{ portal_name }}! Your account has been successfully created.
+
+Your account details:
+- Name: {{ user.get_full_name }}
+- Email: {{ user.email }}
+- Role: {{ user.get_role_display }}
+
+Please log in to the portal to complete your profile setup and begin using the system.
+
+Log in to: https://eboard.enwealth.co.ke/auth/login/
+
+If you have any questions or need assistance, please contact the IT support team.
+
+Best regards,
+{{ portal_name }} Team
+
+---
+© {{ current_year }} Enwealth Sacco. All rights reserved.
+This is an automated email. Please do not reply.

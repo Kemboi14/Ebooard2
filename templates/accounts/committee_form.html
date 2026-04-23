@@ -1,0 +1,86 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Committee{% else %}Add Committee{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Committee{% else %}Add Committee{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div>
+        <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">Committee Name</label>
+        <input type="text" name="name" id="id_name" value="{{ form.name.value|default:'' }}" required
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., Audit Committee">
+        {% if form.name.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.name.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea name="description" id="id_description" rows="3" 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Committee purpose and responsibilities">{{ form.description.value|default:'' }}</textarea>
+        {% if form.description.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.description.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_committee_type" class="block text-sm font-medium text-gray-700 mb-1">Committee Type</label>
+        <select name="committee_type" id="id_committee_type" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="board" {% if form.committee_type.value == 'board' %}selected{% endif %}>Board Meeting</option>
+          <option value="audit" {% if form.committee_type.value == 'audit' %}selected{% endif %}>Audit Committee</option>
+          <option value="risk" {% if form.committee_type.value == 'risk' %}selected{% endif %}>Risk Committee</option>
+          <option value="governance" {% if form.committee_type.value == 'governance' %}selected{% endif %}>Governance Committee</option>
+          <option value="executive" {% if form.committee_type.value == 'executive' %}selected{% endif %}>Executive Committee</option>
+          <option value="nominating" {% if form.committee_type.value == 'nominating' %}selected{% endif %}>Nominating Committee</option>
+          <option value="remuneration" {% if form.committee_type.value == 'remuneration' %}selected{% endif %}>Remuneration Committee</option>
+          <option value="other" {% if form.committee_type.value == 'other' %}selected{% endif %}>Other</option>
+        </select>
+        {% if form.committee_type.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.committee_type.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_meeting_frequency" class="block text-sm font-medium text-gray-700 mb-1">Meeting Frequency</label>
+        <input type="text" name="meeting_frequency" id="id_meeting_frequency" value="{{ form.meeting_frequency.value|default:'' }}"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+               placeholder="e.g., Monthly, Quarterly">
+        {% if form.meeting_frequency.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.meeting_frequency.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex items-center">
+        <input type="checkbox" name="is_active" id="id_is_active" {% if form.is_active.value %}checked{% endif %}
+               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+        <label for="id_is_active" class="ml-2 block text-sm font-medium text-gray-700">Active</label>
+        {% if form.is_active.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'accounts:committees' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Committee{% else %}Create Committee{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base/base.html' %}
+
+{% block title %}My Bookmarks{% endblock %}
+
+{% block page_title %}My Bookmarks{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold" style="color:#2d1b5e;">My Bookmarks</h2>
+      <a href="{% url 'accounts:bookmark_create' %}" 
+         class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add Bookmark
+      </a>
+    </div>
+
+    {% if bookmarks %}
+    <div class="mb-4 flex flex-wrap gap-2">
+      <a href="{% url 'accounts:bookmarks' %}" 
+         class="px-3 py-1 rounded-full text-sm {% if not request.GET.folder %}bg-purple-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">
+        All
+      </a>
+      {% for folder in folders %}
+      <a href="{% url 'accounts:bookmarks' %}?folder={{ folder }}" 
+         class="px-3 py-1 rounded-full text-sm {% if request.GET.folder == folder %}bg-purple-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">
+        {{ folder|default:"Uncategorized" }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for bookmark in bookmarks %}
+      <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start mb-2">
+          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+            {{ bookmark.get_bookmark_type_display }}
+          </span>
+          <div class="flex space-x-2">
+            {% if bookmark.is_pinned %}
+            <span class="text-yellow-500" title="Pinned">★</span>
+            {% endif %}
+            <a href="{% url 'accounts:bookmark_update' bookmark.pk %}" class="text-gray-400 hover:text-gray-600">✎</a>
+            <a href="{% url 'accounts:bookmark_delete' bookmark.pk %}" class="text-gray-400 hover:text-red-600">✕</a>
+          </div>
+        </div>
+        <h3 class="font-medium text-gray-900 mb-1">
+          <a href="{{ bookmark.target_url }}" class="hover:text-purple-600">{{ bookmark.title }}</a>
+        </h3>
+        {% if bookmark.description %}
+        <p class="text-sm text-gray-500 mb-2 line-clamp-2">{{ bookmark.description }}</p>
+        {% endif %}
+        <p class="text-xs text-gray-400">{{ bookmark.created_at|date:"F j, Y" }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-lg">No bookmarks yet.</p>
+      <a href="{% url 'accounts:bookmark_create' %}" 
+         class="mt-4 inline-block px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add First Bookmark
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Compliance Attendance - {{ record.meeting_title }}{% endblock %}
+
+{% block page_title %}Compliance Attendance{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-start mb-6">
+      <h2 class="text-xl font-semibold" style="color:#2d1b5e;">{{ record.meeting_title }}</h2>
+      {% if user.role == 'it_administrator' or user.role == 'company_secretary' or user.role == 'compliance_officer' %}
+      <div class="space-x-2">
+        <a href="{% url 'risk:compliance_attendance_update' record.pk %}" 
+           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+           style="background:#7dc143;"
+           onmouseover="this.style.backgroundColor='#5a8a3c'"
+           onmouseout="this.style.backgroundColor='#7dc143'">
+          Edit
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Meeting</h3>
+          <p class="text-gray-900">
+            {% if record.meeting %}
+              <a href="{% url 'meetings:detail' record.meeting.pk %}" class="text-indigo-600 hover:text-indigo-900">{{ record.meeting.title }}</a>
+            {% else %}
+              {{ record.meeting_title }}
+            {% endif %}
+          </p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Meeting Date</h3>
+          <p class="text-gray-900">{{ record.meeting_date|date:"F j, Y" }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Required Attendance</h3>
+          <p class="text-gray-900">{{ record.required_attendance }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Actual Attendance</h3>
+          <p class="text-gray-900">{{ record.actual_attendance }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Attendance Percentage</h3>
+          <p class="text-gray-900">{{ record.attendance_percentage }}%</p>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Compliance Status</h3>
+        <p class="text-gray-900">
+          {% if record.is_compliant %}
+            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">Compliant</span>
+          {% else %}
+            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">Non-Compliant</span>
+          {% endif %}
+        </p>
+      </div>
+
+      {% if record.notes %}
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Notes</h3>
+        <p class="text-gray-900">{{ record.notes }}</p>
+      </div>
+      {% endif %}
+
+      <div class="pt-6 border-t">
+        <h3 class="text-lg font-semibold mb-4" style="color:#2d1b5e;">Absent Members</h3>
+        {% if record.absent_members %}
+        <div class="flex flex-wrap gap-2">
+          {% for member in record.absent_members %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">{{ member }}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500">All required members attended.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="mt-6 pt-6 border-t">
+      <a href="{% url 'risk:compliance_attendances' %}" 
+         class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+         Back to Compliance Attendance
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

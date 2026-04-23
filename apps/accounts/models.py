@@ -52,6 +52,13 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+class ActiveUserManager(CustomUserManager):
+    """Manager that returns only non-deleted users by default"""
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = [
         ("board_member", "Board Member"),
@@ -73,6 +80,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
+    
+    # Soft delete fields
+    is_deleted = models.BooleanField(default=False, help_text="Whether this user has been soft-deleted")
+    deleted_at = models.DateTimeField(null=True, blank=True, help_text="When the user was soft-deleted")
+    deleted_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='deleted_users',
+        help_text="Administrator who deleted this user"
+    )
     department = models.CharField(max_length=100, blank=True)
     job_title = models.CharField(max_length=100, blank=True)
     mfa_enabled = models.BooleanField(default=False)
@@ -99,6 +118,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     board_position = models.CharField(max_length=100, blank=True, help_text="Specific position on the board")
 
     objects = CustomUserManager()
+    active_objects = ActiveUserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
@@ -324,8 +344,8 @@ class UserSession(models.Model):
         """Check if session is currently active"""
         if self.status != 'active':
             return False
-        # Check if session has expired (24 hours of inactivity)
-        if timezone.now() - self.last_activity > timezone.timedelta(hours=24):
+        # Check if session has expired (3 minutes of inactivity for security)
+        if timezone.now() - self.last_activity > timezone.timedelta(minutes=3):
             return False
         return True
     
@@ -482,3 +502,407 @@ class Translation(models.Model):
     def get_translation(self, language_code, default=None):
         """Get translation for a specific language"""
         return self.translations.get(language_code, default or self.key)
+
+
+class Committee(models.Model):
+    """Board committees for organizing governance activities"""
+
+    MEETING_TYPE_CHOICES = [
+        ('board', 'Board Meeting'),
+        ('audit', 'Audit Committee'),
+        ('risk', 'Risk Committee'),
+        ('governance', 'Governance Committee'),
+        ('executive', 'Executive Committee'),
+        ('nominating', 'Nominating Committee'),
+        ('remuneration', 'Remuneration Committee'),
+        ('other', 'Other'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200, help_text="Committee name")
+    description = models.TextField(blank=True, help_text="Committee purpose and responsibilities")
+    meeting_type = models.CharField(max_length=50, choices=MEETING_TYPE_CHOICES, default='board')
+    
+    # Organization context
+    branch = models.ForeignKey(
+        'agencies.Branch',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='accounts_committees',
+        help_text="Branch this committee belongs to"
+    )
+    
+    # Status
+    is_active = models.BooleanField(default=True, help_text="Whether this committee is currently active")
+    
+    # Chairperson
+    chairperson = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='accounts_chaired_committees',
+        help_text="Committee chairperson"
+    )
+    
+    # Meeting schedule
+    meeting_frequency = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="How often this committee meets (e.g., 'Monthly', 'Quarterly')"
+    )
+    
+    # Metadata
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='accounts_created_committees')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Committee'
+        verbose_name_plural = 'Committees'
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['is_active']),
+            models.Index(fields=['meeting_type']),
+            models.Index(fields=['branch']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_meeting_type_display()})"
+    
+    @property
+    def active_members_count(self):
+        """Count of active committee members"""
+        return self.memberships.filter(
+            is_active=True,
+            left_at__isnull=True
+        ).count()
+
+
+class CommitteeMembership(models.Model):
+    """Membership of users in committees"""
+
+    ROLE_CHOICES = [
+        ('chair', 'Chairperson'),
+        ('vice_chair', 'Vice Chairperson'),
+        ('secretary', 'Secretary'),
+        ('member', 'Member'),
+        ('observer', 'Observer'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts_committee_memberships')
+    committee = models.ForeignKey(Committee, on_delete=models.CASCADE, related_name='accounts_memberships')
+    
+    # Role and status
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
+    is_active = models.BooleanField(default=True, help_text="Whether this membership is currently active")
+    
+    # Membership period
+    joined_at = models.DateTimeField(auto_now_add=True, help_text="When user joined the committee")
+    left_at = models.DateTimeField(null=True, blank=True, help_text="When user left the committee (if applicable)")
+    
+    # Appointment details
+    appointed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='appointed_committee_memberships',
+        help_text="Who appointed this member"
+    )
+    appointment_date = models.DateField(null=True, blank=True, help_text="Date of official appointment")
+    
+    # Voting rights
+    has_voting_rights = models.BooleanField(default=True, help_text="Whether this member can vote")
+    
+    # Notes
+    notes = models.TextField(blank=True, help_text="Additional notes about this membership")
+    
+    class Meta:
+        verbose_name = 'Committee Membership'
+        verbose_name_plural = 'Committee Memberships'
+        ordering = ['committee', 'role', 'user']
+        unique_together = ['user', 'committee']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['committee', 'is_active']),
+            models.Index(fields=['role']),
+        ]
+    
+    def __str__(self):
+        status = "Active" if self.is_active and not self.left_at else "Inactive"
+        return f"{self.user.get_full_name()} - {self.committee.name} ({self.get_role_display()}) - {status}"
+    
+    @property
+    def is_currently_active(self):
+        """Check if membership is currently active"""
+        return self.is_active and (self.left_at is None or self.left_at > timezone.now())
+    
+    def terminate(self, terminated_by=None):
+        """Terminate this committee membership"""
+        self.is_active = False
+        self.left_at = timezone.now()
+        self.save(update_fields=['is_active', 'left_at'])
+
+
+class UserArchive(models.Model):
+    """Archived user accounts for terminated users"""
+
+    TERMINATION_REASON_CHOICES = [
+        ('resignation', 'Resignation'),
+        ('termination', 'Termination'),
+        ('retirement', 'Retirement'),
+        ('death', 'Death'),
+        ('contract_end', 'Contract Ended'),
+        ('other', 'Other'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # User identification (preserved for records)
+    original_user_id = models.UUIDField(help_text="Original user ID before archiving")
+    email = models.EmailField(help_text="User's email address")
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    role = models.CharField(max_length=50, help_text="User's role at time of termination")
+    
+    # Termination details
+    termination_reason = models.CharField(max_length=50, choices=TERMINATION_REASON_CHOICES)
+    termination_notes = models.TextField(blank=True, help_text="Additional notes about termination")
+    
+    # Who terminated
+    terminated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='terminated_users',
+        help_text="Administrator who terminated this account"
+    )
+    
+    # Timestamps
+    terminated_at = models.DateTimeField(auto_now_add=True, help_text="When the account was terminated")
+    
+    # Archived data (JSON snapshot of user data)
+    archived_data = models.JSONField(default=dict, help_text="Snapshot of user data at termination time")
+    
+    # Retention
+    retention_period_years = models.PositiveIntegerField(default=7, help_text="Years to retain this archive")
+    expires_at = models.DateTimeField(null=True, blank=True, help_text="When this archive can be permanently deleted")
+    
+    class Meta:
+        verbose_name = 'User Archive'
+        verbose_name_plural = 'User Archives'
+        ordering = ['-terminated_at']
+        indexes = [
+            models.Index(fields=['email']),
+            models.Index(fields=['terminated_at']),
+            models.Index(fields=['expires_at']),
+        ]
+    
+    def __str__(self):
+        return f"Archived: {self.email} - Terminated {self.terminated_at.strftime('%Y-%m-%d')}"
+    
+    def save(self, *args, **kwargs):
+        """Calculate expiry date on save"""
+        if not self.expires_at and self.retention_period_years:
+            from datetime import timedelta
+            self.expires_at = self.terminated_at + timedelta(days=self.retention_period_years * 365)
+        super().save(*args, **kwargs)
+    
+    @property
+    def is_expired(self):
+        """Check if archive retention period has expired"""
+        if self.expires_at:
+            return timezone.now() > self.expires_at
+        return False
+
+
+class FieldEditPermission(models.Model):
+    """Define field-level editing restrictions for models"""
+
+    FREEZE_CONDITION_CHOICES = [
+        ('status', 'Freeze on Status'),
+        ('date', 'Freeze After Date'),
+        ('never', 'Never Freeze'),
+        ('always', 'Always Read-Only'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # Model and field identification
+    model_name = models.CharField(max_length=100, help_text="Django model name (e.g., 'User', 'Meeting')")
+    field_name = models.CharField(max_length=100, help_text="Field name to restrict")
+    
+    # Role-based permissions
+    allowed_roles = models.JSONField(
+        default=list,
+        help_text="List of roles that can edit this field (e.g., ['it_administrator', 'company_secretary'])"
+    )
+    
+    # Freeze conditions
+    freeze_condition = models.CharField(
+        max_length=20,
+        choices=FREEZE_CONDITION_CHOICES,
+        default='never',
+        help_text="When to freeze this field from editing"
+    )
+    freeze_on_status = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Status value that triggers freeze (e.g., 'approved', 'published')"
+    )
+    freeze_after_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date after which field becomes read-only"
+    )
+    
+    # Additional conditions
+    freeze_after_days = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Days after creation/edit after which field freezes"
+    )
+    require_approval = models.BooleanField(
+        default=False,
+        help_text="Whether editing this field requires approval"
+    )
+    
+    # Description and metadata
+    description = models.TextField(blank=True, help_text="Description of this restriction")
+    is_active = models.BooleanField(default=True)
+    
+    # Audit
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_field_permissions'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Field Edit Permission'
+        verbose_name_plural = 'Field Edit Permissions'
+        ordering = ['model_name', 'field_name']
+        unique_together = ['model_name', 'field_name']
+        indexes = [
+            models.Index(fields=['model_name']),
+            models.Index(fields=['freeze_condition']),
+            models.Index(fields=['is_active']),
+        ]
+    
+    def __str__(self):
+        return f"{self.model_name}.{self.field_name} ({self.get_freeze_condition_display()})"
+    
+    def is_frozen(self, instance):
+        """
+        Check if field is frozen for a given instance.
+        
+        Args:
+            instance: The model instance to check
+            
+        Returns:
+            bool: True if field is frozen
+        """
+        if not self.is_active:
+            return False
+        
+        if self.freeze_condition == 'always':
+            return True
+        
+        if self.freeze_condition == 'never':
+            return False
+        
+        if self.freeze_condition == 'status':
+            if self.freeze_on_status and hasattr(instance, 'status'):
+                return instance.status == self.freeze_on_status
+        
+        if self.freeze_condition == 'date':
+            if self.freeze_after_date:
+                return timezone.now() > self.freeze_after_date
+            if self.freeze_after_days and hasattr(instance, 'created_at'):
+                freeze_date = instance.created_at + timezone.timedelta(days=self.freeze_after_days)
+                return timezone.now() > freeze_date
+        
+        return False
+    
+    def can_edit(self, user):
+        """
+        Check if user can edit this field based on role.
+        
+        Args:
+            user: User instance
+            
+        Returns:
+            bool: True if user can edit
+        """
+        if not self.is_active:
+            return True
+        
+        if not self.allowed_roles:
+            return True
+        
+        return user.role in self.allowed_roles
+
+
+class Bookmark(models.Model):
+    """User bookmarks for quick access to important items"""
+
+    BOOKMARK_TYPES = [
+        ('meeting', 'Meeting'),
+        ('document', 'Document'),
+        ('motion', 'Motion'),
+        ('policy', 'Policy'),
+        ('risk', 'Risk Assessment'),
+        ('committee', 'Committee'),
+        ('annual_meeting', 'Annual Meeting'),
+        ('report', 'Report'),
+        ('other', 'Other'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='bookmarks'
+    )
+    
+    # Target of bookmark
+    bookmark_type = models.CharField(max_length=50, choices=BOOKMARK_TYPES)
+    target_id = models.UUIDField(help_text="ID of the bookmarked item")
+    target_url = models.CharField(max_length=500, help_text="URL to access the bookmarked item")
+    
+    # Display information
+    title = models.CharField(max_length=255, help_text="Display title for the bookmark")
+    description = models.TextField(blank=True, help_text="Optional description or notes")
+    
+    # Organization
+    folder = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Folder/category for organizing bookmarks"
+    )
+    
+    # Metadata
+    is_pinned = models.BooleanField(default=False, help_text="Pin to top of bookmarks list")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Bookmark'
+        verbose_name_plural = 'Bookmarks'
+        ordering = ['-is_pinned', '-created_at']
+        unique_together = ['user', 'bookmark_type', 'target_id']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['bookmark_type']),
+            models.Index(fields=['folder']),
+            models.Index(fields=['is_pinned']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.email} - {self.title}"

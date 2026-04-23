@@ -672,6 +672,11 @@ class MeetingMinutes(models.Model):
     external_signature_url = models.URLField(blank=True, help_text="URL to external signature document")
     external_signature_provider = models.CharField(max_length=50, blank=True, help_text="e.g., docusign, adobe_sign")
 
+    # Retention policy
+    retention_period_years = models.PositiveIntegerField(default=7, help_text="Years to retain these minutes before archiving")
+    archive_date = models.DateTimeField(null=True, blank=True, help_text="Date when minutes were archived")
+    is_archived = models.BooleanField(default=False, help_text="Whether these minutes have been archived")
+
     class Meta:
         verbose_name = "Meeting Minutes"
         verbose_name_plural = "Meeting Minutes"
@@ -702,7 +707,14 @@ class MeetingMinutes(models.Model):
 
 
 class MeetingAttendance(models.Model):
-    """Track attendance per meeting per user"""
+    """
+    Track attendance per meeting per user.
+    
+    Attendees list source:
+    - Primary source: meeting.required_attendees (manually added attendees)
+    - Secondary source: automatic inclusion based on committee membership (if meeting is committee-specific)
+    - Manual additions: can be added individually by meeting organizers
+    """
 
     STATUS_CHOICES = [
         ("attended", "Attended"),
@@ -711,6 +723,13 @@ class MeetingAttendance(models.Model):
         ("late", "Attended (Late)"),
         ("partial", "Partial Attendance"),
         ("no_response", "No Response"),
+    ]
+
+    ATTENDEE_SOURCE_CHOICES = [
+        ('required', 'Required Attendee'),
+        ('committee', 'Committee Member'),
+        ('manual', 'Manually Added'),
+        ('invitation', 'Invited Guest'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -723,6 +742,12 @@ class MeetingAttendance(models.Model):
     )
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="no_response"
+    )
+    attendee_source = models.CharField(
+        max_length=20,
+        choices=ATTENDEE_SOURCE_CHOICES,
+        default='manual',
+        help_text="How this attendee was added to the meeting"
     )
     notes = models.TextField(blank=True)
     check_in_time = models.DateTimeField(null=True, blank=True)
@@ -763,6 +788,167 @@ class MeetingAttendance(models.Model):
         if self.check_in_time and self.check_out_time:
             delta = self.check_out_time - self.check_in_time
             return int(delta.total_seconds() / 60)
+        return None
+
+
+class AnnualMeeting(models.Model):
+    """Track annual statutory meetings for compliance"""
+
+    COMPLIANCE_STATUS_CHOICES = [
+        ('compliant', 'Compliant'),
+        ('non_compliant', 'Non-Compliant'),
+        ('pending', 'Pending Review'),
+        ('overdue', 'Overdue'),
+        ('waived', 'Waived'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # Year and organization
+    year = models.PositiveIntegerField(help_text="Fiscal year for this annual meeting")
+    organization = models.ForeignKey(
+        'agencies.Branch',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='annual_meetings',
+        help_text="Organization/Branch this annual meeting belongs to"
+    )
+    
+    # The actual meeting
+    meeting = models.ForeignKey(
+        Meeting,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='annual_meeting_record',
+        help_text="The actual meeting record"
+    )
+    
+    # Statutory requirements
+    statutory_requirements = models.TextField(
+        blank=True,
+        help_text="Statutory requirements for this annual meeting"
+    )
+    requirements_met = models.TextField(
+        blank=True,
+        help_text="Documentation of requirements that were met"
+    )
+    
+    # Compliance status
+    compliance_status = models.CharField(
+        max_length=20,
+        choices=COMPLIANCE_STATUS_CHOICES,
+        default='pending'
+    )
+    compliance_notes = models.TextField(
+        blank=True,
+        help_text="Notes on compliance status"
+    )
+    
+    # Audit and review
+    audit_report = models.ForeignKey(
+        'documents.Document',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='annual_meeting_audits',
+        help_text="Audit report for this annual meeting"
+    )
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_annual_meetings',
+        help_text="Who reviewed the compliance"
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    
+    # Deadlines
+    required_by_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date by which annual meeting must be held"
+    )
+    actual_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Actual date when annual meeting was held"
+    )
+    
+    # Attendance tracking
+    required_attendees = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name='required_annual_meetings',
+        help_text="Attendees required for compliance"
+    )
+    actual_attendees = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name='attended_annual_meetings',
+        help_text="Actual attendees"
+    )
+    
+    # Resolutions and decisions
+    resolutions_passed = models.TextField(
+        blank=True,
+        help_text="Summary of resolutions passed"
+    )
+    key_decisions = models.TextField(
+        blank=True,
+        help_text="Key decisions made during the meeting"
+    )
+    
+    # Metadata
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_annual_meetings'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Annual Meeting'
+        verbose_name_plural = 'Annual Meetings'
+        ordering = ['-year']
+        unique_together = ['year', 'organization']
+        indexes = [
+            models.Index(fields=['year']),
+            models.Index(fields=['organization']),
+            models.Index(fields=['compliance_status']),
+            models.Index(fields=['required_by_date']),
+        ]
+    
+    def __str__(self):
+        org_name = self.organization.name if self.organization else 'Organization'
+        return f"{org_name} - Annual Meeting {self.year}"
+    
+    @property
+    def is_overdue(self):
+        """Check if annual meeting is overdue"""
+        if self.required_by_date and not self.actual_date:
+            return timezone.now().date() > self.required_by_date
+        return False
+    
+    @property
+    def attendance_rate(self):
+        """Calculate attendance rate"""
+        required_count = self.required_attendees.count()
+        if required_count == 0:
+            return 0
+        actual_count = self.actual_attendees.count()
+        return (actual_count / required_count) * 100
+    
+    @property
+    def days_until_deadline(self):
+        """Days until required deadline"""
+        if self.required_by_date:
+            delta = self.required_by_date - timezone.now().date()
+            return delta.days
         return None
 
 

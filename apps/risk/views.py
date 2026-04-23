@@ -34,6 +34,8 @@ from .models import (
     ComplianceAudit,
     BoardEvaluation,
     DirectorEvaluation,
+    ComplianceArchive,
+    ComplianceAttendance,
 )
 
 
@@ -796,11 +798,82 @@ class DirectorEvaluationUpdateView(LoginRequiredMixin, UpdateView):
     """Update a director evaluation"""
     model = DirectorEvaluation
     template_name = 'risk/director_evaluation_form.html'
-    fields = ['self_rating', 'self_assessment', 'peer_rating', 'peer_feedback', 'chair_rating', 'chair_feedback', 'overall_rating', 'overall_score', 'governance_knowledge', 'strategic_thinking', 'financial_literacy', 'industry_expertise', 'communication', 'participation', 'development_needs', 'training_recommendations']
-    
-    def get_success_url(self):
-        return reverse('risk:director_evaluation_detail', kwargs={'pk': self.object.pk})
+    fields = ['self_rating', 'self_assessment', 'peer_rating', 'peer_feedback', 'chair_rating', 'chair_feedback']
+    success_url = reverse_lazy('risk:board_evaluations')
     
     def form_valid(self, form):
         messages.success(self.request, 'Director evaluation updated successfully.')
+        return super().form_valid(form)
+
+
+# ============================================================================
+# Compliance Archive Views
+# ============================================================================
+
+class ComplianceArchiveListView(LoginRequiredMixin, ListView):
+    """List all compliance archives"""
+    model = ComplianceArchive
+    template_name = 'risk/compliance_archive_list.html'
+    context_object_name = 'archives'
+    ordering = ['-archived_at']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        record_type = self.request.GET.get('record_type')
+        if record_type:
+            queryset = queryset.filter(record_type=record_type)
+        return queryset
+
+
+class ComplianceArchiveDetailView(LoginRequiredMixin, DetailView):
+    """View compliance archive details"""
+    model = ComplianceArchive
+    template_name = 'risk/compliance_archive_detail.html'
+    context_object_name = 'archive'
+
+
+# ============================================================================
+# Compliance Attendance Views
+# ============================================================================
+
+class ComplianceAttendanceListView(LoginRequiredMixin, ListView):
+    """List all compliance attendance records"""
+    model = ComplianceAttendance
+    template_name = 'risk/compliance_attendance_list.html'
+    context_object_name = 'attendance_records'
+    ordering = ['-recorded_at']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.select_related('user', 'meeting', 'recorded_by')
+        compliance_type = self.request.GET.get('compliance_type')
+        if compliance_type:
+            queryset = queryset.filter(compliance_type=compliance_type)
+        return queryset
+
+
+class ComplianceAttendanceCreateView(LoginRequiredMixin, CreateView):
+    """Create a compliance attendance record"""
+    model = ComplianceAttendance
+    template_name = 'risk/compliance_attendance_form.html'
+    fields = ['user', 'meeting', 'compliance_type', 'attendance_status', 'is_excused', 
+              'excuse_reason', 'check_in_time', 'check_out_time', 'notes']
+    success_url = reverse_lazy('risk:compliance_attendance')
+    
+    def form_valid(self, form):
+        form.instance.recorded_by = self.request.user
+        messages.success(self.request, 'Compliance attendance recorded successfully.')
+        return super().form_valid(form)
+
+
+class ComplianceAttendanceUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a compliance attendance record"""
+    model = ComplianceAttendance
+    template_name = 'risk/compliance_attendance_form.html'
+    fields = ['attendance_status', 'is_excused', 'excuse_reason', 'check_in_time', 
+              'check_out_time', 'notes']
+    success_url = reverse_lazy('risk:compliance_attendance')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Compliance attendance updated successfully.')
         return super().form_valid(form)

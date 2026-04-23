@@ -1,0 +1,112 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Membership{% else %}Add Membership{% endif %}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Membership{% else %}Add Membership{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      {% if not form.instance.pk %}
+      <div>
+        <label for="id_committee" class="block text-sm font-medium text-gray-700 mb-1">Committee</label>
+        <select name="committee" id="id_committee" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="">Select committee</option>
+          {% for committee in form.fields.committee.queryset %}
+          <option value="{{ committee.pk }}" {% if form.committee.value == committee.pk|stringformat:"s" %}selected{% endif %}>{{ committee.name }}</option>
+          {% endfor %}
+        </select>
+        {% if form.committee.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.committee.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_user" class="block text-sm font-medium text-gray-700 mb-1">User</label>
+        <select name="user" id="id_user" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="">Select user</option>
+          {% for user in form.fields.user.queryset %}
+          <option value="{{ user.pk }}" {% if form.user.value == user.pk|stringformat:"s" %}selected{% endif %}>{{ user.get_full_name }}</option>
+          {% endfor %}
+        </select>
+        {% if form.user.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.user.errors }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+      
+      <div>
+        <label for="id_role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+        <select name="role" id="id_role" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="member" {% if form.role.value == 'member' %}selected{% endif %}>Member</option>
+          <option value="chair" {% if form.role.value == 'chair' %}selected{% endif %}>Chairperson</option>
+          <option value="vice_chair" {% if form.role.value == 'vice_chair' %}selected{% endif %}>Vice Chairperson</option>
+          <option value="secretary" {% if form.role.value == 'secretary' %}selected{% endif %}>Secretary</option>
+          <option value="observer" {% if form.role.value == 'observer' %}selected{% endif %}>Observer</option>
+        </select>
+        {% if form.role.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.role.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex items-center">
+        <input type="checkbox" name="has_voting_rights" id="id_has_voting_rights" {% if form.has_voting_rights.value %}checked{% endif %}
+               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+        <label for="id_has_voting_rights" class="ml-2 block text-sm font-medium text-gray-700">Has Voting Rights</label>
+        {% if form.has_voting_rights.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.has_voting_rights.errors }}</p>
+        {% endif %}
+      </div>
+      
+      {% if not form.instance.pk %}
+      <div class="flex items-center">
+        <input type="checkbox" name="is_chair" id="id_is_chair" {% if form.is_chair.value %}checked{% endif %}
+               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+        <label for="id_is_chair" class="ml-2 block text-sm font-medium text-gray-700">Is Chairperson</label>
+        {% if form.is_chair.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.is_chair.errors }}</p>
+        {% endif %}
+      </div>
+      
+      <div>
+        <label for="id_joined_at" class="block text-sm font-medium text-gray-700 mb-1">Joined Date</label>
+        <input type="date" name="joined_at" id="id_joined_at" value="{{ form.joined_at.value|default:'' }}"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        {% if form.joined_at.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.joined_at.errors }}</p>
+        {% endif %}
+      </div>
+      {% else %}
+      <div>
+        <label for="id_left_at" class="block text-sm font-medium text-gray-700 mb-1">Left Date</label>
+        <input type="date" name="left_at" id="id_left_at" value="{{ form.left_at.value|default:'' }}"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        {% if form.left_at.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.left_at.errors }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+      
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <a href="{% url 'accounts:committee_memberships' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+           Cancel
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if form.instance.pk %}Update Membership{% else %}Create Membership{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

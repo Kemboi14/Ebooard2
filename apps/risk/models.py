@@ -701,6 +701,20 @@ class BoardEvaluation(models.Model):
     
     def __str__(self):
         return f"{self.get_evaluation_type_display()} - {self.evaluation_period_end.strftime('%Y')}"
+    
+    @property
+    def completion_percentage(self):
+        """Calculate completion percentage based on filled fields"""
+        total_fields = 7  # Count of key fields to track
+        filled_fields = 0
+        if self.overall_score: filled_fields += 1
+        if self.overall_rating: filled_fields += 1
+        if self.summary: filled_fields += 1
+        if self.strengths: filled_fields += 1
+        if self.areas_for_improvement: filled_fields += 1
+        if self.recommendations: filled_fields += 1
+        if self.governance_effectiveness: filled_fields += 1
+        return (filled_fields / total_fields) * 100 if total_fields > 0 else 0
 
 
 class DirectorEvaluation(models.Model):
@@ -757,4 +771,211 @@ class DirectorEvaluation(models.Model):
         unique_together = ['board_evaluation', 'director']
     
     def __str__(self):
-        return f"{self.director.get_full_name()} - {self.board_evaluation.title}"
+        return f"{self.director.get_full_name()} - {self.board_evaluation.get_evaluation_type_display()}"
+
+
+class ComplianceAttendance(models.Model):
+    """Track compliance-related attendance for meetings and governance events"""
+
+    ATTENDANCE_STATUS_CHOICES = [
+        ('present', 'Present'),
+        ('absent', 'Absent'),
+        ('excused', 'Excused'),
+        ('late', 'Late'),
+        ('remote', 'Remote/Video'),
+    ]
+
+    COMPLIANCE_TYPE_CHOICES = [
+        ('statutory', 'Statutory Meeting'),
+        ('board', 'Board Meeting'),
+        ('committee', 'Committee Meeting'),
+        ('training', 'Compliance Training'),
+        ('audit', 'Audit Meeting'),
+        ('risk', 'Risk Committee Meeting'),
+        ('other', 'Other Compliance Event'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # User and meeting
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='compliance_attendance')
+    meeting = models.ForeignKey(
+        'meetings.Meeting',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='compliance_attendance'
+    )
+    
+    # Compliance details
+    compliance_type = models.CharField(max_length=20, choices=COMPLIANCE_TYPE_CHOICES, default='board')
+    attendance_status = models.CharField(max_length=20, choices=ATTENDANCE_STATUS_CHOICES, default='present')
+    
+    # Duration tracking
+    check_in_time = models.DateTimeField(null=True, blank=True)
+    check_out_time = models.DateTimeField(null=True, blank=True)
+    duration_minutes = models.PositiveIntegerField(null=True, blank=True, help_text="Duration of attendance in minutes")
+    
+    # Excuse details
+    is_excused = models.BooleanField(default=False)
+    excuse_reason = models.TextField(blank=True, help_text="Reason for absence if excused")
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_excuses',
+        help_text="Who approved the excuse"
+    )
+    
+    # Notes
+    notes = models.TextField(blank=True, help_text="Additional notes about attendance")
+    
+    # Timestamps
+    recorded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='recorded_compliance_attendance'
+    )
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Compliance Attendance'
+        verbose_name_plural = 'Compliance Attendance Records'
+        ordering = ['-recorded_at']
+        unique_together = ['user', 'meeting']
+        indexes = [
+            models.Index(fields=['user', '-recorded_at']),
+            models.Index(fields=['meeting']),
+            models.Index(fields=['compliance_type']),
+            models.Index(fields=['attendance_status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.get_compliance_type_display()} - {self.get_attendance_status_display()}"
+    
+    @property
+    def was_present(self):
+        """Check if user was present (including remote)"""
+        return self.attendance_status in ['present', 'remote', 'late']
+    
+    @property
+    def is_compliant(self):
+        """Check if attendance meets compliance requirements"""
+        # Excused absences are compliant
+        if self.is_excused:
+            return True
+        # Present or remote is compliant
+        return self.was_present
+
+
+class ComplianceArchive(models.Model):
+    """Archived compliance records for long-term retention"""
+
+    ARCHIVE_STATUS_CHOICES = [
+        ('archived', 'Archived'),
+        ('restored', 'Restored'),
+        ('expired', 'Expired'),
+        ('permanently_deleted', 'Permanently Deleted'),
+    ]
+
+    RECORD_TYPE_CHOICES = [
+        ('compliance_attendance', 'Compliance Attendance'),
+        ('policy_review', 'Policy Review'),
+        ('risk_assessment', 'Risk Assessment'),
+        ('audit_report', 'Audit Report'),
+        ('annual_meeting', 'Annual Meeting'),
+        ('other', 'Other'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # Record identification
+    record_type = models.CharField(max_length=30, choices=RECORD_TYPE_CHOICES)
+    original_record_id = models.UUIDField(help_text="ID of the original record before archiving")
+    record_title = models.CharField(max_length=255, help_text="Title or description of the archived record")
+    
+    # Compliance context
+    compliance_category = models.CharField(max_length=100, blank=True, help_text="Category of compliance")
+    compliance_period_start = models.DateField(null=True, blank=True)
+    compliance_period_end = models.DateField(null=True, blank=True)
+    
+    # Archived data (JSON snapshot)
+    archived_data = models.JSONField(default=dict, help_text="Snapshot of record data at archiving time")
+    
+    # Archiving details
+    archived_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='archived_compliance_records'
+    )
+    archived_at = models.DateTimeField(auto_now_add=True)
+    archive_reason = models.TextField(blank=True, help_text="Reason for archiving")
+    
+    # Retention
+    retention_period_years = models.PositiveIntegerField(default=7, help_text="Years to retain this archive")
+    expires_at = models.DateTimeField(null=True, blank=True, help_text="When this archive can be permanently deleted")
+    
+    # Status
+    archive_status = models.CharField(max_length=30, choices=ARCHIVE_STATUS_CHOICES, default='archived')
+    restored_at = models.DateTimeField(null=True, blank=True)
+    restored_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='restored_compliance_records'
+    )
+    
+    # Related documents
+    related_documents = models.ManyToManyField(
+        'documents.Document',
+        blank=True,
+        related_name='compliance_archives'
+    )
+    
+    class Meta:
+        verbose_name = 'Compliance Archive'
+        verbose_name_plural = 'Compliance Archives'
+        ordering = ['-archived_at']
+        indexes = [
+            models.Index(fields=['record_type']),
+            models.Index(fields=['archived_at']),
+            models.Index(fields=['expires_at']),
+            models.Index(fields=['archive_status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_record_type_display()} - {self.record_title} (Archived {self.archived_at.strftime('%Y-%m-%d')})"
+    
+    def save(self, *args, **kwargs):
+        """Calculate expiry date on save"""
+        if not self.expires_at and self.retention_period_years:
+            from datetime import timedelta
+            self.expires_at = self.archived_at + timedelta(days=self.retention_period_years * 365)
+        super().save(*args, **kwargs)
+    
+    @property
+    def is_expired(self):
+        """Check if archive retention period has expired"""
+        if self.expires_at:
+            return timezone.now() > self.expires_at
+        return False
+    
+    @property
+    def days_until_expiry(self):
+        """Days until archive expires"""
+        if self.expires_at:
+            delta = self.expires_at - timezone.now()
+            return delta.days
+        return None
+    
+    def restore(self, restored_by):
+        """Restore this archived record"""
+        self.archive_status = 'restored'
+        self.restored_at = timezone.now()
+        self.restored_by = restored_by
+        self.save(update_fields=['archive_status', 'restored_at', 'restored_by'])

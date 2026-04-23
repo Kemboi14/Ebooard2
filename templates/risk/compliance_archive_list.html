@@ -1,0 +1,81 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Compliance Archives{% endblock %}
+
+{% block page_title %}Compliance Archives{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold" style="color:#2d1b5e;">Compliance Archives</h2>
+      {% if user.role == 'it_administrator' or user.role == 'company_secretary' or user.role == 'compliance_officer' %}
+      <a href="{% url 'risk:compliance_archive_create' %}" 
+         class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add Archive
+      </a>
+      {% endif %}
+    </div>
+
+    {% if archives %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retention Period</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Archive Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retention Expiry</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for archive in archives %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ archive.title }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ archive.get_category_display }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ archive.retention_period_years }} years</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ archive.archived_at|date:"F j, Y" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ archive.retention_expiry_date|date:"F j, Y" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {% if archive.is_expired %}
+                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">Expired</span>
+              {% elif archive.is_archived %}
+                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">Archived</span>
+              {% else %}
+                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <a href="{% url 'risk:compliance_archive_detail' archive.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
+              {% if user.role == 'it_administrator' or user.role == 'company_secretary' or user.role == 'compliance_officer' %}
+              <a href="{% url 'risk:compliance_archive_update' archive.pk %}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-lg">No compliance archives configured yet.</p>
+      {% if user.role == 'it_administrator' or user.role == 'company_secretary' or user.role == 'compliance_officer' %}
+      <a href="{% url 'risk:compliance_archive_create' %}" 
+         class="mt-4 inline-block px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add First Archive
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

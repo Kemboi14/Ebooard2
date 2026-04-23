@@ -140,4 +140,31 @@ urlpatterns = [
         views.GlobalAuditLogAPIView.as_view(),
         name="api_global_audit",
     ),
+    # PDF Annotations
+    path(
+        "annotations/",
+        views.PDFAnnotationListView.as_view(),
+        name="pdf_annotations",
+    ),
+    path(
+        "annotations/create/",
+        views.PDFAnnotationCreateView.as_view(),
+        name="pdf_annotation_create",
+    ),
+    path(
+        "annotations/<uuid:pk>/update/",
+        views.PDFAnnotationUpdateView.as_view(),
+        name="pdf_annotation_update",
+    ),
+    # Document Viewing Sessions
+    path(
+        "viewing-sessions/",
+        views.DocumentViewingSessionListView.as_view(),
+        name="viewing_sessions",
+    ),
+    path(
+        "viewing-sessions/create/",
+        views.DocumentViewingSessionCreateView.as_view(),
+        name="viewing_session_create",
+    ),
 ]

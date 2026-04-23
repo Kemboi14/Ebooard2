@@ -1,0 +1,64 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Governance Dashboards{% endblock %}
+
+{% block page_title %}Governance Dashboards{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold" style="color:#2d1b5e;">Governance Dashboards</h2>
+      {% if user.role == 'it_administrator' or user.role == 'executive_management' %}
+      <a href="{% url 'analytics:governance_dashboard_create' %}" 
+         class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add Dashboard
+      </a>
+      {% endif %}
+    </div>
+
+    {% if dashboards %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for dashboard in dashboards %}
+      <div class="border rounded-lg p-6 hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="font-semibold text-gray-900">{{ dashboard.name }}</h3>
+          {% if dashboard.is_default %}
+            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">Default</span>
+          {% endif %}
+        </div>
+        {% if dashboard.description %}
+        <p class="text-sm text-gray-500 mb-4 line-clamp-2">{{ dashboard.description }}</p>
+        {% endif %}
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-400">{{ dashboard.widgets.count }} widgets</span>
+          <div class="space-x-2">
+            <a href="{% url 'analytics:governance_dashboard_detail' dashboard.pk %}" class="text-indigo-600 hover:text-indigo-900 text-sm">View</a>
+            {% if user.role == 'it_administrator' or user.role == 'executive_management' %}
+            <a href="{% url 'analytics:governance_dashboard_update' dashboard.pk %}" class="text-indigo-600 hover:text-indigo-900 text-sm">Edit</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-lg">No governance dashboards configured yet.</p>
+      {% if user.role == 'it_administrator' or user.role == 'executive_management' %}
+      <a href="{% url 'analytics:governance_dashboard_create' %}" 
+         class="mt-4 inline-block px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Add First Dashboard
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

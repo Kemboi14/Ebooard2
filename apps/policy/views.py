@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Policy, PolicyCategory, PolicyReview, PolicyAcknowledgment
+from .models import Policy, PolicyCategory, PolicyReview, PolicyAcknowledgment, PolicyExpiryMonitor
 from .forms import PolicyForm, PolicyCategoryForm, PolicyReviewForm, PolicySearchForm, PolicyVersionForm
 from apps.accounts.permissions import CAN_MANAGE_POLICIES
 from apps.accounts.mixins import BranchOrganizationFilterMixin
@@ -358,3 +358,54 @@ class ReviewCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['policy'] = get_object_or_404(Policy, pk=self.kwargs['policy_pk'])
         return context
+
+
+# ============================================================================
+# Policy Expiry Monitor Views
+# ============================================================================
+
+class PolicyExpiryMonitorListView(LoginRequiredMixin, ListView):
+    """List all policy expiry monitors"""
+    model = PolicyExpiryMonitor
+    template_name = 'policy/policy_expiry_monitor_list.html'
+    context_object_name = 'monitors'
+    ordering = ['expiry_date']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.select_related('policy')
+        status_filter = self.request.GET.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        return queryset
+
+
+class PolicyExpiryMonitorDetailView(LoginRequiredMixin, DetailView):
+    """View policy expiry monitor details"""
+    model = PolicyExpiryMonitor
+    template_name = 'policy/policy_expiry_monitor_detail.html'
+    context_object_name = 'monitor'
+
+
+class PolicyExpiryMonitorCreateView(LoginRequiredMixin, CreateView):
+    """Create a new policy expiry monitor"""
+    model = PolicyExpiryMonitor
+    template_name = 'policy/policy_expiry_monitor_form.html'
+    fields = ['policy', 'expiry_date', 'warning_days', 'notification_recipients', 'is_active']
+    success_url = reverse_lazy('policy:policy_expiry_monitors')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Policy expiry monitor created successfully.')
+        return super().form_valid(form)
+
+
+class PolicyExpiryMonitorUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a policy expiry monitor"""
+    model = PolicyExpiryMonitor
+    template_name = 'policy/policy_expiry_monitor_form.html'
+    fields = ['expiry_date', 'warning_days', 'notification_recipients', 'is_active', 'status', 'archive_status']
+    success_url = reverse_lazy('policy:policy_expiry_monitors')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Policy expiry monitor updated successfully.')
+        return super().form_valid(form)

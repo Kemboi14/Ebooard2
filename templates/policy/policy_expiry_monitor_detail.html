@@ -1,0 +1,101 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Policy Expiry Monitor - {{ monitor.policy_title }}{% endblock %}
+
+{% block page_title %}Policy Expiry Monitor{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-start mb-6">
+      <h2 class="text-xl font-semibold" style="color:#2d1b5e;">{{ monitor.policy_title }}</h2>
+      {% if user.role == 'it_administrator' or user.role == 'company_secretary' or user.role == 'compliance_officer' %}
+      <div class="space-x-2">
+        <a href="{% url 'policy:policy_expiry_monitor_update' monitor.pk %}" 
+           class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+           style="background:#7dc143;"
+           onmouseover="this.style.backgroundColor='#5a8a3c'"
+           onmouseout="this.style.backgroundColor='#7dc143'">
+          Edit
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Policy</h3>
+          <p class="text-gray-900">
+            {% if monitor.policy %}
+              <a href="{% url 'policy:detail' monitor.policy.pk %}" class="text-indigo-600 hover:text-indigo-900">{{ monitor.policy.title }}</a>
+            {% else %}
+              {{ monitor.policy_title }}
+            {% endif %}
+          </p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Expiry Date</h3>
+          <p class="text-gray-900">{{ monitor.expiry_date|date:"F j, Y" }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Notification Days Before</h3>
+          <p class="text-gray-900">{{ monitor.notification_days_before }} days</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Status</h3>
+          <p class="text-gray-900">
+            {% if monitor.is_expired %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">Expired</span>
+            {% elif monitor.is_expiring_soon %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Expiring Soon</span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Last Notification Sent</h3>
+          <p class="text-gray-900">
+            {% if monitor.last_notification_sent %}
+              {{ monitor.last_notification_sent|date:"F j, Y, g:i a" }}
+            {% else %}
+              Never
+            {% endif %}
+          </p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Auto-Renew</h3>
+          <p class="text-gray-900">
+            {% if monitor.auto_renew %}
+              <span class="text-green-600">Yes</span>
+            {% else %}
+              <span class="text-gray-400">No</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      {% if monitor.notes %}
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Notes</h3>
+        <p class="text-gray-900">{{ monitor.notes }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="mt-6 pt-6 border-t">
+      <a href="{% url 'policy:policy_expiry_monitors' %}" 
+         class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+         Back to Monitors
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

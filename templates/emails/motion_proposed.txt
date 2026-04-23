@@ -1,0 +1,35 @@
+New Motion Proposed
+
+A new motion has been proposed and requires your attention.
+
+Motion Details:
+------------
+Title: {{ motion.title }}
+Status: {{ motion.get_status_display }}
+Category: {{ motion.get_category_display }}
+Voting Type: {{ motion.get_voting_type_display }}
+Voting Deadline: {{ motion.voting_deadline|date:"F d, Y" }} at {{ motion.voting_deadline|time:"H:i" }}
+Proposed By: {{ motion.proposed_by.get_full_name }}
+
+Description:
+{{ motion.description }}
+
+{% if motion.background %}
+Background:
+{{ motion.background }}
+{% endif %}
+
+Required Votes: {{ motion.required_votes }}
+Threshold: {{ motion.threshold_description }}
+
+View the motion and cast your vote at:
+https://eboard.enwealth.co.ke/voting/motions/{{ motion.id }}/
+
+Please review this motion and cast your vote before the deadline.
+
+Best regards,
+{{ portal_name }} Team
+
+---
+© {{ current_year }} Enwealth Sacco. All rights reserved.
+This is an automated email. Please do not reply.
