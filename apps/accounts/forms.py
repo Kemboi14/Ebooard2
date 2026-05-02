@@ -280,13 +280,18 @@ class CustomPasswordChangeForm(forms.Form):
             errors.append("Password must contain at least one special character")
 
         # Check password reuse (last 5 passwords)
-        password_hash = hashlib.sha256(new_password.encode()).hexdigest()
-        recent_passwords = PasswordHistory.objects.filter(user=self.user).values_list(
-            "password_hash", flat=True
+        # Use Django's password hasher for secure comparison with history
+        from django.contrib.auth.hashers import make_password, check_password
+        password_to_hash = make_password(new_password, salt=None)
+        recent_passwords = PasswordHistory.objects.filter(user=self.user).order_by(
+            "-created_at"
         )[:5]
 
-        if password_hash in recent_passwords:
-            errors.append("You cannot reuse a recent password")
+        # Check against stored hashed passwords using constant-time comparison
+        for history in recent_passwords:
+            if check_password(new_password, history.password_hash):
+                errors.append("You cannot reuse a recent password")
+                break
 
         if errors:
             raise ValidationError(errors)
@@ -303,8 +308,10 @@ class CustomPasswordChangeForm(forms.Form):
         return confirm_password
 
     def save(self):
+        from django.contrib.auth.hashers import make_password
         new_password = self.cleaned_data["new_password"]
-        password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+        # Use Django's password hasher with random salt for secure storage
+        password_hash = make_password(new_password, salt=None)
 
         # Save to password history
         PasswordHistory.objects.create(user=self.user, password_hash=password_hash)

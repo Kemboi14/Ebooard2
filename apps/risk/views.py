@@ -50,7 +50,7 @@ class RiskListView(LoginRequiredMixin, BranchOrganizationFilterMixin, ListView):
     def get_queryset(self):
         """Filter risks based on user role and permissions"""
         user = self.request.user
-        queryset = Risk.objects.select_related("risk_owner", "assigned_to", "branch")
+        queryset = Risk.objects.select_related("risk_owner", "assigned_to", "category", "identified_by")
 
         # Organization and branch filtering
         queryset = self.filter_queryset_by_branch(queryset)
@@ -701,7 +701,7 @@ class ComplianceRequirementListView(LoginRequiredMixin, BranchOrganizationFilter
     ordering = ['priority', '-compliance_score']
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related("branch")
+        queryset = super().get_queryset().select_related("compliance_owner")
         # Organization and branch filtering
         queryset = self.filter_queryset_by_branch(queryset)
         return queryset
@@ -727,9 +727,7 @@ class ComplianceAuditListView(LoginRequiredMixin, BranchOrganizationFilterMixin,
     ordering = ['-audit_date']
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related("requirement", "requirement__branch")
-        # Organization and branch filtering
-        queryset = self.filter_queryset_by_branch(queryset, branch_field='requirement__branch')
+        queryset = super().get_queryset().select_related("requirement", "requirement__compliance_owner")
         return queryset
 
 
@@ -830,6 +828,35 @@ class ComplianceArchiveDetailView(LoginRequiredMixin, DetailView):
     model = ComplianceArchive
     template_name = 'risk/compliance_archive_detail.html'
     context_object_name = 'archive'
+
+
+class ComplianceArchiveCreateView(LoginRequiredMixin, CreateView):
+    """Create a new compliance archive record"""
+    model = ComplianceArchive
+    template_name = 'risk/compliance_archive_form.html'
+    fields = ['record_type', 'original_record_id', 'record_title', 'compliance_category',
+              'compliance_period_start', 'compliance_period_end', 'archived_data',
+              'archive_reason', 'retention_period_years', 'expires_at']
+    success_url = reverse_lazy('risk:compliance_archives')
+
+    def form_valid(self, form):
+        form.instance.archived_by = self.request.user
+        messages.success(self.request, 'Compliance archive created successfully.')
+        return super().form_valid(form)
+
+
+class ComplianceArchiveUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a compliance archive record"""
+    model = ComplianceArchive
+    template_name = 'risk/compliance_archive_form.html'
+    fields = ['record_type', 'record_title', 'compliance_category',
+              'compliance_period_start', 'compliance_period_end',
+              'archive_reason', 'retention_period_years', 'expires_at', 'archive_status']
+    success_url = reverse_lazy('risk:compliance_archives')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Compliance archive updated successfully.')
+        return super().form_valid(form)
 
 
 # ============================================================================

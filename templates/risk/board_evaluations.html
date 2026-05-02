@@ -1,0 +1,97 @@
+{% extends "base/base.html" %}
+
+{% block title %}Board Evaluations{% endblock %}
+
+{% block page_title %}Board Evaluations{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold" style="color:#2d1b5e;">Board Evaluations</h2>
+      {% if user.role == 'it_administrator' or user.role == 'company_secretary' %}
+      <a href="{% url 'risk:board_evaluation_create' %}"
+         class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        New Evaluation
+      </a>
+      {% endif %}
+    </div>
+
+    {% if evaluations %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overall Score</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for evaluation in evaluations %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ evaluation.title }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">{{ evaluation.get_evaluation_type_display }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">
+              {{ evaluation.evaluation_period_start }} – {{ evaluation.evaluation_period_end }}
+            </td>
+            <td class="px-6 py-4 text-sm">
+              {% if evaluation.status == 'approved' %}
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>
+              {% elif evaluation.status == 'completed' %}
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Completed</span>
+              {% elif evaluation.status == 'in_progress' %}
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">In Progress</span>
+              {% elif evaluation.status == 'reviewed' %}
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Reviewed</span>
+              {% else %}
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Draft</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-600">
+              {% if evaluation.overall_score %}{{ evaluation.overall_score }}%{% else %}—{% endif %}
+            </td>
+            <td class="px-6 py-4 text-sm">
+              <a href="{% url 'risk:board_evaluation_detail' evaluation.pk %}" class="text-indigo-600 hover:text-indigo-900">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if is_paginated %}
+    <div class="mt-4 flex justify-center gap-2">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 rounded border text-sm text-gray-600 hover:bg-gray-100">Previous</a>
+      {% endif %}
+      <span class="px-3 py-1 text-sm text-gray-600">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 rounded border text-sm text-gray-600 hover:bg-gray-100">Next</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-sm mb-4">No board evaluations found.</p>
+      {% if user.role == 'it_administrator' or user.role == 'company_secretary' %}
+      <a href="{% url 'risk:board_evaluation_create' %}"
+         class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+         style="background:#7dc143;"
+         onmouseover="this.style.backgroundColor='#5a8a3c'"
+         onmouseout="this.style.backgroundColor='#7dc143'">
+        Create First Evaluation
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

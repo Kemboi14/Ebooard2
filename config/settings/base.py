@@ -204,22 +204,17 @@ except ImportError:
 SESSION_COOKIE_AGE = config("SESSION_COOKIE_AGE", default=180, cast=int)  # 3 minutes
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# CSRF Settings - temporarily disabled for development
+# CSRF and Session Security Settings - Enabled for production
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
     default="http://localhost:8000,http://127.0.0.1:8000",
     cast=Csv(),
 )
-CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = "Lax"
-
-# Temporarily disable CSRF for development
-CSRF_USE_SESSIONS = False
-CSRF_COOKIE_SECURE = False
-
-# Session Settings
-SESSION_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = True
+SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 

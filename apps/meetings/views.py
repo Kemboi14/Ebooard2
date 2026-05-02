@@ -1236,9 +1236,8 @@ class AnnualMeetingCreateView(LoginRequiredMixin, CreateView):
     """Create a new annual meeting"""
     model = AnnualMeeting
     template_name = 'meetings/annual_meeting_form.html'
-    fields = ['year', 'organization', 'meeting', 'statutory_deadline', 'compliance_status', 
-              'audit_report_submitted', 'financial_statements_submitted', 'directors_report_submitted',
-              'notes', 'attendance_tracking_method']
+    fields = ['year', 'organization', 'meeting', 'required_by_date', 'compliance_status',
+              'compliance_notes', 'statutory_requirements']
     success_url = reverse_lazy('meetings:annual_meetings')
     
     def form_valid(self, form):
@@ -1250,9 +1249,8 @@ class AnnualMeetingUpdateView(LoginRequiredMixin, UpdateView):
     """Update an annual meeting"""
     model = AnnualMeeting
     template_name = 'meetings/annual_meeting_form.html'
-    fields = ['organization', 'meeting', 'statutory_deadline', 'compliance_status', 
-              'audit_report_submitted', 'financial_statements_submitted', 'directors_report_submitted',
-              'notes', 'attendance_tracking_method']
+    fields = ['organization', 'meeting', 'required_by_date', 'actual_date', 'compliance_status',
+              'compliance_notes', 'statutory_requirements', 'requirements_met', 'resolutions_passed', 'key_decisions']
     success_url = reverse_lazy('meetings:annual_meetings')
     
     def form_valid(self, form):

@@ -391,7 +391,7 @@ class PolicyExpiryMonitorCreateView(LoginRequiredMixin, CreateView):
     """Create a new policy expiry monitor"""
     model = PolicyExpiryMonitor
     template_name = 'policy/policy_expiry_monitor_form.html'
-    fields = ['policy', 'expiry_date', 'warning_days', 'notification_recipients', 'is_active']
+    fields = ['policy', 'expiry_date', 'action_taken', 'is_resolved', 'resolution_notes']
     success_url = reverse_lazy('policy:policy_expiry_monitors')
     
     def form_valid(self, form):
@@ -403,7 +403,7 @@ class PolicyExpiryMonitorUpdateView(LoginRequiredMixin, UpdateView):
     """Update a policy expiry monitor"""
     model = PolicyExpiryMonitor
     template_name = 'policy/policy_expiry_monitor_form.html'
-    fields = ['expiry_date', 'warning_days', 'notification_recipients', 'is_active', 'status', 'archive_status']
+    fields = ['expiry_date', 'action_taken', 'is_resolved', 'resolution_notes']
     success_url = reverse_lazy('policy:policy_expiry_monitors')
     
     def form_valid(self, form):

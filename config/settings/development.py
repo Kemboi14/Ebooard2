@@ -36,3 +36,6 @@ CSRF_COOKIE_NAME = "csrftoken_dev"
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+
+# Disable MFA requirement in development so login works without TOTP setup
+MFA_REQUIRED_ROLES = []

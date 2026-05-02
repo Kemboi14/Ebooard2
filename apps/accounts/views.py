@@ -132,7 +132,7 @@ def enable_2fa(request):
     # Create new TOTP device
     device = TOTPDevice.objects.create(
         user=user,
-        name=f"{user.username}'s Device",
+        name=f"{user.get_full_name() or user.email}'s Device",
         confirmed=False
     )
     
@@ -476,7 +476,7 @@ class CommitteeCreateView(LoginRequiredMixin, CreateView):
     """Create a new committee"""
     model = Committee
     template_name = 'accounts/committee_form.html'
-    fields = ['name', 'description', 'committee_type', 'is_active', 'meeting_frequency']
+    fields = ['name', 'description', 'meeting_type', 'is_active', 'meeting_frequency']
     success_url = reverse_lazy('accounts:committees')
     
     def form_valid(self, form):
@@ -488,7 +488,7 @@ class CommitteeUpdateView(LoginRequiredMixin, UpdateView):
     """Update a committee"""
     model = Committee
     template_name = 'accounts/committee_form.html'
-    fields = ['name', 'description', 'committee_type', 'is_active', 'meeting_frequency']
+    fields = ['name', 'description', 'meeting_type', 'is_active', 'meeting_frequency']
     success_url = reverse_lazy('accounts:committees')
     
     def form_valid(self, form):
@@ -519,7 +519,7 @@ class CommitteeMembershipCreateView(LoginRequiredMixin, CreateView):
     """Add a member to a committee"""
     model = CommitteeMembership
     template_name = 'accounts/committee_membership_form.html'
-    fields = ['committee', 'user', 'role', 'has_voting_rights', 'is_chair', 'joined_at']
+    fields = ['committee', 'user', 'role', 'has_voting_rights']
     success_url = reverse_lazy('accounts:committee_memberships')
     
     def form_valid(self, form):
@@ -531,7 +531,7 @@ class CommitteeMembershipUpdateView(LoginRequiredMixin, UpdateView):
     """Update committee membership"""
     model = CommitteeMembership
     template_name = 'accounts/committee_membership_form.html'
-    fields = ['role', 'has_voting_rights', 'is_chair', 'left_at']
+    fields = ['role', 'has_voting_rights', 'left_at']
     success_url = reverse_lazy('accounts:committee_memberships')
     
     def form_valid(self, form):

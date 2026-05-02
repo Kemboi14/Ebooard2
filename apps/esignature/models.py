@@ -255,9 +255,12 @@ class SignableDocument(models.Model):
     # ------------------------------------------------------------------
 
     def _generate_reference(self):
+        """Generate a unique reference number using UUID to avoid race conditions."""
+        import uuid
         year = timezone.now().year
-        seq = SignableDocument.objects.filter(created_at__year=year).count() + 1
-        return f"ESIG-{year}-{seq:05d}"
+        # Use UUID4 for collision-resistant unique identifier
+        unique_id = uuid.uuid4().hex[:8].upper()
+        return f"ESIG-{year}-{unique_id}"
 
     def save(self, *args, **kwargs):
         if not self.reference_number:

@@ -898,6 +898,11 @@ class RetentionPolicyListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(status='active')
         return queryset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['can_manage'] = self.request.user.role in MANAGE_DOCUMENTS
+        return context
+
 
 class RetentionPolicyDetailView(LoginRequiredMixin, DetailView):
     """View retention policy details"""
@@ -946,6 +951,11 @@ class ArchiveRecordListView(LoginRequiredMixin, ListView):
         if self.request.user.role not in MANAGE_DOCUMENTS:
             queryset = queryset.filter(archived_by=self.request.user)
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['can_manage'] = self.request.user.role in MANAGE_DOCUMENTS
+        return context
 
 
 class ArchiveRecordDetailView(LoginRequiredMixin, DetailView):

@@ -1,0 +1,133 @@
+{% extends "base/base.html" %}
+
+{% block title %}{% if object %}Edit Board Evaluation{% else %}New Board Evaluation{% endif %}{% endblock %}
+
+{% block page_title %}{% if object %}Edit Board Evaluation{% else %}New Board Evaluation{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h2 class="text-xl font-semibold mb-6" style="color:#2d1b5e;">
+      {% if object %}Edit Board Evaluation{% else %}Create Board Evaluation{% endif %}
+    </h2>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.errors %}
+      <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-red-700 font-medium text-sm">Please correct the errors below.</p>
+      </div>
+      {% endif %}
+
+      <!-- Basic Details -->
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 pb-1 border-b">Evaluation Details</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="{{ form.evaluation_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.evaluation_type.label }} <span class="text-red-500">*</span>
+            </label>
+            {{ form.evaluation_type }}
+            {% if form.evaluation_type.errors %}<p class="mt-1 text-sm text-red-600">{{ form.evaluation_type.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.title.label }} <span class="text-red-500">*</span>
+            </label>
+            {{ form.title }}
+            {% if form.title.errors %}<p class="mt-1 text-sm text-red-600">{{ form.title.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.evaluation_period_start.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.evaluation_period_start.label }} <span class="text-red-500">*</span>
+            </label>
+            {{ form.evaluation_period_start }}
+            {% if form.evaluation_period_start.errors %}<p class="mt-1 text-sm text-red-600">{{ form.evaluation_period_start.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.evaluation_period_end.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.evaluation_period_end.label }} <span class="text-red-500">*</span>
+            </label>
+            {{ form.evaluation_period_end }}
+            {% if form.evaluation_period_end.errors %}<p class="mt-1 text-sm text-red-600">{{ form.evaluation_period_end.errors|join:", " }}</p>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Assessment -->
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 pb-1 border-b">Assessment</h3>
+        <div class="space-y-4">
+          <div>
+            <label for="{{ form.summary.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.summary.label }} <span class="text-red-500">*</span></label>
+            {{ form.summary }}
+            {% if form.summary.errors %}<p class="mt-1 text-sm text-red-600">{{ form.summary.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.strengths.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.strengths.label }}</label>
+            {{ form.strengths }}
+            {% if form.strengths.errors %}<p class="mt-1 text-sm text-red-600">{{ form.strengths.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.areas_for_improvement.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.areas_for_improvement.label }}</label>
+            {{ form.areas_for_improvement }}
+            {% if form.areas_for_improvement.errors %}<p class="mt-1 text-sm text-red-600">{{ form.areas_for_improvement.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.recommendations.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.recommendations.label }}</label>
+            {{ form.recommendations }}
+            {% if form.recommendations.errors %}<p class="mt-1 text-sm text-red-600">{{ form.recommendations.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.composition_assessment.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.composition_assessment.label }}</label>
+            {{ form.composition_assessment }}
+            {% if form.composition_assessment.errors %}<p class="mt-1 text-sm text-red-600">{{ form.composition_assessment.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.independence_assessment.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.independence_assessment.label }}</label>
+            {{ form.independence_assessment }}
+            {% if form.independence_assessment.errors %}<p class="mt-1 text-sm text-red-600">{{ form.independence_assessment.errors|join:", " }}</p>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Governance Scores -->
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 pb-1 border-b">Governance Scores (0–100)</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="{{ form.governance_effectiveness.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.governance_effectiveness.label }}</label>
+            {{ form.governance_effectiveness }}
+            {% if form.governance_effectiveness.errors %}<p class="mt-1 text-sm text-red-600">{{ form.governance_effectiveness.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.strategic_oversight.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.strategic_oversight.label }}</label>
+            {{ form.strategic_oversight }}
+            {% if form.strategic_oversight.errors %}<p class="mt-1 text-sm text-red-600">{{ form.strategic_oversight.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.risk_management.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.risk_management.label }}</label>
+            {{ form.risk_management }}
+            {% if form.risk_management.errors %}<p class="mt-1 text-sm text-red-600">{{ form.risk_management.errors|join:", " }}</p>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="submit"
+                class="px-5 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if object %}Save Changes{% else %}Create Evaluation{% endif %}
+        </button>
+        <a href="{% url 'risk:board_evaluations' %}"
+           class="px-5 py-2 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

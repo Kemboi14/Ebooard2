@@ -45,7 +45,9 @@ urlpatterns = [
     
     # Compliance Archive
     path('compliance-archives/', views.ComplianceArchiveListView.as_view(), name='compliance_archives'),
+    path('compliance-archives/create/', views.ComplianceArchiveCreateView.as_view(), name='compliance_archive_create'),
     path('compliance-archives/<uuid:pk>/', views.ComplianceArchiveDetailView.as_view(), name='compliance_archive_detail'),
+    path('compliance-archives/<uuid:pk>/update/', views.ComplianceArchiveUpdateView.as_view(), name='compliance_archive_update'),
     
     # Compliance Attendance
     path('compliance-attendance/', views.ComplianceAttendanceListView.as_view(), name='compliance_attendance'),

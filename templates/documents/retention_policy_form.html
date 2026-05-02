@@ -1,0 +1,158 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if object %}Edit Retention Policy{% else %}New Retention Policy{% endif %}{% endblock %}
+
+{% block page_title %}{% if object %}Edit Retention Policy{% else %}New Retention Policy{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class="text-2xl font-bold" style="color: #2d1b5e;">
+      {% if object %}Edit: {{ object.name }}{% else %}Create Retention Policy{% endif %}
+    </h1>
+    <a href="{% url 'documents:retention_policies' %}"
+       class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+      &larr; Back to Policies
+    </a>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm p-8">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Basic Info -->
+      <h2 class="text-base font-semibold mb-4" style="color:#2d1b5e;">Policy Details</h2>
+      <div class="grid grid-cols-1 gap-5 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.name.label }}</label>
+          {{ form.name }}
+          {% if form.name.errors %}<p class="mt-1 text-xs text-red-600">{{ form.name.errors|join:", " }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.description.label }}</label>
+          {{ form.description }}
+          {% if form.description.errors %}<p class="mt-1 text-xs text-red-600">{{ form.description.errors|join:", " }}</p>{% endif %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.policy_type.label }}</label>
+            {{ form.policy_type }}
+            {% if form.policy_type.errors %}<p class="mt-1 text-xs text-red-600">{{ form.policy_type.errors|join:", " }}</p>{% endif %}
+          </div>
+          {% if form.status %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.status.label }}</label>
+            {{ form.status }}
+            {% if form.status.errors %}<p class="mt-1 text-xs text-red-600">{{ form.status.errors|join:", " }}</p>{% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Retention Period -->
+      <h2 class="text-base font-semibold mb-4 pt-4 border-t border-gray-100" style="color:#2d1b5e;">Retention Period</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.retention_period_years.label }}</label>
+          {{ form.retention_period_years }}
+          {% if form.retention_period_years.errors %}<p class="mt-1 text-xs text-red-600">{{ form.retention_period_years.errors|join:", " }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.retention_period_days.label }}</label>
+          {{ form.retention_period_days }}
+          {% if form.retention_period_days.errors %}<p class="mt-1 text-xs text-red-600">{{ form.retention_period_days.errors|join:", " }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.retention_action.label }}</label>
+          {{ form.retention_action }}
+          {% if form.retention_action.errors %}<p class="mt-1 text-xs text-red-600">{{ form.retention_action.errors|join:", " }}</p>{% endif %}
+        </div>
+      </div>
+
+      <!-- Criteria -->
+      <h2 class="text-base font-semibold mb-4 pt-4 border-t border-gray-100" style="color:#2d1b5e;">Criteria</h2>
+      <div class="grid grid-cols-1 gap-5 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.apply_to_categories.label }}</label>
+          {{ form.apply_to_categories }}
+          {% if form.apply_to_categories.errors %}<p class="mt-1 text-xs text-red-600">{{ form.apply_to_categories.errors|join:", " }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.apply_to_tags.label }}</label>
+          {{ form.apply_to_tags }}
+          <p class="mt-1 text-xs text-gray-400">JSON list of tag names, e.g. ["finance", "hr"]</p>
+          {% if form.apply_to_tags.errors %}<p class="mt-1 text-xs text-red-600">{{ form.apply_to_tags.errors|join:", " }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.custom_criteria.label }}</label>
+          {{ form.custom_criteria }}
+          <p class="mt-1 text-xs text-gray-400">JSON object with custom filtering criteria</p>
+          {% if form.custom_criteria.errors %}<p class="mt-1 text-xs text-red-600">{{ form.custom_criteria.errors|join:", " }}</p>{% endif %}
+        </div>
+      </div>
+
+      <!-- Compliance & Options -->
+      <h2 class="text-base font-semibold mb-4 pt-4 border-t border-gray-100" style="color:#2d1b5e;">Compliance &amp; Options</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.compliance_framework.label }}</label>
+          {{ form.compliance_framework }}
+          <p class="mt-1 text-xs text-gray-400">e.g. GDPR, SOX, HIPAA</p>
+          {% if form.compliance_framework.errors %}<p class="mt-1 text-xs text-red-600">{{ form.compliance_framework.errors|join:", " }}</p>{% endif %}
+        </div>
+        <div class="flex flex-col gap-4 justify-center pt-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            {{ form.apply_immediately }}
+            <span class="text-sm text-gray-700">{{ form.apply_immediately.label }}</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            {{ form.legal_hold }}
+            <span class="text-sm text-gray-700">{{ form.legal_hold.label }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <h2 class="text-base font-semibold mb-4 pt-4 border-t border-gray-100" style="color:#2d1b5e;">Notifications</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+        <div class="flex items-center gap-2">
+          {{ form.notify_before_action }}
+          <label class="text-sm text-gray-700 cursor-pointer">{{ form.notify_before_action.label }}</label>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.notify_days_before.label }}</label>
+          {{ form.notify_days_before }}
+          {% if form.notify_days_before.errors %}<p class="mt-1 text-xs text-red-600">{{ form.notify_days_before.errors|join:", " }}</p>{% endif %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.notify_users.label }}</label>
+          {{ form.notify_users }}
+          {% if form.notify_users.errors %}<p class="mt-1 text-xs text-red-600">{{ form.notify_users.errors|join:", " }}</p>{% endif %}
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+        <a href="{% url 'documents:retention_policies' %}"
+           class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          Cancel
+        </a>
+        <button type="submit"
+                class="px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200"
+                style="background:#7dc143;"
+                onmouseover="this.style.backgroundColor='#5a8a3c'"
+                onmouseout="this.style.backgroundColor='#7dc143'">
+          {% if object %}Save Changes{% else %}Create Policy{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Retention Policies{% endblock %}
+
+{% block page_title %}Retention Policies{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8 flex justify-between items-center">
+    <h1 class="text-2xl font-bold" style="color: #2d1b5e;">Document Retention Policies</h1>
+    {% if can_manage %}
+    <a href="{% url 'documents:retention_policy_create' %}"
+       class="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+       style="background:#7dc143;"
+       onmouseover="this.style.backgroundColor='#5a8a3c'"
+       onmouseout="this.style.backgroundColor='#7dc143'">
+      + New Policy
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Policies Table -->
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    {% if policies %}
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead style="background-color:#f5f3ff;">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Name</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Type</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Retention Period</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Action</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Compliance</th>
+          <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-100">
+        {% for policy in policies %}
+        <tr class="hover:bg-gray-50 transition-colors duration-150">
+          <td class="px-6 py-4">
+            <div class="text-sm font-medium text-gray-900">{{ policy.name }}</div>
+            {% if policy.description %}
+            <div class="text-xs text-gray-500 mt-0.5 truncate max-w-xs">{{ policy.description }}</div>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">{{ policy.get_policy_type_display }}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">
+            {% if policy.retention_period_years %}{{ policy.retention_period_years }} yr{% if policy.retention_period_years != 1 %}s{% endif %}{% endif %}
+            {% if policy.retention_period_years and policy.retention_period_days %} + {% endif %}
+            {% if policy.retention_period_days %}{{ policy.retention_period_days }} day{% if policy.retention_period_days != 1 %}s{% endif %}{% endif %}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">{{ policy.get_retention_action_display }}</td>
+          <td class="px-6 py-4">
+            {% if policy.status == 'active' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+            {% elif policy.status == 'draft' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Draft</span>
+            {% elif policy.status == 'suspended' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Suspended</span>
+            {% else %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{{ policy.get_status_display }}</span>
+            {% endif %}
+            {% if policy.legal_hold %}
+              <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">Legal Hold</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">{{ policy.compliance_framework|default:"—" }}</td>
+          <td class="px-6 py-4 text-right text-sm font-medium space-x-2">
+            <a href="{% url 'documents:retention_policy_detail' policy.pk %}" class="text-indigo-600 hover:text-indigo-900">View</a>
+            {% if can_manage %}
+            <a href="{% url 'documents:retention_policy_update' policy.pk %}" class="text-green-600 hover:text-green-900">Edit</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-16 px-4">
+      <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 class="mt-4 text-sm font-medium text-gray-900">No retention policies</h3>
+      <p class="mt-1 text-sm text-gray-500">
+        {% if can_manage %}Get started by creating a new retention policy.{% else %}No active retention policies found.{% endif %}
+      </p>
+      {% if can_manage %}
+      <div class="mt-6">
+        <a href="{% url 'documents:retention_policy_create' %}"
+           class="inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium"
+           style="background:#7dc143;">
+          + New Policy
+        </a>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

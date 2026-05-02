@@ -19,11 +19,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
 
 urlpatterns = [
+    path("", RedirectView.as_view(url="/dashboard/", permanent=False)),
     path("admin/", admin.site.urls),
     path("auth/", include("apps.accounts.urls")),
-    path("", include("apps.dashboard.urls")),
+    path("dashboard/", include("apps.dashboard.urls")),
     path("agencies/", include("apps.agencies.urls")),
     path("esignature/", include("apps.esignature.urls")),
     path("meetings/", include("apps.meetings.urls")),
@@ -41,8 +43,6 @@ urlpatterns = [
     path("recordings/", include("apps.recordings.urls")),
     path("survey/", include("apps.survey.urls")),
     path("messaging/", include("apps.messaging.urls")),
-    path("legacy-admin/esignature/", include("apps.esignature.urls")),
-    path("legacy-admin/meetings/", include("apps.meetings.urls")),
 ]
 
 # Serve media files during development

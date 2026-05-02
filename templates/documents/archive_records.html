@@ -1,0 +1,101 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Archive Records{% endblock %}
+
+{% block page_title %}Archive Records{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8 flex justify-between items-center">
+    <h1 class="text-2xl font-bold" style="color: #2d1b5e;">Document Archive Records</h1>
+  </div>
+
+  <!-- Records Table -->
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    {% if archives %}
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead style="background-color:#f5f3ff;">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Document</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Retention Policy</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Archived By</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Archived At</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Expires At</th>
+          <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style="color:#2d1b5e;">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-100">
+        {% for archive in archives %}
+        <tr class="hover:bg-gray-50 transition-colors duration-150">
+          <td class="px-6 py-4">
+            {% if archive.document %}
+              <div class="text-sm font-medium text-gray-900">{{ archive.document.title }}</div>
+            {% else %}
+              <div class="text-sm text-gray-400 italic">Document removed</div>
+            {% endif %}
+            {% if archive.archive_location %}
+              <div class="text-xs text-gray-400 mt-0.5 truncate max-w-xs">{{ archive.archive_location }}</div>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            {% if archive.archive_status == 'completed' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span>
+            {% elif archive.archive_status == 'pending' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+            {% elif archive.archive_status == 'in_progress' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">In Progress</span>
+            {% elif archive.archive_status == 'restored' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Restored</span>
+            {% elif archive.archive_status == 'failed' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Failed</span>
+            {% else %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ archive.get_archive_status_display }}</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">
+            {% if archive.retention_policy %}
+              <a href="{% url 'documents:retention_policy_detail' archive.retention_policy.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                {{ archive.retention_policy.name }}
+              </a>
+            {% else %}
+              <span class="text-gray-400">—</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">
+            {% if archive.archived_by %}{{ archive.archived_by.get_full_name|default:archive.archived_by.email }}{% else %}—{% endif %}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-500">{{ archive.archived_at|date:"N j, Y" }}</td>
+          <td class="px-6 py-4 text-sm text-gray-500">
+            {% if archive.expires_at %}{{ archive.expires_at|date:"N j, Y" }}{% else %}—{% endif %}
+          </td>
+          <td class="px-6 py-4 text-right text-sm font-medium space-x-2">
+            <a href="{% url 'documents:archive_record_detail' archive.pk %}" class="text-indigo-600 hover:text-indigo-900">View</a>
+            {% if can_manage and archive.archive_status == 'completed' and archive.document %}
+            <form method="post" action="{% url 'documents:restore_document' archive.pk %}" class="inline">
+              {% csrf_token %}
+              <button type="submit" class="text-green-600 hover:text-green-900"
+                      onclick="return confirm('Restore this document from archive?')">
+                Restore
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-16 px-4">
+      <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+      </svg>
+      <h3 class="mt-4 text-sm font-medium text-gray-900">No archive records</h3>
+      <p class="mt-1 text-sm text-gray-500">Archived documents will appear here.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
