@@ -50,10 +50,7 @@ class ForumListView(LoginRequiredMixin, BranchOrganizationFilterMixin, ListView)
         user = self.request.user
         queryset = DiscussionForum.objects.select_related("created_by")
 
-        # Organization and branch filtering
-        queryset = self.filter_queryset_by_branch(queryset)
-
-        # Role-based filtering within branch context
+        # Role-based filtering
         if user.role in ["company_secretary", "it_administrator"]:
             return queryset.filter(is_active=True).order_by("order", "name")
         else:

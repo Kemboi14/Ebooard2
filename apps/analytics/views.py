@@ -1044,16 +1044,12 @@ class ComplianceScorecardListView(LoginRequiredMixin, BranchOrganizationFilterMi
         queryset = super().get_queryset().select_related("reviewed_by")
         user = self.request.user
 
-        # Organization and branch filtering
-        queryset = self.filter_queryset_by_branch(queryset)
-
-        # Role-based filtering within branch context
+        # Role-based filtering
         if user.role == "it_administrator":
             pass  # See all scorecards
         elif user.role in ['company_secretary', 'compliance_officer']:
-            pass  # See all scorecards in their branches
-        else:
-            queryset = queryset.filter(is_public=True)
+            pass  # See all scorecards
+        # All other roles see all scorecards (no is_public field on model)
         return queryset
 
 
@@ -1197,15 +1193,17 @@ class CustomReportListView(LoginRequiredMixin, BranchOrganizationFilterMixin, Li
         user = self.request.user
 
         # Organization and branch filtering
-        # Custom reports are created by users, filter by created_by's branch
-        branch_ids = self.get_user_branch_ids()
-        if branch_ids:
-            queryset = queryset.filter(
-                Q(created_by__userbranchmembership__branch_id__in=branch_ids) |
-                Q(is_public=True)
-            ).distinct()
-        elif user.role != "it_administrator":
-            queryset = queryset.filter(is_public=True)
+        # Custom reports are created by users; non-admins see only their own reports
+        if user.role == "it_administrator":
+            pass  # See all reports
+        else:
+            branch_ids = self.get_user_branch_ids()
+            if branch_ids:
+                queryset = queryset.filter(
+                    created_by__userbranchmembership__branch_id__in=branch_ids
+                ).distinct()
+            else:
+                queryset = queryset.filter(created_by=user)
         return queryset
 
 
@@ -1295,7 +1293,7 @@ class AnalyticsWidgetListView(LoginRequiredMixin, ListView):
     model = AnalyticsWidget
     template_name = 'analytics/widget_list.html'
     context_object_name = 'widgets'
-    ordering = ['dashboard', 'order']
+    ordering = ['dashboard', 'position_y', 'position_x']
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -1310,8 +1308,8 @@ class AnalyticsWidgetCreateView(LoginRequiredMixin, CreateView):
     """Create a new analytics widget"""
     model = AnalyticsWidget
     template_name = 'analytics/widget_form.html'
-    fields = ['dashboard', 'metric', 'widget_type', 'title', 'order', 'is_visible', 'is_pinned', 
-              'show_insights', 'insight_config', 'visualization_settings']
+    fields = ['dashboard', 'metric', 'widget_type', 'title', 'position_x', 'position_y', 'width', 'height', 'is_visible', 'is_pinned', 
+              'show_insights', 'insight_config', 'chart_config', 'data_config']
     success_url = reverse_lazy('analytics:widgets')
     
     def form_valid(self, form):

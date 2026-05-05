@@ -49,16 +49,37 @@ class RiskListView(LoginRequiredMixin, BranchOrganizationFilterMixin, ListView):
 
     def get_queryset(self):
         """Filter risks based on user role and permissions"""
+        from apps.agencies.models import UserBranchMembership
+
         user = self.request.user
         queryset = Risk.objects.select_related("risk_owner", "assigned_to", "category", "identified_by")
 
-        # Organization and branch filtering
-        queryset = self.filter_queryset_by_branch(queryset)
-
-        # Role-based filtering within branch context
+        # IT admins see everything
         if user.role == "it_administrator":
             return queryset
-        elif user.role == "compliance_officer":
+
+        # For all other roles, scope to users who share a branch with the current user.
+        # Risk has no direct branch FK, so we filter via the people who own/are assigned
+        # to the risk being members of the same branches as the logged-in user.
+        branch_ids = list(
+            UserBranchMembership.objects.filter(user=user, is_active=True)
+            .values_list("branch_id", flat=True)
+        )
+
+        if branch_ids:
+            branch_user_ids = list(
+                UserBranchMembership.objects.filter(branch_id__in=branch_ids, is_active=True)
+                .values_list("user_id", flat=True)
+                .distinct()
+            )
+            queryset = queryset.filter(
+                Q(risk_owner_id__in=branch_user_ids)
+                | Q(assigned_to_id__in=branch_user_ids)
+                | Q(identified_by_id__in=branch_user_ids)
+            )
+
+        # Role-based filtering within that scoped queryset
+        if user.role == "compliance_officer":
             return queryset  # Compliance officers see all risks in their branches
         elif user.role == "executive_management":
             return queryset.filter(
@@ -573,9 +594,6 @@ class ConflictOfInterestListView(LoginRequiredMixin, BranchOrganizationFilterMix
         queryset = super().get_queryset().select_related("declarant")
         user = self.request.user
 
-        # Organization and branch filtering
-        queryset = self.filter_queryset_by_branch(queryset, branch_field='branch')
-
         if user.role not in MANAGE_RISK:
             queryset = queryset.filter(declarant=user)
         return queryset
@@ -632,9 +650,6 @@ class WhistleblowerReportListView(LoginRequiredMixin, BranchOrganizationFilterMi
     def get_queryset(self):
         queryset = super().get_queryset().select_related("assigned_to")
         user = self.request.user
-
-        # Organization and branch filtering
-        queryset = self.filter_queryset_by_branch(queryset, branch_field='branch')
 
         if user.role not in MANAGE_RISK:
             queryset = queryset.filter(assigned_to=user)
@@ -702,8 +717,6 @@ class ComplianceRequirementListView(LoginRequiredMixin, BranchOrganizationFilter
 
     def get_queryset(self):
         queryset = super().get_queryset().select_related("compliance_owner")
-        # Organization and branch filtering
-        queryset = self.filter_queryset_by_branch(queryset)
         return queryset
 
 

@@ -39,11 +39,11 @@ class PolicyListView(LoginRequiredMixin, BranchOrganizationFilterMixin, ListView
             if branch_ids:
                 queryset = queryset.filter(
                     Q(policy_owner__userbranchmembership__branch_id__in=branch_ids) |
-                    Q(category__access_level='public')
+                    Q(access_level='public')
                 ).distinct()
         else:
             # Other roles see only public policies
-            queryset = queryset.filter(status='published', category__access_level='public')
+            queryset = queryset.filter(status='published', access_level='public')
 
         # Apply search filter
         search = self.request.GET.get('search')
@@ -294,9 +294,9 @@ class CategoryListView(LoginRequiredMixin, BranchOrganizationFilterMixin, ListVi
         if user.role == "it_administrator":
             return queryset
         elif user.role in CAN_MANAGE_POLICIES:
-            return queryset.filter(is_active=True)
+            return queryset
         else:
-            return queryset.filter(is_active=True, is_public=True)
+            return queryset
 
 class CategoryCreateView(LoginRequiredMixin, CreateView):
     """Create a new policy category"""
